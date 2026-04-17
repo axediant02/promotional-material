@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Controllers\Api\Client;
+
+use App\Http\Controllers\Controller;
+use App\Models\Folder;
+use App\Models\MediaFile;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+
+class DashboardController extends Controller
+{
+    public function show(): JsonResponse
+    {
+        /** @var User $user */
+        $user = request()->user();
+
+        $folders = FolderController::accessibleFoldersQuery($user)
+            ->latest('updated_at')
+            ->limit($user->isClient() ? 1 : 12)
+            ->get();
+
+        $recentFiles = FileController::accessibleFilesQuery($user)
+            ->with('folder:id,name')
+            ->latest('updated_at')
+            ->limit(8)
+            ->get();
+
+        $stats = [
+            'folders' => FolderController::accessibleFoldersQuery($user)->count(),
+            'files' => FileController::accessibleFilesQuery($user)->count(),
+            'pendingClients' => $user->isProduction()
+                ? User::query()->pending()->where('role', User::ROLE_CLIENT)->count()
+                : 0,
+        ];
+
+        return response()->json([
+            'message' => 'Dashboard fetched.',
+            'data' => [
+                'user' => $user->load('assignedFolder'),
+                'stats' => $stats,
+                'folders' => $folders,
+                'recentFiles' => $recentFiles,
+            ],
+        ]);
+    }
+}
