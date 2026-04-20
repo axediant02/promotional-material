@@ -14,8 +14,9 @@ class UpdateFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'folder_id' => ['sometimes', 'exists:folders,id'],
-            'original_name' => ['sometimes', 'string', 'max:255'],
+            'folder_id' => ['sometimes', 'exists:folders,folder_id'],
+            'file_name' => ['sometimes', 'string', 'max:255'],
+            'category' => ['sometimes', 'in:image,video,pdf'],
         ];
     }
 }

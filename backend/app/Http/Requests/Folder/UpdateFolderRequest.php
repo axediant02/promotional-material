@@ -14,8 +14,8 @@ class UpdateFolderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'parent_id' => ['nullable', 'exists:folders,id'],
+            'folder_name' => ['sometimes', 'string', 'max:255'],
+            'client_id' => ['sometimes', 'exists:users,user_id'],
         ];
     }
 }

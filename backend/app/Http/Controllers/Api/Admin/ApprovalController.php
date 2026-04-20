@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ApprovalController extends Controller
 {
@@ -42,13 +41,12 @@ class ApprovalController extends Controller
 
         if ($validated['status'] === User::STATUS_APPROVED && ! $user->assigned_folder_id) {
             $folder = Folder::create([
-                'name' => $user->name,
-                'slug' => Str::slug($user->name.'-'.Str::lower(Str::random(5))),
-                'client_user_id' => $user->id,
-                'created_by' => $request->user()->id,
+                'folder_name' => $user->name,
+                'client_id' => $user->user_id,
+                'created_by' => $request->user()->user_id,
             ]);
 
-            $user->assigned_folder_id = $folder->id;
+            $user->assigned_folder_id = $folder->folder_id;
         }
 
         $user->save();

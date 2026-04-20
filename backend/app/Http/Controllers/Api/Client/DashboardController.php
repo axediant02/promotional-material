@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Folder;
-use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
@@ -21,7 +19,7 @@ class DashboardController extends Controller
             ->get();
 
         $recentFiles = FileController::accessibleFilesQuery($user)
-            ->with('folder:id,name')
+            ->with('folder:folder_id,folder_name')
             ->latest('updated_at')
             ->limit(8)
             ->get();

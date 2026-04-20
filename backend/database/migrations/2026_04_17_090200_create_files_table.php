@@ -9,17 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('files', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->uuid('file_id')->primary();
             $table->uuid('folder_id');
             $table->uuid('uploaded_by');
-            $table->string('original_name');
+            $table->string('file_name');
             $table->string('storage_disk')->default('local');
             $table->string('storage_path');
-            $table->string('mime_type')->nullable();
-            $table->unsignedBigInteger('size')->default(0);
+            $table->enum('category', ['image', 'video', 'pdf']);
             $table->timestamp('last_deleted_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('folder_id')->references('folder_id')->on('folders')->cascadeOnDelete();
+            $table->foreign('uploaded_by')->references('user_id')->on('users')->cascadeOnDelete();
         });
     }
 

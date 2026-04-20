@@ -9,16 +9,15 @@ use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
 
 class FolderController extends Controller
 {
     public static function accessibleFoldersQuery(User $user): Builder
     {
-        $query = Folder::query()->with('client:id,name,email', 'children:id,parent_id,name');
+        $query = Folder::query()->with('client:user_id,name,email');
 
         if ($user->isClient()) {
-            return $query->where('id', $user->assigned_folder_id);
+            return $query->where('folder_id', $user->assigned_folder_id);
         }
 
         return $query;
@@ -27,7 +26,7 @@ class FolderController extends Controller
     public function index(): JsonResponse
     {
         $folders = self::accessibleFoldersQuery(request()->user())
-            ->when(request('q'), fn (Builder $query, string $search) => $query->where('name', 'like', "%{$search}%"))
+            ->when(request('q'), fn (Builder $query, string $search) => $query->where('folder_name', 'like', "%{$search}%"))
             ->latest()
             ->get();
 
@@ -42,16 +41,14 @@ class FolderController extends Controller
         abort_unless($request->user()->isProduction(), 403);
 
         $folder = Folder::create([
-            'name' => $request->string('name')->toString(),
-            'slug' => Str::slug($request->string('name')->toString().'-'.Str::lower(Str::random(5))),
-            'parent_id' => $request->input('parent_id'),
-            'client_user_id' => $request->input('client_user_id'),
-            'created_by' => $request->user()->id,
+            'folder_name' => $request->string('folder_name')->toString(),
+            'client_id' => $request->string('client_id')->toString(),
+            'created_by' => $request->user()->user_id,
         ]);
 
         return response()->json([
             'message' => 'Folder created.',
-            'data' => ['folder' => $folder->load('client:id,name,email')],
+            'data' => ['folder' => $folder->load('client:user_id,name,email')],
         ], 201);
     }
 
@@ -62,7 +59,7 @@ class FolderController extends Controller
         return response()->json([
             'message' => 'Folder fetched.',
             'data' => [
-                'folder' => $folder->load('files', 'children'),
+                'folder' => $folder->load('files', 'clientRequests'),
             ],
         ]);
     }
@@ -72,9 +69,6 @@ class FolderController extends Controller
         abort_unless($request->user()->isProduction(), 403);
 
         $folder->fill($request->validated());
-        if ($request->filled('name')) {
-            $folder->slug = Str::slug($request->string('name')->toString().'-'.Str::lower(Str::random(5)));
-        }
         $folder->save();
 
         return response()->json([
@@ -85,7 +79,7 @@ class FolderController extends Controller
 
     protected function authorizeFolder(Folder $folder, User $user): void
     {
-        if ($user->isClient() && $folder->id !== $user->assigned_folder_id) {
+        if ($user->isClient() && $folder->folder_id !== $user->assigned_folder_id) {
             abort(403, 'You cannot access this folder.');
         }
     }

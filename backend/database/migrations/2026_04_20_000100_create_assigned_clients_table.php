@@ -8,22 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('folders', function (Blueprint $table) {
-            $table->uuid('folder_id')->primary();
-            $table->string('folder_name');
+        Schema::create('assigned_clients', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('production_id');
             $table->uuid('client_id');
-            $table->uuid('created_by')->nullable();
+            $table->enum('status', ['pending', 'in_progress', 'done'])->default('pending');
             $table->timestamps();
-            $table->softDeletes();
 
             $table->unique('client_id');
+            $table->foreign('production_id')->references('user_id')->on('users')->cascadeOnDelete();
             $table->foreign('client_id')->references('user_id')->on('users')->cascadeOnDelete();
-            $table->foreign('created_by')->references('user_id')->on('users')->nullOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('folders');
+        Schema::dropIfExists('assigned_clients');
     }
 };

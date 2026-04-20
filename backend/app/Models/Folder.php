@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,36 +14,40 @@ class Folder extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
+    protected $primaryKey = 'folder_id';
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
+
     protected $fillable = [
-        'name',
-        'slug',
-        'parent_id',
-        'client_user_id',
+        'folder_name',
+        'client_id',
         'created_by',
     ];
 
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'parent_id');
-    }
-
-    public function children(): HasMany
-    {
-        return $this->hasMany(self::class, 'parent_id');
-    }
-
     public function client(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'client_user_id');
+        return $this->belongsTo(User::class, 'client_id', 'user_id');
     }
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
 
     public function files(): HasMany
     {
-        return $this->hasMany(MediaFile::class);
+        return $this->hasMany(MediaFile::class, 'folder_id', 'folder_id');
+    }
+
+    public function clientRequests(): HasMany
+    {
+        return $this->hasMany(ClientRequest::class, 'folder_id', 'folder_id');
+    }
+
+    protected function name(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->folder_name);
     }
 }

@@ -17,7 +17,7 @@ class RecycleBinController extends Controller
     {
         abort_unless(request()->user()->isProduction(), 403);
 
-        $files = MediaFile::onlyTrashed()->with('folder:id,name', 'uploader:id,name')->latest('deleted_at')->get();
+        $files = MediaFile::onlyTrashed()->with('folder:folder_id,folder_name', 'uploader:user_id,name')->latest('deleted_at')->get();
 
         return response()->json([
             'message' => 'Recycle bin fetched.',
@@ -36,7 +36,7 @@ class RecycleBinController extends Controller
             request()->user(),
             'file_restored',
             $file,
-            'Restored '.$file->original_name,
+            'Restored '.$file->file_name,
         );
 
         return response()->json([

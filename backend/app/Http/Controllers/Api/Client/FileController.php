@@ -22,10 +22,10 @@ class FileController extends Controller
 
     public static function accessibleFilesQuery(User $user): Builder
     {
-        $query = MediaFile::query()->with('folder:id,name,client_user_id', 'uploader:id,name,email');
+        $query = MediaFile::query()->with('folder:folder_id,folder_name,client_id', 'uploader:user_id,name,email');
 
         if ($user->isClient()) {
-            return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->where('id', $user->assigned_folder_id));
+            return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->where('folder_id', $user->assigned_folder_id));
         }
 
         return $query;
@@ -35,7 +35,7 @@ class FileController extends Controller
     {
         $files = self::accessibleFilesQuery(request()->user())
             ->when(request('folder_id'), fn (Builder $query, string $folderId) => $query->where('folder_id', $folderId))
-            ->when(request('q'), fn (Builder $query, string $search) => $query->where('original_name', 'like', "%{$search}%"))
+            ->when(request('q'), fn (Builder $query, string $search) => $query->where('file_name', 'like', "%{$search}%"))
             ->latest()
             ->get();
 
@@ -53,26 +53,25 @@ class FileController extends Controller
         $uploadedFile = $request->file('file');
         $disk = config('filesystems.default', 'local');
         $path = $uploadedFile->storeAs(
-            trim('clients/'.$folder->id, '/'),
+            trim('clients/'.$folder->folder_id, '/'),
             Str::uuid().'-'.$uploadedFile->getClientOriginalName(),
             $disk
         );
 
         $file = MediaFile::create([
-            'folder_id' => $folder->id,
-            'uploaded_by' => $request->user()->id,
-            'original_name' => $uploadedFile->getClientOriginalName(),
+            'folder_id' => $folder->folder_id,
+            'uploaded_by' => $request->user()->user_id,
+            'file_name' => $uploadedFile->getClientOriginalName(),
             'storage_disk' => $disk,
             'storage_path' => $path,
-            'mime_type' => $uploadedFile->getMimeType(),
-            'size' => $uploadedFile->getSize(),
+            'category' => $this->resolveCategory($uploadedFile->getMimeType()),
         ]);
 
         $this->activityLogService->log(
             $request->user(),
             'file_uploaded',
             $file,
-            'Uploaded '.$file->original_name,
+            'Uploaded '.$file->file_name,
         );
 
         return response()->json([
@@ -116,7 +115,7 @@ class FileController extends Controller
             request()->user(),
             'file_deleted',
             $file,
-            'Deleted '.$file->original_name,
+            'Deleted '.$file->file_name,
         );
 
         return response()->json([
@@ -130,7 +129,7 @@ class FileController extends Controller
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorizeFile($file, request()->user());
 
-        return Storage::disk($file->storage_disk)->download($file->storage_path, $file->original_name);
+        return Storage::disk($file->storage_disk)->download($file->storage_path, $file->file_name);
     }
 
     public function preview(string $id)
@@ -138,15 +137,37 @@ class FileController extends Controller
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorizeFile($file, request()->user());
 
-        return Storage::disk($file->storage_disk)->response($file->storage_path, $file->original_name, [
-            'Content-Type' => $file->mime_type,
+        return Storage::disk($file->storage_disk)->response($file->storage_path, $file->file_name, [
+            'Content-Type' => $this->resolvePreviewMimeType($file->category),
         ]);
     }
 
     protected function authorizeFile(MediaFile $file, User $user): void
     {
-        if ($user->isClient() && $file->folder?->id !== $user->assigned_folder_id) {
+        if ($user->isClient() && $file->folder?->folder_id !== $user->assigned_folder_id) {
             abort(403, 'You cannot access this file.');
         }
+    }
+
+    protected function resolveCategory(?string $mimeType): string
+    {
+        if (is_string($mimeType) && str_starts_with($mimeType, 'image/')) {
+            return 'image';
+        }
+
+        if (is_string($mimeType) && str_starts_with($mimeType, 'video/')) {
+            return 'video';
+        }
+
+        return 'pdf';
+    }
+
+    protected function resolvePreviewMimeType(string $category): string
+    {
+        return match ($category) {
+            'image' => 'image/*',
+            'video' => 'video/*',
+            default => 'application/pdf',
+        };
     }
 }

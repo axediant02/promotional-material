@@ -14,8 +14,8 @@ class StoreFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'folder_id' => ['required', 'exists:folders,id'],
-            'file' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp,image/heic,image/heif'],
+            'folder_id' => ['required', 'exists:folders,folder_id'],
+            'file' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,application/pdf'],
         ];
     }
 }

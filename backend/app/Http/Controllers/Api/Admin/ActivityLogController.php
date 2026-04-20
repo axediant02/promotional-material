@@ -11,7 +11,7 @@ class ActivityLogController extends Controller
     public function index(): JsonResponse
     {
         $logs = ActivityLog::query()
-            ->with('user:id,name,email,role')
+            ->with('user:user_id,name,email,role')
             ->latest()
             ->limit(100)
             ->get();
