@@ -12,6 +12,7 @@ Current system goals:
 - give each approved client access only to their own assigned folder
 - let agents browse files across client folders for operational work
 - let production manage uploads, approvals, recycle-bin recovery, and activity tracking
+- lay the backend foundation for client request management and production-to-client assignment
 - provide a cleaner, more secure alternative to scattered manual file sharing
 
 ## Current Features
@@ -29,12 +30,16 @@ Implemented today:
 - agent workspace
 - production admin overview
 - activity logs for upload, delete, and restore actions
+- backend schema and model foundations for:
+  - `client_requests`
+  - `assigned_clients`
+  - target folder and file naming (`folder_name`, `file_name`, `category`)
 
-Planned but not fully implemented yet:
-- dedicated `admin` role
-- client request workflow
-- production-to-client assignment model
-- due-date management for requests
+Planned or still incomplete:
+- dedicated `admin` role behavior across the live app
+- full request management routes and UI
+- due-date management workflow in the UI
+- production assignment management workflow in the UI
 
 ## Roles
 
@@ -46,7 +51,7 @@ Planned but not fully implemented yet:
   Access only to the assigned folder and its files after approval.
 
 Note:
-Current `/admin` behavior is still production-operated admin behavior. A separate first-class `admin` role is planned, but not yet implemented.
+Current `/admin` behavior is still production-operated admin behavior. A separate first-class `admin` role exists in the target schema direction, but is not fully implemented in routes and UI yet.
 
 ## Tech Stack
 
@@ -84,6 +89,7 @@ promotional-materials/
 5. Agents can browse across client folders.
 6. Clients can access only their own approved folder and files.
 7. Deleted files move to the recycle bin and can later be restored or purged.
+8. The backend now includes schema foundations for request tracking and client assignment, even though the full request module is still being completed.
 
 ## Getting Started
 
@@ -192,10 +198,11 @@ Implementation guides:
 
 ## Current Notes
 
-- the backend currently uses UUID-based core models
-- current file payloads still use fields such as `original_name`, `mime_type`, and `size`
-- the folder schema still includes `parent_id`
-- request workflow features are documented but not yet implemented
+- the backend uses UUID-based core models
+- target schema-style keys and names are now present in the backend, including `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, and `category`
+- `client_requests` and `assigned_clients` tables and models now exist in the backend
+- full request-management APIs and UI flows are still not complete
+- production still acts as the current admin layer in the live app
 
 ## License
 

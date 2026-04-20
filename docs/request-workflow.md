@@ -1,6 +1,6 @@
 # Request Workflow
 
-This document describes the planned client request system. This workflow is not implemented in the current codebase yet, but it is part of the agreed target system state.
+This document describes the target client request system. The backend schema and models now exist, but the full workflow is not implemented across the live routes and UI yet.
 
 ## Purpose
 Allow clients to request:
@@ -75,3 +75,4 @@ Requests are managed internally by admin and production users.
 ## Implementation note
 - The agreed direction is client-level production assignment through `assigned_clients`.
 - Per-request `assigned_to` is not the preferred target model.
+- Read this file together with [existing-features.md](./existing-features.md) and [current-vs-planned.md](./current-vs-planned.md): the data foundation exists in backend, but the operational feature is still incomplete.

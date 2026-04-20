@@ -22,10 +22,12 @@ Current Truth:
 - The live system currently implements `production`, `agent`, and `client`.
 - Current `/admin` frontend behavior and `/api/admin/*` backend routes are still production-operated admin behavior.
 - The system is focused on file delivery, folder access, approvals, recycle-bin recovery, and activity logging.
+- The backend now contains schema and model foundations for `client_requests`, `assigned_clients`, and the target folder/file naming model.
+- The backend schema now reflects one-client-one-folder ownership more directly through `assigned_folder_id`, `client_id`, and custom UUID primary keys such as `user_id`, `folder_id`, and `file_id`.
 
 Target Direction:
 - Introduce a first-class `admin` role.
-- Add `client_requests`, `assigned_clients`, and due-date management.
+- Complete the request management module and assignment workflows across routes and UI.
 - Keep the current file portal stable while evolving toward the planned workflow.
 
 Core Business Rules:
@@ -35,7 +37,7 @@ Core Business Rules:
 - Agents can browse and download across client folders for operational use.
 - Clients can access only their own assigned folder and files.
 - Deleted files stay recoverable through the recycle bin before final purge.
-- Request workflow features are planned, not implemented yet.
+- Request workflow foundations now exist in backend schema and models, but the full feature is not yet fully live across the stack.
 
 ## Coding Style & Best Practices
 Source Of Truth Discipline:
@@ -53,6 +55,7 @@ Current Vs Planned Discipline:
 - Distinguish clearly between implemented behavior and planned target-state behavior.
 - Do not code against planned roles, tables, fields, or screens as if they already exist.
 - When a task intentionally moves planned behavior into implementation, update the folder-specific `AGENTS.md` files and supporting docs.
+- If only the backend schema/model layer changed, document that as "backend foundation implemented" rather than "full feature live."
 
 Authorization And Security:
 - Backend authorization is the source of truth.
@@ -67,7 +70,7 @@ Comments:
 ### Application Boundaries
 Backend:
 - lives in `backend/`
-- owns authentication, authorization, approvals, file and folder lifecycle rules, recycle-bin behavior, activity logging, and storage integration
+- owns authentication, authorization, approvals, file and folder lifecycle rules, recycle-bin behavior, activity logging, storage integration, and the request/assignment data model
 - primary implementation guide: `backend/AGENTS.md`
 
 Frontend:
@@ -138,9 +141,11 @@ Compounding Knowledge:
 
 2026-04-17 - Production Is Acting Admin Across The Stack: Current `/admin` frontend behavior and `/api/admin/*` backend routes are still production-admin behavior until a true `admin` role is implemented.
 
-2026-04-17 - Request Workflow Is Planned Only: `client_requests`, `assigned_clients`, request statuses, request types, and `due_date` management remain documented targets, not implemented full-stack features.
+2026-04-20 - Request And Assignment Foundations Now Exist In Backend: `client_requests` and `assigned_clients` are no longer planned-only schema ideas. The backend now includes table and model foundations, but full API and UI workflows are still incomplete.
 
-2026-04-17 - Shared Contracts Still Use Current Schema Names: The live system still relies on fields such as `original_name`, `mime_type`, `size`, `storage_disk`, `storage_path`, and `parent_id`, so frontend and backend changes must respect the current contract unless migration work is intentional.
+2026-04-20 - Shared Contracts Are In Transition: The backend has moved toward target naming such as `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, and `category`. Treat this as an active contract transition and keep backend, frontend, and docs aligned when continuing the migration.
+
+2026-04-20 - Current Docs Must Distinguish Schema Readiness From Product Readiness: The presence of backend tables, models, and relationships for requests and assignments does not mean the request workflow is fully exposed in routes, screens, or role handling yet.
 
 ## Final Note
 Success in this project is measured by secure file delivery, clear role boundaries, clean coordination between frontend and backend, and documentation that makes it obvious which guide governs which part of the system. Use the root guide for shared direction and the folder-specific guides for implementation truth.

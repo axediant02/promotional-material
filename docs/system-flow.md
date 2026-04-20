@@ -25,6 +25,11 @@ This document describes the major flows in the system, separating current implem
    - `agent` -> `/agent`
    - `client` -> `/client`
 
+### 2.5 Backend data foundations already added
+- the backend already contains `client_requests` and `assigned_clients`
+- the backend schema now uses target-style keys and names such as `user_id`, `folder_id`, `file_id`, `folder_name`, and `file_name`
+- these foundations do not yet mean the full request workflow is live in routes and UI
+
 ### 3. File upload and delivery
 1. Production uploads a file to a folder.
 2. Backend stores the file on the configured disk.
@@ -68,3 +73,4 @@ This document describes the major flows in the system, separating current implem
 - Clients should not set due dates.
 - Only approved clients should access the file portal.
 - Authorization should always be enforced by the backend.
+- The existence of request and assignment tables should be treated as backend groundwork until route and UI support is completed.

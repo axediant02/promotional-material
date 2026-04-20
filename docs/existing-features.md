@@ -10,10 +10,23 @@ This document lists what is implemented in the codebase today.
 - Token-based auth using Sanctum
 - Route guards on the frontend
 
-### Roles currently implemented in code
+### Roles currently implemented in live routes and UI
 - `client`
 - `agent`
 - `production`
+
+### Backend schema and model foundations now present
+- `client_requests` table and model
+- `assigned_clients` table and model
+- `admin` included in the backend role enum
+- target-style backend keys and names:
+  - `user_id`
+  - `folder_id`
+  - `file_id`
+  - `folder_name`
+  - `file_name`
+  - `category`
+- simplified one-client-one-folder backend relationship model without `parent_id`
 
 ### Client management
 - Pending client approval list
@@ -26,6 +39,7 @@ This document lists what is implemented in the codebase today.
 - Folder detail view
 - Folder update
 - Client folder scoping in the current implementation
+- Automatic assignment of the approved client to the created folder through `assigned_folder_id`
 
 ### File management
 - File upload by production
@@ -36,6 +50,7 @@ This document lists what is implemented in the codebase today.
 - File restore
 - File preview
 - File download
+- Category-based file metadata persisted in the backend
 
 ### Dashboards
 - Client dashboard
@@ -55,23 +70,19 @@ This document lists what is implemented in the codebase today.
 - Scheduled purge command exists in backend
 
 ## Partially implemented or mismatched
-- Admin behavior is represented by production-only admin routes in the current code.
-- Folder model currently still supports `parent_id`, but the agreed planned schema removed nested folders for now.
-- File model currently uses:
-  - `original_name`
-  - `mime_type`
-  - `size`
-  instead of the later planned `file_name` and `category` target schema.
+- Admin behavior is still represented by production-only admin routes in the current code.
+- The backend schema has moved toward the target naming and relationship model, but the frontend and detailed docs are still catching up.
+- `client_requests` and `assigned_clients` exist in backend schema/models, but request-management routes and UI are not complete yet.
+- The current live app still behaves operationally like a production-admin portal even though the backend schema now includes `admin` in the role enum.
+- Compatibility accessors still bridge some old frontend expectations, so schema naming and UI payload usage should be treated as an active migration area.
 
-## Planned but not implemented yet
-- Separate `admin` role
-- `client_requests` feature
-- `assigned_clients` production-to-client assignment model
-- request `due_date`
-- request statuses and request types
-- request visibility rules for admin and production
-- admin-managed client request workflow
+## Planned but not fully implemented yet
+- Separate live `admin` role behavior across backend routes and frontend UI
+- request CRUD and request visibility rules in live routes
+- due-date management in the UI
+- assignment-management workflow in the UI
+- full admin-managed client request workflow
 
 ## Recommendation for agents
-- Treat this file as the "implemented truth".
-- Treat [current-vs-planned.md](./current-vs-planned.md) as the guide for what the system is supposed to evolve into.
+- Treat this file as the "implemented truth."
+- Treat [current-vs-planned.md](./current-vs-planned.md) as the guide for what the system is still evolving toward.

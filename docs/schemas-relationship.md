@@ -1,11 +1,11 @@
 # Schemas And Relationships
 
-This document separates the current implemented schema from the planned target schema discussed for the system.
+This document separates the current implemented backend schema foundation from the still-incomplete target behavior across the full system.
 
-## Current implemented schema
+## Current implemented backend schema
 
 ### `users`
-- `id`
+- `user_id`
 - `name`
 - `email`
 - `email_verified_at`
@@ -17,30 +17,78 @@ This document separates the current implemented schema from the planned target s
 - `created_at`
 - `updated_at`
 
+Current role enum values in backend schema:
+- `admin`
+- `production`
+- `agent`
+- `client`
+
+Current status enum values:
+- `pending`
+- `approved`
+- `rejected`
+
 ### `folders`
-- `id`
-- `name`
-- `slug`
-- `parent_id`
-- `client_user_id`
+- `folder_id`
+- `folder_name`
+- `client_id`
 - `created_by`
 - `created_at`
 - `updated_at`
 - `deleted_at`
 
 ### `files`
-- `id`
+- `file_id`
 - `folder_id`
 - `uploaded_by`
-- `original_name`
+- `file_name`
 - `storage_disk`
 - `storage_path`
-- `mime_type`
-- `size`
+- `category`
 - `last_deleted_at`
 - `created_at`
 - `updated_at`
 - `deleted_at`
+
+Current category values:
+- `image`
+- `video`
+- `pdf`
+
+### `client_requests`
+- `request_id`
+- `client_id`
+- `folder_id`
+- `title`
+- `description`
+- `request_type`
+- `status`
+- `due_date`
+- `created_at`
+- `updated_at`
+- `deleted_at`
+
+Current request types in backend schema:
+- `new_asset`
+- `update_asset`
+
+Current request statuses in backend schema:
+- `pending`
+- `in_progress`
+- `done`
+
+### `assigned_clients`
+- `id`
+- `production_id`
+- `client_id`
+- `status`
+- `created_at`
+- `updated_at`
+
+Current assignment statuses in backend schema:
+- `pending`
+- `in_progress`
+- `done`
 
 ### `activity_logs`
 - `id`
@@ -60,97 +108,22 @@ This document separates the current implemented schema from the planned target s
 - `cache`
 - `jobs`
 
-## Planned target schema
-
-### `users`
-- `id`
-- `name`
-- `email`
-- `password`
-- `role`
-- `status`
-- `assigned_folder_id`
-- `created_at`
-- `updated_at`
-
-Planned role values:
-- `admin`
-- `production`
-- `agent`
-- `client`
-
-Planned status values:
-- `pending`
-- `approved`
-- `rejected`
-
-### `folders`
-- `id`
-- `folder_name`
-- `client_id`
-- `created_by`
-- `created_at`
-- `updated_at`
-- `deleted_at`
-
-### `files`
-- `id`
-- `folder_id`
-- `uploaded_by`
-- `file_name`
-- `storage_disk`
-- `storage_path`
-- `category`
-- `created_at`
-- `updated_at`
-- `deleted_at`
-- `last_deleted_at`
-
-Planned category values:
-- `image`
-- `video`
-- `pdf`
-
-### `client_requests`
-- `request_id`
-- `client_id`
-- `folder_id`
-- `title`
-- `description`
-- `request_type`
-- `status`
-- `due_date`
-- `created_at`
-- `updated_at`
-- `deleted_at`
-
-Planned request types:
-- `new_asset`
-- `update_asset`
-
-Planned request statuses:
-- `pending`
-- `in_progress`
-- `done`
-
-### `assigned_clients`
-- `id`
-- `production_id`
-- `client_id`
-- `status`
-- `created_at`
-- `updated_at`
-
-## Current implemented relationships
+## Current implemented backend relationships
 - a `User` belongs to one assigned folder through `assigned_folder_id`
-- a `Folder` belongs to one client user through `client_user_id`
-- a `Folder` may belong to a parent folder through `parent_id`
+- a client `User` has one owned client folder through `folder`
+- a `Folder` belongs to one client through `client_id`
+- a `Folder` belongs to one creator through `created_by`
 - a `Folder` has many files
+- a `Folder` has many client requests
 - a `MediaFile` belongs to one folder
 - a `MediaFile` belongs to one uploader
+- a `ClientRequest` belongs to one client
+- a `ClientRequest` belongs to one folder
+- an `AssignedClient` belongs to one production user
+- an `AssignedClient` belongs to one client
 - an `ActivityLog` belongs to one user
 
-## Planned target relationships
+## Target full-system relationships
 - one client has one assigned folder
 - one folder belongs to one client
 - one folder has many files
@@ -159,7 +132,8 @@ Planned request statuses:
 - one production user can be linked to many clients through `assigned_clients`
 - one client should have one active production ownership record at a time
 
-## Important schema drift to remember
-- Current code still uses nested folders through `parent_id`.
-- Current code still stores `original_name`, `mime_type`, and `size` instead of the later planned `file_name` and `category`.
-- Current code does not yet include `client_requests` or `assigned_clients`.
+## Important implementation notes
+- The backend schema and models have moved to the target relationship structure.
+- The rest of the system is still catching up in routes, UI, and documentation.
+- Do not assume every schema relationship is already fully exposed through APIs or screens.
+- The backend role enum and request/assignment tables are ahead of the currently implemented production-operated UI behavior.

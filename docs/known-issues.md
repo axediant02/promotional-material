@@ -5,9 +5,9 @@ This document tracks current known technical issues or mismatches that are usefu
 ## Sanctum token schema mismatch with UUID users
 
 ### Problem
-- `users.id` uses UUID.
-- `personal_access_tokens` was created with `morphs('tokenable')`.
-- Sanctum token creation expects the tokenable column type to be compatible with the user primary key.
+- `users.user_id` uses UUID.
+- `personal_access_tokens` must use a compatible tokenable key type.
+- Sanctum token creation expects the tokenable column type to match the user primary key strategy.
 
 ### Symptom
 - Login may fail during token creation with a MySQL error like data truncation on `tokenable_id`.
@@ -17,7 +17,7 @@ This document tracks current known technical issues or mismatches that are usefu
 
 ### Debugging hint
 - Compare:
-  - `users.id` type
+  - `users.user_id` type
   - `personal_access_tokens.tokenable_id` type
 
 ## Current admin route naming vs target role model
@@ -29,19 +29,23 @@ This document tracks current known technical issues or mismatches that are usefu
 ### Impact
 - Easy to confuse current production-admin behavior with the planned dedicated `admin` role.
 
-## Folder schema drift
+## Schema migration drift after the target-style backend rename
 
 ### Problem
-- Current schema and controller still support nested folders through `parent_id`.
-- Planned MVP target removed parent folders for simplicity.
+- The backend create migrations now describe the target-style schema with keys such as `user_id`, `folder_id`, `file_id`, `folder_name`, and `file_name`.
+- A previously migrated local database may still reflect the older structure until it is rebuilt.
 
 ### Impact
-- Agents may accidentally extend nested folder behavior even though the agreed target says not to.
+- The codebase and the local database can disagree even when the migrations look correct in source control.
 
-## Request workflow not implemented
+### Debugging hint
+- If a local environment still behaves like the old schema, inspect the actual database tables instead of assuming they match the current migration files.
+
+## Request workflow is only partially implemented
 
 ### Problem
-- `client_requests` and `assigned_clients` are documented and planned, but not present in the codebase.
+- `client_requests` and `assigned_clients` now exist in backend schema and models.
+- Full request routes, UI flows, due-date handling, and role-specific request management are still incomplete.
 
 ### Impact
-- Any request-related behavior in documents should be treated as target-state guidance, not implemented capability.
+- It is easy to over-assume that the whole request workflow is live just because the data structures already exist.

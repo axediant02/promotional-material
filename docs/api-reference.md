@@ -48,7 +48,7 @@ Most endpoints return:
 ### `GET /auth/me`
 - Purpose: fetch the authenticated user
 - Includes:
-  - assigned folder relation
+  - assigned folder relation when present
 
 ### `POST /auth/logout`
 - Purpose: revoke the current access token
@@ -66,25 +66,27 @@ Most endpoints return:
   - client sees assigned folder only
   - agent sees all accessible folders/files
   - production sees admin-oriented stats, including pending clients
+- Notes:
+  - folder payloads now use backend naming such as `folder_id` and `folder_name`
+  - file payloads are in a contract-transition period while frontend consumers catch up
 
 ## Folder routes
 
 ### `GET /folders`
 - Purpose: list folders visible to the current user
 - Query params:
-  - `q` for name search
+  - `q` for folder-name search
 
 ### `POST /folders`
 - Purpose: create a folder
 - Access:
   - production only
 - Body:
-  - `name`
-  - `parent_id` nullable
-  - `client_user_id` nullable
+  - `folder_name`
+  - `client_id`
 
 ### `GET /folders/{folder}`
-- Purpose: fetch one folder and its files/children
+- Purpose: fetch one folder and its files
 - Access:
   - client can only access assigned folder
   - other authenticated roles can access all folders in the current implementation
@@ -93,6 +95,9 @@ Most endpoints return:
 - Purpose: update a folder
 - Access:
   - production only
+- Body may include:
+  - `folder_name`
+  - `client_id`
 
 ## File routes
 
@@ -109,14 +114,23 @@ Most endpoints return:
 - Body:
   - `folder_id`
   - `file` multipart upload
+- Notes:
+  - backend now categorizes files into `image`, `video`, or `pdf`
 
 ### `GET /files/{file}`
 - Purpose: fetch one file record
+- Notes:
+  - backend records now persist `file_name`, `storage_disk`, `storage_path`, and `category`
+  - compatibility fields may still appear while the frontend contract is being aligned
 
 ### `PUT|PATCH /files/{file}`
 - Purpose: update a file record
 - Access:
   - production only
+- Body may include:
+  - `folder_id`
+  - `file_name`
+  - `category`
 
 ### `DELETE /files/{file}`
 - Purpose: soft delete a file and move it to recycle bin
@@ -145,7 +159,7 @@ Most endpoints return:
 
 Important:
 - These routes are currently protected by `role:production`.
-- Planned system state introduces a separate `admin` role, but that role is not implemented in the current code yet.
+- Planned system state introduces a separate `admin` role, but that role is not implemented in the current live routes yet.
 
 ### `GET /admin/pending-clients`
 - Purpose: list pending client accounts
@@ -154,6 +168,9 @@ Important:
 - Purpose: approve or reject a client account
 - Body:
   - `status`: `approved` or `rejected`
+- Notes:
+  - approval creates a client folder when needed
+  - approval also assigns `assigned_folder_id` on the user
 
 ### `POST /admin/agents`
 - Purpose: create an agent account
@@ -165,9 +182,8 @@ Important:
 ### `GET /admin/activity-logs`
 - Purpose: fetch recent activity logs
 
-## Planned API areas not yet implemented
-- `admin` role APIs
-- `client_requests` CRUD
-- `assigned_clients` management
-- due date management
-- request visibility for admin and production
+## Backend foundations present but not fully exposed yet
+- backend role enum now includes `admin`
+- `client_requests` schema and model now exist in backend
+- `assigned_clients` schema and model now exist in backend
+- full request CRUD, due-date handling, and assignment management routes are still not complete

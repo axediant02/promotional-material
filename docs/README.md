@@ -20,4 +20,4 @@ This folder contains working reference documents for the client file portal.
 1. Read `existing-features.md` for what is implemented today.
 2. Read `current-vs-planned.md` for the gap between code and the agreed target system.
 3. Use `api-reference.md`, `frontend-routes.md`, and `schemas-relationship.md` while debugging or planning changes.
-4. Use `request-workflow.md` and `roles-access.md` when working on planned admin and client-request features.
+4. Use `request-workflow.md` and `roles-access.md` when working on admin and client-request features, but remember that request and assignment schema foundations now exist in backend before the full UI and route workflow does.
