@@ -182,6 +182,22 @@ When making changes:
 - frontend changes: run `npm run build`
 - auth, file access, or permission changes: verify the full affected flow, not just one screen or endpoint
 
+## CI And CD
+
+GitHub Actions now supports this repository with two workflow layers:
+
+- CI at [ci.yml](./.github/workflows/ci.yml)
+  - runs on pushes to `main`
+  - runs on pull requests targeting `main`
+  - executes backend tests and frontend build checks
+- CD at [cd.yml](./.github/workflows/cd.yml)
+  - runs manually through `workflow_dispatch`
+  - re-validates backend and frontend
+  - uploads build artifacts for the selected target environment
+  - leaves a safe handoff point for host-specific deployment steps once infrastructure is finalized
+
+Current CD scope is deployment-target agnostic by design. It packages validated artifacts without assuming a specific server, platform, or secret configuration yet.
+
 ## Documentation
 
 Useful project references:
