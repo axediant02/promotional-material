@@ -15,6 +15,7 @@ This folder contains working reference documents for the client file portal.
 - [request-workflow.md](./request-workflow.md)
 - [current-vs-planned.md](./current-vs-planned.md)
 - [known-issues.md](./known-issues.md)
+- [skills-guide.md](./skills-guide.md)
 
 ## Reading order
 1. Read `existing-features.md` for what is implemented today.
