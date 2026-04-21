@@ -50,12 +50,15 @@ php artisan serve
   - `AssignedClientSeeder`
   - `ClientRequestSeeder`
 - Current seeded sample users include:
-  - `admin@example.com`
   - `production@example.com`
   - `agent@example.com`
   - `client1@example.com`
   - `client2@example.com`
   - `pending@example.com`
+- `pending@example.com` remains intentionally pending for approval-flow testing and should not be able to log in until approved.
+- The local backend currently reads MySQL from `.env`:
+  - `DB_CONNECTION=mysql`
+  - `DB_DATABASE=promotional-materials`
 - The current seeders provide demo folders, media records, assignment links, and request records for local development data, even though the live request-management routes are still incomplete.
 
 ## Common frontend commands

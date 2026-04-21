@@ -9,19 +9,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin user
-        User::query()->firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Admin User',
-                'password' => 'password123',
-                'role' => User::ROLE_ADMIN,
-                'status' => User::STATUS_APPROVED,
-            ]
-        );
-
-        // Production user
-        User::query()->firstOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'production@example.com'],
             [
                 'name' => 'Production Team',
@@ -31,8 +19,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Agent user
-        User::query()->firstOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'agent@example.com'],
             [
                 'name' => 'Agent User',
@@ -42,8 +29,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Approved Client 1
-        User::query()->firstOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'client1@example.com'],
             [
                 'name' => 'Client One',
@@ -53,8 +39,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Approved Client 2
-        User::query()->firstOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'client2@example.com'],
             [
                 'name' => 'Client Two',
@@ -64,8 +49,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Pending Client (for testing approval flow)
-        User::query()->firstOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'pending@example.com'],
             [
                 'name' => 'Pending Client',
