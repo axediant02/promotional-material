@@ -35,12 +35,12 @@ const submit = async () => {
         <p class="text-xs font-semibold uppercase tracking-[0.45em] text-orange-300">Client file portal</p>
         <h1 class="mt-4 text-4xl font-semibold tracking-tight">Secure access for production, agents, and clients.</h1>
         <p class="mt-4 max-w-xl text-sm text-slate-300">
-          A premium download workspace for approved client folders, internal operations, recycle-bin recovery, and role-based file access.
+          A premium download workspace for assigned client folders, internal operations, recycle-bin recovery, and role-based file access.
         </p>
         <div class="mt-10 grid gap-4 sm:grid-cols-3">
           <div class="rounded-[1.5rem] bg-white/10 p-4">
             <p class="text-3xl font-semibold">1</p>
-            <p class="mt-2 text-sm text-slate-300">Client self-registration with production approval.</p>
+            <p class="mt-2 text-sm text-slate-300">Client self-registration with immediate folder assignment for local testing.</p>
           </div>
           <div class="rounded-[1.5rem] bg-white/10 p-4">
             <p class="text-3xl font-semibold">3</p>
@@ -57,7 +57,7 @@ const submit = async () => {
         <div class="mb-8">
           <p class="text-xs font-semibold uppercase tracking-[0.35em] text-orange-600">Sign in</p>
           <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Welcome back</h2>
-          <p class="mt-2 text-sm text-slate-500">Use the seeded production account or an approved user account.</p>
+          <p class="mt-2 text-sm text-slate-500">Use the seeded production account or any registered client account.</p>
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">

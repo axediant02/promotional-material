@@ -20,8 +20,13 @@ const submit = async () => {
   success.value = ''
 
   try {
-    await authStore.performRegister(form)
-    success.value = 'Registration submitted. Please wait for production approval.'
+    const response = await authStore.performRegister(form)
+    const folderName = response.data?.data?.user?.assigned_folder?.folder_name
+
+    success.value = folderName
+      ? `Registration completed. Your folder "${folderName}" is ready. You can sign in now.`
+      : 'Registration completed. Your folder is ready. You can sign in now.'
+
     Object.assign(form, {
       name: '',
       email: '',
@@ -41,7 +46,7 @@ const submit = async () => {
     <section class="w-full max-w-2xl rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_25px_80px_rgba(15,23,42,0.08)] lg:p-10">
       <p class="text-xs font-semibold uppercase tracking-[0.35em] text-orange-600">Client registration</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Request access to your files</h1>
-      <p class="mt-2 text-sm text-slate-500">Client accounts are manually reviewed before folder access is granted.</p>
+      <p class="mt-2 text-sm text-slate-500">Local testing mode creates your client folder immediately after registration.</p>
 
       <form class="mt-8 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
         <label class="block sm:col-span-2">
@@ -68,7 +73,7 @@ const submit = async () => {
         <p v-if="success" class="sm:col-span-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ success }}</p>
 
         <button class="sm:col-span-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600" :disabled="loading">
-          {{ loading ? 'Submitting...' : 'Create request' }}
+          {{ loading ? 'Creating account...' : 'Create account' }}
         </button>
       </form>
     </section>
