@@ -4,20 +4,16 @@ This document describes the major flows in the system, separating current implem
 
 ## Current implemented flow
 
-### 1. Client registration and approval
+### 1. Client registration and folder assignment
 1. Client opens `/register`.
 2. Client submits registration form.
-3. Backend creates a `client` user with `pending` status.
-4. Production opens the admin overview.
-5. Production reviews pending clients.
-6. On approval:
-   - client status becomes `approved`
-   - a folder is created if one does not already exist
-   - `assigned_folder_id` is set on the user
+3. Backend creates a `client` user.
+4. Backend creates the client's folder immediately.
+5. Backend sets `assigned_folder_id` on the user.
 
 ### 2. Login and role routing
 1. User submits login credentials.
-2. Backend validates credentials and status.
+2. Backend validates credentials.
 3. Backend returns token and user payload.
 4. Frontend stores token in local storage.
 5. Frontend redirects by role:
@@ -76,6 +72,6 @@ This document describes the major flows in the system, separating current implem
 ## Flow boundaries
 - Agents should not enter the request workflow in v1.
 - Clients should not set due dates.
-- Only approved clients should access the file portal.
+- Clients should not access files or request flows without an assigned folder.
 - Authorization should always be enforced by the backend.
 - The existence of request and assignment tables should be treated as backend groundwork until route and UI support is completed.

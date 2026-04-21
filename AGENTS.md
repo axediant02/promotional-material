@@ -32,7 +32,7 @@ Target Direction:
 
 Core Business Rules:
 - One client account maps to one assigned folder.
-- Clients must be approved before they can fully use the portal.
+- In the current local-testing implementation, client registration auto-assigns a folder immediately.
 - Production handles uploads, folder management, approvals, recycle-bin actions, and operational oversight in the current implementation.
 - Agents can browse and download across client folders for operational use.
 - Clients can access only their own assigned folder and files.
@@ -117,6 +117,7 @@ Implementation:
 - Preserve production-admin behavior unless the task explicitly introduces the admin-role split.
 - Preserve one-client-one-folder access control unless a deliberate requirements change says otherwise.
 - Keep file upload, delete, restore, preview, and download rules aligned across the stack.
+- Keep the current local-testing onboarding flow aligned across backend and frontend: registration creates the client account and assigns a folder immediately.
 
 Testing:
 - For backend changes, run verification from `backend`:

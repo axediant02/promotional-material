@@ -14,7 +14,7 @@ Backend Scope:
 - folder ownership and access control
 - file upload, listing, preview, download, update, and soft delete
 - recycle-bin listing and restore
-- pending-client approval flow
+- local-testing client registration with immediate folder assignment
 - client request data management
 - production-to-client assignment management
 - activity log retrieval
@@ -25,7 +25,7 @@ System Requirements To Implement:
   - `production`
   - `agent`
   - `client`
-- require client self-registration to stay pending until approved
+- allow local-testing client self-registration to create the account and assigned folder immediately
 - restrict file uploads to `production` in V1
 - allow both `admin` and `production` to view and manage client requests in V1
 - prevent `agent` access to the request-management module in V1
@@ -61,7 +61,7 @@ Target Direction:
 Core Backend Rules:
 - Backend authorization is the source of truth for all access control.
 - One client account maps to one assigned folder.
-- Clients must be approved before they can fully use the portal.
+- In the current local-testing implementation, client registration assigns the folder immediately instead of using account approval.
 - Clients must only access their assigned folder and files.
 - Production owns file uploads in V1.
 - Admin defines `due_date`; clients do not.
@@ -163,7 +163,6 @@ Required core fields:
   - `email`
   - `password`
   - `role`
-  - `status`
   - `assigned_folder_id`
 - `folders`
   - `folder_id`
@@ -200,10 +199,6 @@ Allowed values:
   - `production`
   - `agent`
   - `client`
-- `users.status`
-  - `pending`
-  - `approved`
-  - `rejected`
 - `files.category`
   - `image`
   - `video`
@@ -252,9 +247,7 @@ Recycle Bin:
 - purge expired deleted files through the command layer
 
 Approval And Admin Flow:
-- list pending clients
-- approve or reject client accounts
-- auto-create assigned folders on approval when needed
+- auto-create assigned folders during client registration in the current local-testing flow
 - create agent accounts
 - list activity logs
 
@@ -285,7 +278,7 @@ Planning:
 Implementation:
 - Keep response payloads consistent with current API shape unless the contract change is intentional and coordinated.
 - Preserve role checks and client scoping rules when touching folders, files, previews, or downloads.
-- Keep login behavior aligned with client approval status checks.
+- Keep login behavior aligned with the current onboarding flow and assigned-folder requirements.
 - Preserve automatic assigned-folder creation when approving a client without a folder.
 - Keep the recycle-bin flow consistent:
   - soft delete sets `last_deleted_at`
@@ -342,7 +335,8 @@ Compounding Knowledge:
 
 2026-04-20 - Backend Naming Has Shifted Toward The Target Schema: The backend now uses target-style naming such as `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, and `category`. Treat older docs or consumers that still expect `original_name`, `mime_type`, `size`, `slug`, or `parent_id` as migration drift to be resolved carefully.
 
-2026-04-20 - Activity Logging Remains A Shared Backend Concern: Upload, delete, restore, and client-approval flows still depend on `ActivityLogService`, so new lifecycle behavior should extend that pattern instead of bypassing it.
+2026-04-20 - Activity Logging Remains A Shared Backend Concern: Upload, delete, and restore flows still depend on `ActivityLogService`, so new lifecycle behavior should extend that pattern instead of bypassing it.
+2026-04-21 - Local Testing No Longer Uses User Status Approval: Client registration now creates the account and assigned folder immediately, and `users.status` is no longer part of the live backend model.
 
 2026-04-20 - Recycle Bin Behavior Still Depends On Both Soft Deletes And Storage Cleanup: The delete flow sets `last_deleted_at`, restore uses trashed records, and the purge command permanently deletes both the stored object and the database record after the retention window.
 

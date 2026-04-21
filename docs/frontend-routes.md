@@ -55,7 +55,7 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - calls `GET /dashboard`
 - calls `GET /files` for the media grid
 - currently renders request-change UI scaffolding from the client media cards
-- request submission code targets `POST /requests`, but that backend route is not live yet
+- request submission calls `POST /requests`
 
 ### Agent workspace
 - calls `GET /dashboard`
@@ -63,7 +63,6 @@ This document describes the current Vue frontend routing in `frontend/src/router
 ### Admin overview
 - calls:
   - `GET /dashboard`
-  - `GET /admin/pending-clients`
   - `GET /recycle-bin`
   - `GET /admin/activity-logs`
 

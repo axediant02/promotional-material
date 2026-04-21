@@ -23,17 +23,19 @@ Most endpoints return:
 ## Public auth routes
 
 ### `POST /auth/register`
-- Purpose: create a pending client account
+- Purpose: create a client account and assign its folder immediately
 - Body:
   - `name`
   - `email`
   - `password`
   - `password_confirmation`
 - Success:
-  - creates a `client` user with `pending` status
+  - creates a `client` user
+  - creates the assigned folder
+  - returns the user with the assigned folder relation loaded
 
 ### `POST /auth/login`
-- Purpose: login for approved users
+- Purpose: login for registered users
 - Body:
   - `email`
   - `password`
@@ -41,7 +43,6 @@ Most endpoints return:
   - returns a token and user payload
 - Notes:
   - returns `422` for invalid credentials
-  - returns `403` when a client account is still pending approval
   - returns `403` for `admin` users because dedicated live admin portal access is not enabled yet
 
 ## Protected auth routes
@@ -66,7 +67,7 @@ Most endpoints return:
 - Scope:
   - client sees assigned folder only
   - agent sees all accessible folders/files
-  - production sees admin-oriented stats, including pending clients
+  - production sees admin-oriented folder/file stats
 - Notes:
   - folder payloads now use backend naming such as `folder_id` and `folder_name`
   - file payloads are in a contract-transition period while frontend consumers catch up
@@ -161,17 +162,6 @@ Most endpoints return:
 Important:
 - These routes are currently protected by `role:production`.
 - Planned system state introduces a separate `admin` role, but that role is not implemented in the current live routes yet.
-
-### `GET /admin/pending-clients`
-- Purpose: list pending client accounts
-
-### `PATCH /admin/pending-clients/{user}`
-- Purpose: approve or reject a client account
-- Body:
-  - `status`: `approved` or `rejected`
-- Notes:
-  - approval creates a client folder when needed
-  - approval also assigns `assigned_folder_id` on the user
 
 ### `POST /admin/agents`
 - Purpose: create an agent account
