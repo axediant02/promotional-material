@@ -46,6 +46,9 @@ This document describes the current Vue frontend routing in `frontend/src/router
 
 ### Client dashboard
 - calls `GET /dashboard`
+- calls `GET /files` for the media grid
+- currently renders request-change UI scaffolding from the client media cards
+- request submission code targets `POST /requests`, but that backend route is not live yet
 
 ### Agent workspace
 - calls `GET /dashboard`
@@ -61,6 +64,6 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - admin role-specific route separation
 - request list screen
 - request detail screen
-- request creation form
+- request creation route-backed flow
 - assigned-clients management screen
 - due date management screen

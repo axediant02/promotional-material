@@ -36,6 +36,7 @@ Current Frontend Truth:
 - The current implemented live roles reflected in routing are `production`, `agent`, and `client`.
 - The `/admin` route is still the production workspace, not a true dedicated `admin` role.
 - The frontend still contains some live contract usage tied to older backend-compatible fields such as `original_name`, `mime_type`, and `size`, even though the backend has moved toward the target schema naming.
+- The client dashboard now includes request-related frontend scaffolding such as media cards, a request modal, and `requestService.js`, but the backend request routes those calls expect are still not live in `backend/routes/api.php`.
 
 Target Direction:
 - Support a true dedicated `admin` role when the backend introduces it in live routes and permissions.
@@ -173,9 +174,9 @@ Current service areas:
 - `activityLogService.js`
 - `fileService.js`
 - `folderService.js`
+- `requestService.js` for in-progress request endpoint wrappers that still depend on future backend route exposure
 
 Expected service growth for V1:
-- request service wrappers for `client_requests`
 - assignment/admin service wrappers for `assigned_clients`
 - dedicated role-aware request views when those APIs are truly available
 
@@ -244,6 +245,8 @@ Compounding Knowledge:
 2026-04-17 - Shared Dashboard UI Is Reused Across Roles: Client, agent, and production pages all compose `AppShell`, `StatsGrid`, `FolderList`, and `FileTable`, then layer role-specific data on top.
 
 2026-04-17 - Current File Payload Names Are Live Contracts: Frontend tables and cards still rely on backend fields like `original_name`, `mime_type`, folder relations, and `size`.
+
+2026-04-21 - Request UI Scaffolding Exists Ahead Of The API: `frontend/src/services/requestService.js` and the client dashboard request modal now exist in the frontend worktree, but they still target request endpoints that are not yet exposed by the live backend routes.
 
 ## Final Note
 Success in this frontend is measured by clear navigation, consistent shared UI, faithful backend integration, request-role behavior that matches the approved V1 workflow, and code that makes role-based behavior obvious without duplicating backend authority.

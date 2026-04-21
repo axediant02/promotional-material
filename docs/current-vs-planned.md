@@ -70,7 +70,12 @@ This document tracks the main differences between the current codebase and the a
 - backend schema and models now include:
   - `client_requests`
   - `assigned_clients`
+- the frontend worktree now also includes request-oriented client UI scaffolding:
+  - `frontend/src/services/requestService.js`
+  - `frontend/src/features/client-dashboard/components/RequestForm.vue`
+  - request-change actions in the client media grid
 - full request routes, UI, and due-date workflow are still incomplete
+- those frontend request calls currently target `/requests` and `/requests/my`, but those endpoints are not exposed in `backend/routes/api.php` yet
 - `request-workflow.md` should be read as target-state behavior layered on top of current backend foundations
 
 ### Planned

@@ -42,6 +42,22 @@ php artisan db:seed
 php artisan serve
 ```
 
+## Seeded demo data
+- `php artisan db:seed` now calls:
+  - `UserSeeder`
+  - `FolderSeeder`
+  - `MediaFileSeeder`
+  - `AssignedClientSeeder`
+  - `ClientRequestSeeder`
+- Current seeded sample users include:
+  - `admin@example.com`
+  - `production@example.com`
+  - `agent@example.com`
+  - `client1@example.com`
+  - `client2@example.com`
+  - `pending@example.com`
+- The current seeders provide demo folders, media records, assignment links, and request records for local development data, even though the live request-management routes are still incomplete.
+
 ## Common frontend commands
 Run from `frontend`:
 
