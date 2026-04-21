@@ -21,9 +21,14 @@ This document describes the major flows in the system, separating current implem
 3. Backend returns token and user payload.
 4. Frontend stores token in local storage.
 5. Frontend redirects by role:
-   - `production` -> `/admin`
-   - `agent` -> `/agent`
+   - `production` -> `/production`
+   - `agent` -> `/agent-new`
+   - `admin` -> `/admin-new`
    - `client` -> `/client`
+6. Notes:
+   - `/admin` still exists as the current production-operated admin workspace.
+   - `/production`, `/agent-new`, and `/admin-new` are the current auth-store default routes.
+   - the `admin` redirect exists in frontend scaffolding, but dedicated live backend admin-role behavior is still not fully implemented.
 
 ### 2.5 Backend data foundations already added
 - the backend already contains `client_requests` and `assigned_clients`
