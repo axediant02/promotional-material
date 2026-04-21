@@ -10,14 +10,13 @@ class LoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_approved_seeded_user_can_log_in(): void
+    public function test_seeded_user_can_log_in_without_account_status(): void
     {
         User::query()->create([
             'name' => 'Production Team',
             'email' => 'production@example.com',
             'password' => 'password123',
             'role' => User::ROLE_PRODUCTION,
-            'status' => User::STATUS_APPROVED,
         ]);
 
         $response = $this->postJson('/api/auth/login', [

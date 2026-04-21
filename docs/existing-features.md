@@ -29,9 +29,9 @@ This document lists what is implemented in the codebase today.
 - simplified one-client-one-folder backend relationship model without `parent_id`
 
 ### Client management
-- Pending client approval list
-- Approve or reject client registration
-- Automatic folder creation on approval when the client has no assigned folder
+- Client self-registration
+- Automatic folder creation during client registration
+- Automatic assignment of the registered client to the created folder through `assigned_folder_id`
 
 ### Folder management
 - Folder listing
@@ -39,7 +39,6 @@ This document lists what is implemented in the codebase today.
 - Folder detail view
 - Folder update
 - Client folder scoping in the current implementation
-- Automatic assignment of the approved client to the created folder through `assigned_folder_id`
 
 ### File management
 - File upload by production

@@ -7,7 +7,6 @@ import ProductionSidebar from '../components/ProductionSidebar.vue'
 import ProductionStatGrid from '../components/ProductionStatGrid.vue'
 import ProductionStatusSection from '../components/ProductionStatusSection.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
-import { fetchPendingClients } from '../../../services/approvalService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -20,12 +19,10 @@ const dashboardData = ref({
   stats: {
     folders: 0,
     files: 0,
-    pendingClients: 0,
   },
   folders: [],
   recentFiles: [],
 })
-const pendingClients = ref([])
 const activeView = ref('live')
 const searchQuery = ref('')
 
@@ -60,8 +57,8 @@ const summaryStats = computed(() => [
     icon: 'check',
   },
   {
-    label: 'Expiring Soon',
-    value: pendingClients.value.length,
+    label: 'Visible Folders',
+    value: dashboardData.value.stats.folders ?? 0,
     tone: 'amber',
     icon: 'alert',
   },
@@ -74,20 +71,6 @@ const summaryStats = computed(() => [
 ])
 
 const projectNotes = computed(() => {
-  const pendingNotes = pendingClients.value.slice(0, 3).map((client, index) => ({
-    id: client.user_id ?? client.id ?? client.email ?? index,
-    tag: index === 0 ? 'Urgent Review' : index === 1 ? 'Update' : 'Missing Data',
-    title: client.name,
-    content: `Review ${client.email} and finalize folder access so this client can enter the delivery portal without delay.`,
-    client: client.name,
-    tone: index === 0 ? 'amber' : index === 1 ? 'sky' : 'emerald',
-    icon: index === 0 ? 'alert' : index === 1 ? 'info' : 'triangle',
-  }))
-
-  if (pendingNotes.length) {
-    return pendingNotes
-  }
-
   return (dashboardData.value.recentFiles ?? []).slice(0, 3).map((file, index) => ({
     id: file.file_id ?? file.id ?? index,
     tag: index === 0 ? 'Recent Upload' : index === 1 ? 'Client Update' : 'Archive Ready',
@@ -136,13 +119,9 @@ const loadData = async () => {
   error.value = ''
 
   try {
-    const [dashboardResponse, pendingClientsResponse] = await Promise.all([
-      fetchDashboard(),
-      fetchPendingClients(),
-    ])
+    const dashboardResponse = await fetchDashboard()
 
     dashboardData.value = dashboardResponse.data.data
-    pendingClients.value = pendingClientsResponse.data.data?.clients ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the production dashboard.'
   } finally {

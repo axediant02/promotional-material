@@ -27,9 +27,6 @@ class DashboardController extends Controller
         $stats = [
             'folders' => FolderController::accessibleFoldersQuery($user)->count(),
             'files' => FileController::accessibleFilesQuery($user)->count(),
-            'pendingClients' => $user->isProduction()
-                ? User::query()->pending()->where('role', User::ROLE_CLIENT)->count()
-                : 0,
         ];
 
         return response()->json([

@@ -16,7 +16,6 @@ class AgentController extends Controller
             'email' => $request->string('email')->toString(),
             'password' => $request->string('password')->toString(),
             'role' => User::ROLE_AGENT,
-            'status' => User::STATUS_APPROVED,
         ]);
 
         return response()->json([

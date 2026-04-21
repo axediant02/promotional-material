@@ -15,7 +15,6 @@ class UserSeeder extends Seeder
                 'name' => 'Production Team',
                 'password' => 'password123',
                 'role' => User::ROLE_PRODUCTION,
-                'status' => User::STATUS_APPROVED,
             ]
         );
 
@@ -25,7 +24,6 @@ class UserSeeder extends Seeder
                 'name' => 'Agent User',
                 'password' => 'password123',
                 'role' => User::ROLE_AGENT,
-                'status' => User::STATUS_APPROVED,
             ]
         );
 
@@ -35,7 +33,6 @@ class UserSeeder extends Seeder
                 'name' => 'Client One',
                 'password' => 'password123',
                 'role' => User::ROLE_CLIENT,
-                'status' => User::STATUS_APPROVED,
             ]
         );
 
@@ -45,17 +42,6 @@ class UserSeeder extends Seeder
                 'name' => 'Client Two',
                 'password' => 'password123',
                 'role' => User::ROLE_CLIENT,
-                'status' => User::STATUS_APPROVED,
-            ]
-        );
-
-        User::query()->updateOrCreate(
-            ['email' => 'pending@example.com'],
-            [
-                'name' => 'Pending Client',
-                'password' => 'password123',
-                'role' => User::ROLE_CLIENT,
-                'status' => User::STATUS_PENDING,
             ]
         );
     }
