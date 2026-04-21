@@ -39,6 +39,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Your client account is still awaiting approval.'], 403);
         }
 
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Admin accounts are not available in the live portal yet. Use a production, agent, or approved client account.',
+            ], 403);
+        }
+
         $token = $user->createToken('frontend')->plainTextToken;
 
         return response()->json([
