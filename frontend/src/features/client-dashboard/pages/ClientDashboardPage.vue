@@ -3,10 +3,13 @@ import { computed, onMounted, ref } from 'vue'
 import AppShell from '../../../components/layout/AppShell.vue'
 import StatsGrid from '../../../components/ui/StatsGrid.vue'
 import FolderList from '../../folders/components/FolderList.vue'
-import FileTable from '../../files/components/FileTable.vue'
+import MediaGrid from '../components/MediaGrid.vue'
 import { fetchDashboard } from '../../../services/dashboardService'
+import { fetchFiles } from '../../../services/fileService'
 
 const payload = ref({ stats: {}, folders: [], recentFiles: [] })
+const files = ref([])
+const loading = ref(false)
 
 const stats = computed(() => [
   { label: 'Folders', value: payload.value.stats.folders ?? 0, help: 'Your assigned storage area.' },
@@ -15,8 +18,20 @@ const stats = computed(() => [
 ])
 
 onMounted(async () => {
-  const response = await fetchDashboard()
-  payload.value = response.data.data
+  loading.value = true
+  try {
+    const [dashboardResponse, filesResponse] = await Promise.all([
+      fetchDashboard(),
+      fetchFiles(),
+    ])
+    
+    payload.value = dashboardResponse.data.data
+    files.value = filesResponse.data.data.files || []
+  } catch (error) {
+    console.error('Failed to load dashboard:', error)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
@@ -25,7 +40,7 @@ onMounted(async () => {
     <div class="space-y-6">
       <StatsGrid :stats="stats" />
       <FolderList :folders="payload.folders" />
-      <FileTable :files="payload.recentFiles" />
+      <MediaGrid :files="files" :loading="loading" />
     </div>
   </AppShell>
 </template>
