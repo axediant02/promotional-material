@@ -12,6 +12,9 @@ This document describes the current Vue frontend routing in `frontend/src/router
 | `/client` | `client-dashboard` | `client` only | `ClientDashboardPage.vue` | Client dashboard |
 | `/agent` | `agent-workspace` | `agent` only | `AgentWorkspacePage.vue` | Agent dashboard |
 | `/admin` | `admin-overview` | `production` only | `AdminOverviewPage.vue` | Production admin area |
+| `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Temporary production dashboard route |
+| `/agent-new` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Temporary agent dashboard route |
+| `/admin-new` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Temporary admin dashboard scaffold |
 
 ## Guard behavior
 - If a route requires auth and there is no authenticated user, redirect to `login`.
@@ -19,9 +22,10 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - If a route requires a role and the user has a different role, redirect to the role default route.
 
 ## Default route logic
-- `production` -> `/admin`
-- `agent` -> `/agent`
-- any other authenticated user -> `/client`
+- `production` -> `production-dashboard` (`/production`)
+- `agent` -> `agent-dashboard` (`/agent-new`)
+- `admin` -> `admin-dashboard` (`/admin-new`)
+- any other authenticated user -> `client-dashboard` (`/client`)
 
 ## Current frontend page coverage
 
@@ -33,6 +37,9 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - `ClientDashboardPage.vue`
 - `AgentWorkspacePage.vue`
 - `AdminOverviewPage.vue`
+- `ProductionDashboardPage.vue`
+- `AgentDashboardPage.vue`
+- `AdminDashboardPage.vue`
 
 ## Current data dependencies
 
@@ -59,6 +66,11 @@ This document describes the current Vue frontend routing in `frontend/src/router
   - `GET /admin/pending-clients`
   - `GET /recycle-bin`
   - `GET /admin/activity-logs`
+
+### Temporary dashboard scaffolding
+- `/production`, `/agent-new`, and `/admin-new` currently exist in the router as temporary role-dashboard routes.
+- The `admin` route scaffold does not mean the backend has live dedicated `admin` authorization yet.
+- Treat these routes as frontend scaffolding until backend role separation and API support are actually implemented.
 
 ## Planned frontend routes not yet implemented
 - admin role-specific route separation
