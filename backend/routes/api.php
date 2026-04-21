@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ActivityLogController;
-use App\Http\Controllers\Api\Admin\ApprovalController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Client\ClientRequestController;
@@ -34,8 +33,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('requests', [ClientRequestController::class, 'store']);
 
     Route::prefix('admin')->middleware('role:production')->group(function (): void {
-        Route::get('pending-clients', [ApprovalController::class, 'index']);
-        Route::patch('pending-clients/{user}', [ApprovalController::class, 'update']);
         Route::post('agents', [AgentController::class, 'store']);
         Route::get('activity-logs', [ActivityLogController::class, 'index']);
     });

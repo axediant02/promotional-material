@@ -5,24 +5,39 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
-            'name' => $request->string('name')->toString(),
-            'email' => $request->string('email')->toString(),
-            'password' => $request->string('password')->toString(),
-            'role' => User::ROLE_CLIENT,
-            'status' => User::STATUS_PENDING,
-        ]);
+        $user = DB::transaction(function () use ($request): User {
+            $user = User::create([
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'password' => $request->string('password')->toString(),
+                'role' => User::ROLE_CLIENT,
+            ]);
+
+            $folder = Folder::create([
+                'folder_name' => $user->name,
+                'client_id' => $user->user_id,
+                'created_by' => null,
+            ]);
+
+            $user->forceFill([
+                'assigned_folder_id' => $folder->folder_id,
+            ])->save();
+
+            return $user->load('assignedFolder');
+        });
 
         return response()->json([
-            'message' => 'Registration submitted. Your account is waiting for approval.',
+            'message' => 'Registration completed. Your folder has been assigned.',
             'data' => ['user' => $user],
         ], 201);
     }
@@ -35,13 +50,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
-        if ($user->isClient() && $user->status !== User::STATUS_APPROVED) {
-            return response()->json(['message' => 'Your client account is still awaiting approval.'], 403);
-        }
-
         if ($user->isAdmin()) {
             return response()->json([
-                'message' => 'Admin accounts are not available in the live portal yet. Use a production, agent, or approved client account.',
+                'message' => 'Admin accounts are not available in the live portal yet. Use a production, agent, or client account.',
             ], 403);
         }
 

@@ -19,7 +19,7 @@ class FolderSeeder extends Seeder
         }
 
         // Client 1 folder
-        Folder::query()->firstOrCreate(
+        $client1Folder = Folder::query()->firstOrCreate(
             ['folder_name' => 'Client One Files', 'client_id' => $client1->user_id],
             [
                 'folder_name' => 'Client One Files',
@@ -28,8 +28,11 @@ class FolderSeeder extends Seeder
             ]
         );
 
-        // Client 2 folder
-        Folder::query()->firstOrCreate(
+        $client1->forceFill([
+            'assigned_folder_id' => $client1Folder->folder_id,
+        ])->save();
+
+        $client2Folder = Folder::query()->firstOrCreate(
             ['folder_name' => 'Client Two Files', 'client_id' => $client2->user_id],
             [
                 'folder_name' => 'Client Two Files',
@@ -37,5 +40,9 @@ class FolderSeeder extends Seeder
                 'created_by' => $production->user_id,
             ]
         );
+
+        $client2->forceFill([
+            'assigned_folder_id' => $client2Folder->folder_id,
+        ])->save();
     }
 }

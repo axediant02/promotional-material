@@ -13,9 +13,9 @@ class ClientRequestStoreTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_approved_client_can_create_a_request_for_their_assigned_folder(): void
+    public function test_client_can_create_a_request_for_their_assigned_folder(): void
     {
-        [$client, $folder] = $this->createApprovedClientWithAssignedFolder();
+        [$client, $folder] = $this->createClientWithAssignedFolder();
 
         Sanctum::actingAs($client);
 
@@ -47,7 +47,7 @@ class ClientRequestStoreTest extends TestCase
 
     public function test_client_cannot_set_due_date_when_creating_a_request(): void
     {
-        [$client] = $this->createApprovedClientWithAssignedFolder();
+        [$client] = $this->createClientWithAssignedFolder();
 
         Sanctum::actingAs($client);
 
@@ -70,14 +70,13 @@ class ClientRequestStoreTest extends TestCase
     /**
      * @return array{0: User, 1: Folder}
      */
-    private function createApprovedClientWithAssignedFolder(): array
+    private function createClientWithAssignedFolder(): array
     {
         $production = User::query()->create([
             'name' => 'Production Team',
             'email' => 'production@example.com',
             'password' => 'password123',
             'role' => User::ROLE_PRODUCTION,
-            'status' => User::STATUS_APPROVED,
         ]);
 
         $client = User::query()->create([
@@ -85,7 +84,6 @@ class ClientRequestStoreTest extends TestCase
             'email' => 'client@example.com',
             'password' => 'password123',
             'role' => User::ROLE_CLIENT,
-            'status' => User::STATUS_APPROVED,
         ]);
 
         $folder = Folder::query()->create([

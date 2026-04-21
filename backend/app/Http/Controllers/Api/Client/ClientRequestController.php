@@ -14,7 +14,6 @@ class ClientRequestController extends Controller
         $user = $request->user();
 
         abort_unless($user->isClient(), 403);
-        abort_if($user->status !== $user::STATUS_APPROVED, 403, 'Your client account is still awaiting approval.');
 
         if (! $user->assigned_folder_id) {
             return response()->json([

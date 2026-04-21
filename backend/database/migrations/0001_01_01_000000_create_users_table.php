@@ -18,7 +18,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['production', 'agent', 'client', 'admin'])->default('client');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->uuid('assigned_folder_id')->nullable();
             $table->rememberToken();
             $table->timestamps();

@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,10 +23,6 @@ class User extends Authenticatable
     public const ROLE_PRODUCTION = 'production';
     public const ROLE_ADMIN = 'admin';
 
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_APPROVED = 'approved';
-    public const STATUS_REJECTED = 'rejected';
-
     protected $primaryKey = 'user_id';
 
     protected $keyType = 'string';
@@ -45,7 +39,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'status',
         'assigned_folder_id',
     ];
 
@@ -110,12 +103,6 @@ class User extends Authenticatable
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class, 'user_id', 'user_id');
-    }
-
-    #[Scope]
-    protected function pending(Builder $query): void
-    {
-        $query->where('status', self::STATUS_PENDING);
     }
 
     public function isProduction(): bool
