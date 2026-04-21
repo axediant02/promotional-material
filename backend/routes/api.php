@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Client\ClientRequestController;
 use App\Http\Controllers\Api\Client\DashboardController;
 use App\Http\Controllers\Api\Client\FileController;
 use App\Http\Controllers\Api\Client\FolderController;
@@ -30,7 +29,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('files/{file}/download', [FileController::class, 'download'])->withTrashed();
     Route::get('files/{file}/preview', [FileController::class, 'preview'])->withTrashed();
     Route::apiResource('files', FileController::class)->except(['create', 'edit']);
-    Route::post('requests', [ClientRequestController::class, 'store']);
 
     Route::prefix('admin')->middleware('role:production')->group(function (): void {
         Route::post('agents', [AgentController::class, 'store']);

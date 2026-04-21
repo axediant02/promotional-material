@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import { createRequest } from '../../../services/requestService'
 
 const props = defineProps({
-  file: { type: Object, default: null },
-  folder: { type: Object, default: null },
+  file: { type: Object, required: true },
 })
 
 const emit = defineEmits(['close', 'success'])
@@ -22,20 +21,7 @@ const requestTypes = [
   { value: 'new_asset', label: 'New Asset', description: 'Request a completely new file' },
 ]
 
-const resetForm = () => {
-  error.value = null
-  form.value = {
-    title: '',
-    description: '',
-    request_type: props.file ? 'update_asset' : 'new_asset',
-  }
-}
-
 const validateForm = () => {
-  if (!props.folder?.folder_id) {
-    error.value = 'Your account does not have an assigned folder yet.'
-    return false
-  }
   if (!form.value.title.trim()) {
     error.value = 'Please enter a title for your request.'
     return false
@@ -61,20 +47,15 @@ const submitRequest = async () => {
       title: form.value.title.trim(),
       description: form.value.description.trim(),
       request_type: form.value.request_type,
+      folder_id: props.file.folder?.folder_id,
     }
 
-    const response = await createRequest(payload)
+    await createRequest(payload)
 
-    resetForm()
-
-    emit('success', response.data)
+    emit('success')
   } catch (err) {
     console.error('Request submission failed:', err)
-    error.value =
-      err.response?.data?.errors?.due_date?.[0]
-      || err.response?.data?.errors?.folder_id?.[0]
-      || err.response?.data?.message
-      || 'Failed to submit request. Please try again.'
+    error.value = err.response?.data?.message || 'Failed to submit request. Please try again.'
   } finally {
     isSubmitting.value = false
   }
@@ -125,11 +106,6 @@ const submitRequest = async () => {
       />
     </div>
 
-    <div v-if="file" class="rounded-xl bg-slate-50 p-3">
-      <p class="text-xs text-slate-500">Selected file</p>
-      <p class="truncate font-medium text-slate-900">{{ file.file_name }}</p>
-    </div>
-
     <!-- Description -->
     <div>
       <label for="description" class="mb-2 block text-sm font-medium text-slate-700">
@@ -153,10 +129,10 @@ const submitRequest = async () => {
     <div class="flex gap-3 pt-2">
       <button
         type="button"
-        @click="resetForm(); emit('close')"
+        @click="emit('close')"
         class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
       >
-        Clear
+        Cancel
       </button>
       <button
         type="submit"
