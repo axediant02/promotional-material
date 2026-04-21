@@ -42,7 +42,6 @@ Most endpoints return:
 - Notes:
   - returns `422` for invalid credentials
   - returns `403` when a client account is still pending approval
-  - returns `403` for `admin` users because dedicated live admin portal access is not enabled yet
 
 ## Protected auth routes
 
