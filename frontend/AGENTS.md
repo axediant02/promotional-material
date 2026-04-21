@@ -35,6 +35,8 @@ Current Frontend Truth:
 - The codebase is JavaScript-first today, not TypeScript-first.
 - The current implemented live roles reflected in routing are `production`, `agent`, and `client`.
 - The `/admin` route is still the production workspace, not a true dedicated `admin` role.
+- The router also now contains temporary dashboard scaffolding routes for `production`, `agent`, and `admin` at `/production`, `/agent-new`, and `/admin-new`.
+- The auth store's current default-route behavior points `production` to `/production`, `agent` to `/agent-new`, `admin` to `/admin-new`, and `client` to `/client`.
 - The frontend still contains some live contract usage tied to older backend-compatible fields such as `original_name`, `mime_type`, and `size`, even though the backend has moved toward the target schema naming.
 - The client dashboard now includes request-related frontend scaffolding such as media cards, a request modal, and `requestService.js`, but the backend request routes those calls expect are still not live in `backend/routes/api.php`.
 
@@ -145,6 +147,10 @@ Role Workspaces:
 - `client` -> `/client`
 - `agent` -> `/agent`
 - `production` -> current `/admin`
+- temporary scaffolding also exists for:
+  - `production` -> `/production`
+  - `agent` -> `/agent-new`
+  - `admin` -> `/admin-new`
 - `admin` -> future dedicated admin workspace when backend role separation is live
 
 Shared UI:
@@ -247,6 +253,8 @@ Compounding Knowledge:
 2026-04-17 - Current File Payload Names Are Live Contracts: Frontend tables and cards still rely on backend fields like `original_name`, `mime_type`, folder relations, and `size`.
 
 2026-04-21 - Request UI Scaffolding Exists Ahead Of The API: `frontend/src/services/requestService.js` and the client dashboard request modal now exist in the frontend worktree, but they still target request endpoints that are not yet exposed by the live backend routes.
+
+2026-04-21 - Router Scaffolding Has Moved Ahead Of Live Role Support: `frontend/src/router/index.js` and `frontend/src/stores/auth.js` now include temporary `/production`, `/agent-new`, and `/admin-new` role dashboard routes and redirects, but backend live authorization and route support still center on `production`, `agent`, and `client`.
 
 ## Final Note
 Success in this frontend is measured by clear navigation, consistent shared UI, faithful backend integration, request-role behavior that matches the approved V1 workflow, and code that makes role-based behavior obvious without duplicating backend authority.

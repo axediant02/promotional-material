@@ -13,11 +13,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     if (user.value.role === 'production') {
-      return { name: 'admin-overview' }
+      return { name: 'production-dashboard' }
     }
 
     if (user.value.role === 'agent') {
-      return { name: 'agent-workspace' }
+      return { name: 'agent-dashboard' }
+    }
+
+    if (user.value.role === 'admin') {
+      return { name: 'admin-dashboard' }
     }
 
     return { name: 'client-dashboard' }
