@@ -5,40 +5,24 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = DB::transaction(function () use ($request): User {
-            $user = User::create([
-                'name' => $request->string('name')->toString(),
-                'email' => $request->string('email')->toString(),
-                'password' => $request->string('password')->toString(),
-                'role' => User::ROLE_CLIENT,
-            ]);
-
-            $folder = Folder::create([
-                'folder_name' => $user->name,
-                'client_id' => $user->user_id,
-                'created_by' => null,
-            ]);
-
-            $user->forceFill([
-                'assigned_folder_id' => $folder->folder_id,
-            ])->save();
-
-            return $user->load('assignedFolder');
-        });
+        $user = User::create([
+            'name' => $request->string('name')->toString(),
+            'email' => $request->string('email')->toString(),
+            'password' => $request->string('password')->toString(),
+            'role' => User::ROLE_CLIENT,
+        ]);
 
         return response()->json([
-            'message' => 'Registration completed. Your folder has been assigned.',
-            'data' => ['user' => $user],
+            'message' => 'Registration completed. Your folder will be created when you submit your first request.',
+            'data' => ['user' => $user->fresh()],
         ], 201);
     }
 
