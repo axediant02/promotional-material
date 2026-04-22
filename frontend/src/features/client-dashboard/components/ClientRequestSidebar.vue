@@ -8,11 +8,12 @@ const props = defineProps({
   supportSummary: { type: Object, default: () => ({ label: '', description: '' }) },
 })
 
-const emit = defineEmits(['clear-selected-file'])
+const emit = defineEmits(['clear-selected-file', 'request-created'])
 const successMessage = ref('')
 
 const handleRequestSuccess = (payload) => {
   successMessage.value = payload?.message || 'Request created.'
+  emit('request-created')
 
   if (props.selectedFile) {
     emit('clear-selected-file')
