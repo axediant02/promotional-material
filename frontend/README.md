@@ -13,7 +13,9 @@ Vue client for the Promotional Materials Portal.
 - public entry redirects `/` to `/login`
 - sign-in is `/login`
 - registration creates the account immediately, and the first request creates the assigned folder
-- `/admin` still represents the production-operated admin workspace
+- admin governs assignments and due dates
+- production handles uploads and assigned-client execution
+- agents and clients can download files within their allowed scope
 
 ## Common commands
 ```bash

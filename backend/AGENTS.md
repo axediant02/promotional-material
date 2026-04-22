@@ -12,12 +12,11 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - Laravel Sanctum
   - MySQL or MariaDB
   - PHPUnit
-- Live operational roles:
+- Working roles:
+  - `admin`
   - `production`
   - `agent`
   - `client`
-- `admin` exists in schema direction, but live admin behavior is not fully separated yet.
-- `/api/admin/*` is still guarded as production-admin behavior.
 - UUIDs are used for core primary keys.
 - Backend now uses target-style names such as:
   - `user_id`
@@ -29,12 +28,18 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - `client_requests` and `assigned_clients` tables/models exist.
 - Registration creates the client account immediately.
 - The first client request creates and assigns the client's folder.
+- Role ownership:
+  - `admin` manages client assignment, due dates, and user roles
+  - `production` uploads files and executes work for assigned clients
+  - `agent` can browse and download allowed files only
+  - `client` creates requests and downloads files from the assigned folder only
 
 ## Core Rules
 - Backend authorization is the source of truth.
 - One client account maps to one assigned folder.
 - Clients may access only their assigned folder and files.
-- Production owns uploads in the current live flow.
+- Admin must not be treated as a general file-portal operator by default.
+- Production owns uploads and assigned-client request execution.
 - Agents may browse/download according to visibility rules but must not gain request-management access.
 - Keep the current `message` + `data` response shape unless a coordinated contract change is intentional.
 - Treat schema foundations as separate from fully live feature exposure.
@@ -73,16 +78,16 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Backend request and assignment foundations
 
 ## Planned Areas Still Incomplete
-- True live `admin` role separation
 - Full request-management route surface
 - Full assignment-management workflow
-- Final due-date ownership flow in live UI/API behavior
+- Admin user-management and role-management route surface
+- Legacy route naming cleanup where paths still blur `admin` and `production`
 
 ## Workflow
 - Check `routes/api.php`, related Form Requests, controllers, models, and migrations before changing behavior.
 - Use `docs/system-flow.md`, `docs/request-workflow.md`, and `docs/api-reference.md` as the current docs baseline.
 - If docs and code disagree, code against the live backend unless the task is an intentional migration.
-- Preserve current scoping rules for folders, files, previews, downloads, restore, and request ownership.
+- Preserve role boundaries for uploads, downloads, request visibility, due-date ownership, and assignment ownership.
 
 ## Verification
 - Run from `backend`:
@@ -100,13 +105,14 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - recycle-bin restore flow
 - For request/assignment changes, verify:
   - client request creation
-  - production visibility rules
+  - admin visibility and due-date rules
+  - production visibility rules for assigned clients
   - agent exclusion
-  - due-date ownership
+  - client download scoping
+  - agent download access
   - assignment linkage
 
 ## Compounding Knowledge
-- 2026-04-17: `/api/admin/*` is still production-admin behavior.
 - 2026-04-17: Core models use UUIDs, so auth and token schema compatibility need extra care.
 - 2026-04-17: Sanctum token schema must stay UUID-compatible.
 - 2026-04-20: Requests and assignments are present as backend foundations, not full live workflow.
@@ -114,6 +120,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-20: Upload/delete/restore flows should continue using `ActivityLogService`.
 - 2026-04-22: Registration creates the client account first, and the first client request creates and assigns the folder.
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
+- 2026-04-22: Admin owns assignment, due dates, and role changes. Production owns uploads and assigned-client execution. Agents and clients can download files, but agents stay outside the request workflow.
 
 ## Success Criteria
 - Correct authorization

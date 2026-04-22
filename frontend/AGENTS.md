@@ -14,11 +14,11 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - Tailwind CSS
   - Vite
 - Codebase is JavaScript-first, not TypeScript-first.
-- Live operational roles in the app:
+- Working roles in the app:
+  - `admin`
   - `production`
   - `agent`
   - `client`
-- `/admin` is still the production workspace, not a true dedicated admin workspace.
 - The router also contains temporary dashboard scaffolding:
   - `/production`
   - `/agent-new`
@@ -31,6 +31,11 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Public entry currently redirects `/` to `/login`.
 - Current client request UI targets the live `POST /requests` endpoint.
 - Registration creates the client account immediately, and the first submitted request creates the assigned folder.
+- Role ownership for ongoing UI work:
+  - `admin` manages assignments, due dates, and user-role administration
+  - `production` manages assigned-client work and uploads
+  - `agent` can browse and download allowed files only
+  - `client` can create requests and download own files only
 
 ## Core Rules
 - Backend authorization is the source of truth.
@@ -62,7 +67,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Login and registration
 - Client dashboard
 - Agent workspace
-- Production admin overview
+- Admin and production dashboard scaffolding
 - Temporary role dashboard scaffolding
 - Request submission UI for clients
 
@@ -74,11 +79,11 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Live role routes:
   - `/client`
   - `/agent`
-  - `/admin`
-- Temporary scaffolding:
-  - `/production`
-  - `/agent-new`
   - `/admin-new`
+  - `/production`
+- Temporary scaffolding:
+  - `/agent-new`
+  - legacy `/admin`
 
 ## Styling Rules
 - Reuse the current visual language first: rounded panels, soft shadows, slate/orange palette, Tailwind utilities.
@@ -109,12 +114,12 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 ## Compounding Knowledge
 - 2026-04-17: Frontend is JavaScript-first.
 - 2026-04-17: Router auth bootstrap depends on `pm_token` in local storage.
-- 2026-04-17: Production still owns the current `/admin` UI.
 - 2026-04-17: Shared dashboard UI is reused across role pages.
 - 2026-04-17: Some screens still rely on compatibility payload fields during contract migration.
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
 - 2026-04-22: Registration creates the client account first, and the first submitted request creates the assigned folder.
 - 2026-04-21: Temporary `/production`, `/agent-new`, and `/admin-new` routes exist ahead of full backend role separation.
+- 2026-04-22: Agreed UI role model is now admin governance, production execution, agent download-only operational access, and client own-folder request and download access.
 
 ## Success Criteria
 - Clear navigation

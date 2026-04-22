@@ -13,34 +13,33 @@ Secure file delivery portal for production teams, agents, and clients.
 - Folder and file management
 - Recycle-bin recovery
 - Activity logging
-- Client request foundation and live submission path
+- Client request creation
+- Backend foundations for assignments and request management
 
 ## Live Roles
+- `admin`
 - `production`
 - `agent`
 - `client`
-
-Note:
-- `/admin` is still production-operated admin behavior.
-- A first-class `admin` role is still planned, not fully live.
 
 ## Current Truth
 - One client maps to one assigned folder.
 - Registration creates the client account immediately.
 - The client folder is created and assigned when the first request is submitted.
-- Production manages uploads and current admin actions.
-- Agents can browse and download across visible folders.
-- Clients can access only their assigned folder and files.
+- Admin governs assignments, due dates, and user-role changes.
+- Production uploads files and works assigned-client folders and requests.
+- Agents can browse and download allowed files.
+- Clients can create requests and access only their assigned folder and files.
 - Backend foundations now exist for:
   - `client_requests`
   - `assigned_clients`
   - UUID-first naming such as `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, `category`
 
 ## Planned But Incomplete
-- True `admin` role separation
-- Full request-management workflow
-- Due-date management flow
+- Full request-management route surface
 - Full assignment-management UI/API behavior
+- Admin user-management and role-management UI/API behavior
+- Cleanup of legacy route and UI naming that still blurs `admin` and `production`
 
 ## Repository Structure
 ```text

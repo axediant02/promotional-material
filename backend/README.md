@@ -15,7 +15,9 @@ Laravel API for the Promotional Materials Portal.
 ## Current flow notes
 - public registration creates a default `client` account
 - the first client request creates and assigns the client folder
-- `/api/admin/*` still operates as production-admin behavior
+- admin owns assignment, due dates, and role changes
+- production owns uploads and assigned-client execution
+- agents and clients can download files within their allowed scope
 - core models use UUID-based keys
 
 ## Common commands

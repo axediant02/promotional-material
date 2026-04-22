@@ -9,16 +9,14 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - Apps:
   - `backend/` Laravel API
   - `frontend/` Vue client
-- Live roles:
+- Working roles:
+  - `admin`
   - `production`
   - `agent`
   - `client`
-- Planned role:
-  - `admin`
 
 ## Current Truth
-- Current `/admin` UI and `/api/admin/*` routes are still production-operated admin behavior.
-- Core live flows are file delivery, folder access, downloads, recycle-bin recovery, and activity logging.
+- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, and client requests.
 - Backend foundations now exist for:
   - `client_requests`
   - `assigned_clients`
@@ -26,11 +24,21 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - One client maps to one assigned folder.
 - Registration creates a default `client` account immediately.
 - The client's folder is created and assigned when the first request is submitted.
+- Admin owns governance:
+  - client-to-production assignment
+  - due dates
+  - user-role changes
+- Production owns execution:
+  - file uploads
+  - assigned-client folders
+  - assigned-client requests
+- Agents can browse and download allowed files but do not participate in request management.
+- Clients can create requests and download files from their own assigned folder.
 
 ## Target Direction
-- Introduce a first-class live `admin` role.
-- Complete request-management and client-assignment workflows across backend and frontend.
-- Keep the current file portal stable while the request/admin split is completed.
+- Complete backend and frontend implementation so the code fully matches the role model above.
+- Replace legacy route and UI naming that still blurs `admin` and `production`.
+- Keep the file portal stable while the request, assignment, and role-management workflows are completed.
 
 ## Shared Rules
 - Backend authorization is the source of truth.
@@ -62,7 +70,6 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 ## Workflow
 - Clarify only when access rules, contracts, or docs conflict in a risky way.
 - For cross-stack changes, keep backend and frontend behavior aligned.
-- Preserve current production-admin behavior unless the task explicitly introduces the admin split.
 - Preserve one-client-one-folder access unless requirements change.
 - Verify:
   - backend changes: `cd backend && php artisan test`
@@ -71,10 +78,10 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 
 ## Compounding Knowledge
 - 2026-04-17: `backend/AGENTS.md` and `frontend/AGENTS.md` are the primary implementation guides for their folders.
-- 2026-04-17: Production still acts as admin across the live stack.
 - 2026-04-20: Requests and assignments now exist as backend foundations, but the full workflow is still incomplete.
 - 2026-04-20: Backend naming is actively migrating toward `user_id` / `folder_id` / `file_id` / `folder_name` / `file_name` / `category`.
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
+- 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 
 ## Success Criteria
 - Secure file delivery
