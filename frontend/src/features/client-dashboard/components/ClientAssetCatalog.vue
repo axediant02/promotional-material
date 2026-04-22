@@ -14,54 +14,61 @@ const emit = defineEmits(['update:viewMode', 'request-change'])
 
 <template>
   <section>
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-2xl">
         <h3 class="text-2xl font-semibold tracking-tight text-slate-950">Asset Catalog</h3>
         <p class="mt-1 text-sm text-slate-500">
           Browse approved files, switch views, and select an asset when you need a precise revision request.
         </p>
       </div>
 
-      <div class="inline-flex w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-        <button
-          :class="[
-            'rounded-[1rem] px-4 py-2 text-sm font-medium transition',
-            viewMode === 'grid'
-              ? 'bg-blue-700 text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-900'
-          ]"
-          @click="emit('update:viewMode', 'grid')"
-        >
-          Grid
-        </button>
-        <button
-          :class="[
-            'rounded-[1rem] px-4 py-2 text-sm font-medium transition',
-            viewMode === 'list'
-              ? 'bg-blue-700 text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-900'
-          ]"
-          @click="emit('update:viewMode', 'list')"
-        >
-          List
-        </button>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Visible Assets</p>
+          <p class="mt-1 text-lg font-semibold text-slate-950">{{ files.length }}</p>
+        </div>
+
+        <div class="inline-flex w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+          <button
+            :class="[
+              'rounded-[1rem] px-4 py-2 text-sm font-medium transition',
+              viewMode === 'grid'
+                ? 'bg-blue-700 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900'
+            ]"
+            @click="emit('update:viewMode', 'grid')"
+          >
+            Grid
+          </button>
+          <button
+            :class="[
+              'rounded-[1rem] px-4 py-2 text-sm font-medium transition',
+              viewMode === 'list'
+                ? 'bg-blue-700 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900'
+            ]"
+            @click="emit('update:viewMode', 'list')"
+          >
+            List
+          </button>
+        </div>
       </div>
     </div>
 
     <div
       v-if="loading"
-      class="grid gap-5 md:grid-cols-2"
+      class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
     >
       <div
-        v-for="item in 4"
+        v-for="item in 6"
         :key="item"
-        class="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm"
+        class="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white p-4 shadow-sm"
       >
-        <div class="aspect-[16/10] animate-pulse rounded-2xl bg-slate-100"></div>
+        <div class="aspect-[16/8.5] animate-pulse rounded-2xl bg-slate-100"></div>
         <div class="mt-4 space-y-3">
           <div class="h-4 w-1/2 animate-pulse rounded bg-slate-100"></div>
-          <div class="h-3 w-1/3 animate-pulse rounded bg-slate-100"></div>
-          <div class="h-10 w-full animate-pulse rounded-xl bg-slate-100"></div>
+          <div class="h-3 w-2/3 animate-pulse rounded bg-slate-100"></div>
+          <div class="h-9 w-full animate-pulse rounded-xl bg-slate-100"></div>
         </div>
       </div>
     </div>
@@ -83,7 +90,7 @@ const emit = defineEmits(['update:viewMode', 'request-change'])
 
     <div
       v-else-if="viewMode === 'grid'"
-      class="grid gap-6 lg:grid-cols-2"
+      class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
     >
       <ClientAssetCard
         v-for="file in files"
