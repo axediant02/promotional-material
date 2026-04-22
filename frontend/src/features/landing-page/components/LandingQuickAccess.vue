@@ -99,7 +99,7 @@ const goToRegister = () => {
         class="flex w-full items-center justify-center gap-3 bg-[#e52a26] px-5 py-3.5 text-[0.92rem] font-semibold uppercase tracking-[0.34em] text-white transition hover:bg-[#f03b34]"
         type="submit"
       >
-        Access System
+        LOGIN
         <span aria-hidden="true" class="text-xl leading-none">&rsaquo;</span>
       </button>
     </form>
