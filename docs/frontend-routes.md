@@ -11,10 +11,10 @@ This document describes the current Vue frontend routing in `frontend/src/router
 | `/register` | `register` | guest only | `RegisterPage.vue` | Client registration form |
 | `/client` | `client-dashboard` | `client` only | `ClientDashboardPage.vue` | Client dashboard |
 | `/agent` | `agent-workspace` | `agent` only | `AgentWorkspacePage.vue` | Agent dashboard |
-| `/admin` | `admin-overview` | `production` only | `AdminOverviewPage.vue` | Production admin area |
 | `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Temporary production dashboard route |
 | `/agent-new` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Temporary agent dashboard route |
 | `/admin-new` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Temporary admin dashboard scaffold |
+| `/admin` | `admin-overview` | legacy | `AdminOverviewPage.vue` | Legacy transition route that should not be treated as the final admin surface |
 
 ## Guard behavior
 - If a route requires auth and there is no authenticated user, redirect to `login`.
@@ -60,8 +60,9 @@ This document describes the current Vue frontend routing in `frontend/src/router
 
 ### Agent workspace
 - calls `GET /dashboard`
+- agent file access is browse/download only
 
-### Admin overview
+### Legacy admin overview
 - calls:
   - `GET /dashboard`
   - `GET /recycle-bin`
@@ -69,9 +70,12 @@ This document describes the current Vue frontend routing in `frontend/src/router
 
 ### Temporary dashboard scaffolding
 - `/production`, `/agent-new`, and `/admin-new` currently exist in the router as temporary role-dashboard routes.
-- The `admin` route scaffold does not mean the backend has live dedicated `admin` authorization yet.
-- Treat these routes as frontend scaffolding until backend role separation and API support are actually implemented.
+- These routes are the current UI transition layer while the backend route surface is being aligned to the agreed role model.
 
 ## Notes
-- `/admin` is still the production-operated admin workspace.
-- `/production`, `/agent-new`, and `/admin-new` are temporary role-dashboard routes ahead of full backend role separation.
+- The agreed role model is:
+  - `admin` for assignments, due dates, and user-role administration
+  - `production` for uploads and assigned-client execution
+  - `agent` for browse/download-only operational access
+  - `client` for own requests and own-folder downloads
+- Any remaining legacy `/admin` route usage should be treated as transition drift, not final architecture.
