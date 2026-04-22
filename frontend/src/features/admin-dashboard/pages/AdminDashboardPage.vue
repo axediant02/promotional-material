@@ -1,13 +1,16 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import AdminDashboardAssignmentsTab from '../components/AdminDashboardAssignmentsTab.vue'
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
 import AdminDashboardHeader from '../components/AdminDashboardHeader.vue'
 import AdminDashboardRequestsSection from '../components/AdminDashboardRequestsSection.vue'
+import AdminDashboardRequestsTab from '../components/AdminDashboardRequestsTab.vue'
 import AdminDashboardSecondaryPanels from '../components/AdminDashboardSecondaryPanels.vue'
 import AdminDashboardSidebar from '../components/AdminDashboardSidebar.vue'
 import AdminDashboardStatGrid from '../components/AdminDashboardStatGrid.vue'
+import AdminDashboardUsersTab from '../components/AdminDashboardUsersTab.vue'
 import { adminDashboardFallbacks } from '../data/adminDashboardFallbacks'
-import { fetchAdminRequests } from '../../../services/adminService'
+import { fetchAdminRequests, fetchAdminActivityLogs } from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -25,6 +28,7 @@ const dashboardPayload = ref({
   recentFiles: [],
 })
 const requestsPayload = ref([])
+const activityLogs = ref([])
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -39,7 +43,7 @@ const folderLookup = computed(() => {
 })
 
 const queueRows = computed(() =>
-  requestsPayload.value.slice(0, 6).map((request, index) => {
+  requestsPayload.value.slice(0, 12).map((request, index) => {
     const folder = folderLookup.value.get(request.folder_id)
     const reference = request.request_id?.slice(0, 8)?.toUpperCase() ?? `REQ-${index + 1000}`
     const clientName = folder?.client?.name ?? folder?.folder_name ?? `Client ${index + 1}`
@@ -156,20 +160,43 @@ const attentionItems = computed(() => {
   ]
 })
 
-const governanceInsights = computed(() => adminDashboardFallbacks.governanceInsights)
+const governanceInsights = computed(() => {
+  if (!activityLogs.value.length) {
+    return adminDashboardFallbacks.governanceInsights
+  }
+
+  return adminDashboardFallbacks.governanceInsights.map((item, index) => {
+    const log = activityLogs.value[index]
+
+    if (!log) {
+      return item
+    }
+
+    return {
+      ...item,
+      value: log.user?.name ?? item.value,
+      detail: log.description ?? item.detail,
+    }
+  })
+})
+
+const usersTabRows = computed(() => adminDashboardFallbacks.users)
+const assignmentsTabRows = computed(() => adminDashboardFallbacks.assignments)
 
 const loadAdminDashboard = async () => {
   loading.value = true
   error.value = ''
 
   try {
-    const [dashboardResponse, requestsResponse] = await Promise.all([
+    const [dashboardResponse, requestsResponse, logsResponse] = await Promise.all([
       fetchDashboard(),
       fetchAdminRequests(),
+      fetchAdminActivityLogs(),
     ])
 
     dashboardPayload.value = dashboardResponse.data.data
     requestsPayload.value = requestsResponse.data.data.requests ?? []
+    activityLogs.value = logsResponse.data.data.logs ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the admin dashboard.'
   } finally {
@@ -200,16 +227,22 @@ onMounted(() => {
           </div>
 
           <template v-else>
-            <AdminDashboardStatGrid :stats="stats" />
+            <template v-if="activeItem === 'overview'">
+              <AdminDashboardStatGrid :stats="stats" />
 
-            <div class="mt-6">
-              <AdminDashboardAttentionPanel :items="attentionItems" />
-            </div>
+              <div class="mt-6">
+                <AdminDashboardAttentionPanel :items="attentionItems" />
+              </div>
 
-            <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.9fr)]">
-              <AdminDashboardRequestsSection :requests="queueRows" />
-              <AdminDashboardSecondaryPanels :folders="folderCards" :insights="governanceInsights" />
-            </div>
+              <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.9fr)]">
+                <AdminDashboardRequestsSection :requests="queueRows.slice(0, 6)" />
+                <AdminDashboardSecondaryPanels :folders="folderCards" :insights="governanceInsights" />
+              </div>
+            </template>
+
+            <AdminDashboardRequestsTab v-else-if="activeItem === 'requests'" :rows="queueRows" />
+            <AdminDashboardUsersTab v-else-if="activeItem === 'users'" :users="usersTabRows" />
+            <AdminDashboardAssignmentsTab v-else-if="activeItem === 'assignments'" :assignments="assignmentsTabRows" />
           </template>
         </div>
       </main>

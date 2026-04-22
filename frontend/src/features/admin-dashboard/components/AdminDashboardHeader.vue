@@ -1,7 +1,8 @@
 <script setup>
+import { computed } from 'vue'
 import { useThemeStore } from '../../../stores/theme'
 
-defineProps({
+const props = defineProps({
   activeItem: {
     type: String,
     default: 'overview',
@@ -9,24 +10,53 @@ defineProps({
 })
 
 const themeStore = useThemeStore()
+
+const copyByTab = {
+  overview: {
+    eyebrow: 'Governance Overview',
+    title: 'Admin desk.',
+    description: 'Review new client requests, assign due dates, and keep governance decisions visible across the delivery system.',
+    action: 'All requests',
+  },
+  requests: {
+    eyebrow: 'Requests Queue',
+    title: 'Request governance.',
+    description: 'Scan the full request queue, prioritize pending work, and identify missing due dates or assignment gaps.',
+    action: 'Queue filters',
+  },
+  users: {
+    eyebrow: 'User Administration',
+    title: 'Users & roles.',
+    description: 'Inspect role coverage, account state, and the current access model across admin, production, agent, and client users.',
+    action: 'Role updates',
+  },
+  assignments: {
+    eyebrow: 'Assignment Oversight',
+    title: 'Assignment desk.',
+    description: 'Track which production owners are carrying each client relationship and surface load-balancing issues early.',
+    action: 'Assignments',
+  },
+}
+
+const activeCopy = computed(() => copyByTab[props.activeItem] ?? copyByTab.overview)
 </script>
 
 <template>
   <header class="border-b border-black/10 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <p class="text-[11px] uppercase tracking-[0.38em] text-zinc-500">Governance Overview</p>
+        <p class="text-[11px] uppercase tracking-[0.38em] text-zinc-500">{{ activeCopy.eyebrow }}</p>
         <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-zinc-950 dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-          Admin desk.
+          {{ activeCopy.title }}
         </h1>
         <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-500">
-          Review new client requests, assign due dates, and keep governance decisions visible across the delivery system.
+          {{ activeCopy.description }}
         </p>
       </div>
 
       <div class="flex items-center gap-3 self-start">
         <button class="inline-flex items-center gap-3 border border-black/10 px-4 py-2.5 text-sm font-medium text-zinc-950 transition hover:border-black/20 hover:bg-black/[0.03] dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/[0.03]">
-          <span>{{ activeItem === 'requests' ? 'Requests queue' : 'All requests' }}</span>
+          <span>{{ activeCopy.action }}</span>
           <span aria-hidden="true">&rarr;</span>
         </button>
         <button
