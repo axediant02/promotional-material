@@ -49,7 +49,7 @@ const goToRegister = () => {
             type="email"
             autocomplete="email"
             placeholder="name@studio.com"
-            class="w-full bg-transparent text-[0.95rem] text-zinc-100 outline-none placeholder:text-zinc-600"
+            class="landing-auth-input w-full text-[0.95rem] text-zinc-100 outline-none placeholder:text-zinc-600"
           />
         </div>
       </label>
@@ -80,7 +80,7 @@ const goToRegister = () => {
             :type="showPassword ? 'text' : 'password'"
             autocomplete="current-password"
             placeholder="••••••••"
-            class="w-full bg-transparent text-[0.95rem] tracking-[0.24em] text-zinc-100 outline-none placeholder:tracking-[0.24em] placeholder:text-zinc-600"
+            class="landing-auth-input w-full text-[0.95rem] tracking-[0.24em] text-zinc-100 outline-none placeholder:tracking-[0.24em] placeholder:text-zinc-600"
           />
           <button
             type="button"
@@ -158,3 +158,22 @@ const goToRegister = () => {
     </div>
   </aside>
 </template>
+
+<style scoped>
+.landing-auth-input {
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  caret-color: #fafafa;
+}
+
+.landing-auth-input:-webkit-autofill,
+.landing-auth-input:-webkit-autofill:hover,
+.landing-auth-input:-webkit-autofill:focus,
+.landing-auth-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f4f4f5;
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 10, 12, 0) inset;
+  box-shadow: 0 0 0 1000px rgba(10, 10, 12, 0) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+</style>
