@@ -28,8 +28,9 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `agent` -> `/agent-new`
   - `admin` -> `/admin-new`
   - `client` -> `/client`
-- Public entry now uses a landing page at `/`, with sign-in at `/login`.
+- Public entry currently redirects `/` to `/login`.
 - Current client request UI targets the live `POST /requests` endpoint.
+- Registration creates both the client account and assigned folder immediately.
 
 ## Core Rules
 - Backend authorization is the source of truth.
@@ -86,7 +87,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 
 ## Workflow
 - Check the router, auth store, and relevant service modules before changing navigation or access behavior.
-- Use `docs/frontend-routes.md` and `docs/current-vs-planned.md` when route intent is unclear.
+- Use `docs/frontend-routes.md`, `docs/system-flow.md`, and `docs/request-workflow.md` when route or onboarding intent is unclear.
 - Preserve feature-based layout.
 - Add new pages inside the owning feature folder.
 - Add shared components only when reuse is real.
@@ -112,7 +113,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-17: Shared dashboard UI is reused across role pages.
 - 2026-04-17: Some screens still rely on compatibility payload fields during contract migration.
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
-- 2026-04-21: Local testing registration now creates and assigns the folder immediately.
+- 2026-04-22: Registration currently creates both the client account and assigned folder immediately.
 - 2026-04-21: Temporary `/production`, `/agent-new`, and `/admin-new` routes exist ahead of full backend role separation.
 
 ## Success Criteria

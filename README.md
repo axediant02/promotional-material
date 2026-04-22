@@ -26,7 +26,8 @@ Note:
 
 ## Current Truth
 - One client maps to one assigned folder.
-- Local testing registration creates the client account and assigned folder immediately.
+- Registration creates the client account immediately.
+- Registration also creates and assigns the client folder immediately.
 - Production manages uploads and current admin actions.
 - Agents can browse and download across visible folders.
 - Clients can access only their assigned folder and files.
@@ -83,10 +84,10 @@ npm run dev
   - manual validation and packaging workflow
 
 ## Docs
-- [docs/existing-features.md](./docs/existing-features.md)
-- [docs/current-vs-planned.md](./docs/current-vs-planned.md)
 - [docs/api-reference.md](./docs/api-reference.md)
 - [docs/frontend-routes.md](./docs/frontend-routes.md)
+- [docs/request-workflow.md](./docs/request-workflow.md)
+- [docs/schemas-relationship.md](./docs/schemas-relationship.md)
 - [docs/system-flow.md](./docs/system-flow.md)
 
 Implementation guides:

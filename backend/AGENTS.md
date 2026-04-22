@@ -27,7 +27,8 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - `file_name`
   - `category`
 - `client_requests` and `assigned_clients` tables/models exist.
-- Current local-testing registration creates the client account and assigned folder immediately.
+- Registration creates the client account immediately.
+- Registration also creates and assigns the client folder immediately.
 
 ## Core Rules
 - Backend authorization is the source of truth.
@@ -79,7 +80,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 
 ## Workflow
 - Check `routes/api.php`, related Form Requests, controllers, models, and migrations before changing behavior.
-- Use `docs/existing-features.md` for live truth and `docs/current-vs-planned.md` for gaps.
+- Use `docs/system-flow.md`, `docs/request-workflow.md`, and `docs/api-reference.md` as the current docs baseline.
 - If docs and code disagree, code against the live backend unless the task is an intentional migration.
 - Preserve current scoping rules for folders, files, previews, downloads, restore, and request ownership.
 
@@ -111,7 +112,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-20: Requests and assignments are present as backend foundations, not full live workflow.
 - 2026-04-20: Naming has shifted toward `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, `category`.
 - 2026-04-20: Upload/delete/restore flows should continue using `ActivityLogService`.
-- 2026-04-21: Local testing registration now creates the account and assigned folder immediately.
+- 2026-04-22: Registration currently creates both the client account and the assigned folder immediately.
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
 
 ## Success Criteria

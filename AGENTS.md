@@ -24,7 +24,8 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - `assigned_clients`
   - UUID-first schema naming such as `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, `category`
 - One client maps to one assigned folder.
-- Current local-testing onboarding creates the client account and assigned folder immediately.
+- Registration creates a default `client` account immediately.
+- Registration also creates and assigns the client folder immediately.
 
 ## Target Direction
 - Introduce a first-class live `admin` role.
@@ -54,9 +55,9 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 1. `AGENTS.md` at repo root
 2. `backend/AGENTS.md`
 3. `frontend/AGENTS.md`
-4. `docs/existing-features.md`
-5. `docs/current-vs-planned.md`
-6. detailed references in `docs/`
+4. `docs/system-flow.md`
+5. `docs/request-workflow.md`
+6. remaining references in `docs/`
 
 ## Workflow
 - Clarify only when access rules, contracts, or docs conflict in a risky way.
