@@ -27,13 +27,13 @@ This document describes the agreed system flow for onboarding, governance, file 
 5. The request starts as `pending`.
 
 ## 4. Governance and assignment
-1. Admin reviews client request workload.
-2. Admin assigns clients to production through `assigned_clients`.
-3. Admin sets or updates `due_date` when needed.
+1. Admin reviews all client requests.
+2. Admin sets or updates `due_date` when needed.
+3. Admin assigns clients to production through `assigned_clients`.
 4. Admin manages user-role changes when access needs change.
 
 ## 5. Production execution
-1. Production reviews assigned-client requests.
+1. Production reviews assigned-client requests only.
 2. Production works requests through operational status updates.
 3. Production uploads files to the assigned client folder.
 4. Upload activity is logged.
@@ -72,7 +72,8 @@ This document describes the agreed system flow for onboarding, governance, file 
 ## Foundations already present
 - the backend already contains `client_requests` and `assigned_clients`
 - the backend schema uses target-style keys such as `user_id`, `folder_id`, `file_id`, `folder_name`, and `file_name`
-- route and UI implementation are still being aligned fully to this role model
+- backend request-management routes are now present for client history, production status handling, and admin due-date management
+- UI and assignment-management implementation are still being aligned fully to this role model
 
 ## Guardrails
 - Agents do not enter the request workflow.

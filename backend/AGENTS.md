@@ -75,10 +75,13 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Recycle bin and purge command
 - Agent creation
 - Activity log listing
-- Backend request and assignment foundations
+- Client request creation and request history
+- Production request listing for assigned clients
+- Production request status updates
+- Admin request listing and due-date updates
+- Backend assignment foundations
 
 ## Planned Areas Still Incomplete
-- Full request-management route surface
 - Full assignment-management workflow
 - Admin user-management and role-management route surface
 - Legacy route naming cleanup where paths still blur `admin` and `production`

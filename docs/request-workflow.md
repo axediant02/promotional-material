@@ -72,9 +72,11 @@ Client ownership is intended to live at the client level, not through per-reques
 3. If the client has no assigned folder yet, the first submitted request creates and assigns it automatically.
 4. Client submits a request.
 5. Request is linked to the client and assigned folder.
-6. Admin assigns the client to production when operational ownership is needed.
-7. Admin sets or updates `due_date` when needed.
-8. Production works the request through `pending`, `in_progress`, and `done`.
+6. Client can fetch request history through the client request listing route.
+7. Admin can review all requests and set or update `due_date`.
+8. Admin assigns the client to production when operational ownership is needed.
+9. Production fetches requests for assigned clients only.
+10. Production works the request through `pending`, `in_progress`, and `done`.
 
 ## Operational Notes
 - Registration does not create the folder.
@@ -85,7 +87,8 @@ Client ownership is intended to live at the client level, not through per-reques
 
 ## Implementation Note
 - Backend schema and models for requests and assignments already exist.
-- The route and UI surface still needs to be aligned fully to this role model.
+- The backend route surface now covers client history, admin due-date management, and production status handling.
+- Assignment-management routes and full frontend alignment are still incomplete.
 - Read this file with:
   - [system-flow.md](./system-flow.md)
   - [api-reference.md](./api-reference.md)

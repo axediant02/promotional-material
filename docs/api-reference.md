@@ -147,6 +147,13 @@ Most endpoints return:
 
 ## Request routes
 
+### `GET /requests`
+- Purpose: fetch the authenticated client's own request history
+- Access:
+  - client only
+- Returns:
+  - `requests`
+
 ### `POST /requests`
 - Purpose: create a client request
 - Access:
@@ -154,6 +161,43 @@ Most endpoints return:
 - Notes:
   - if the client has no assigned folder yet, request creation creates and assigns it first
   - the request is then stored against that folder with `pending` status
+
+### `GET /production/requests`
+- Purpose: fetch requests for clients assigned to the authenticated production user
+- Access:
+  - production only
+- Returns:
+  - `requests`
+
+### `PATCH /production/requests/{clientRequest}`
+- Purpose: update operational request status for an assigned client request
+- Access:
+  - production only
+- Body:
+  - `status`
+- Allowed status values:
+  - `pending`
+  - `in_progress`
+  - `done`
+- Notes:
+  - `due_date` is prohibited on this route
+  - production may only update requests for assigned clients
+
+### `GET /admin/requests`
+- Purpose: fetch all requests for administrative review
+- Access:
+  - admin only
+- Returns:
+  - `requests`
+
+### `PATCH /admin/requests/{clientRequest}`
+- Purpose: update request due date
+- Access:
+  - admin only
+- Body:
+  - `due_date`
+- Notes:
+  - `status` is prohibited on this route
 
 ## Agreed Role Ownership
 
@@ -192,8 +236,8 @@ The role model this project is implementing is:
 ## Legacy Admin-Prefixed Routes
 
 Important:
-- These routes exist in the current codebase, but their naming does not match the agreed role model.
-- Treat them as legacy transition routes until dedicated `admin` and `production` route surfaces are implemented.
+- These routes still exist alongside the dedicated request-management routes.
+- They remain operational for agent creation and activity logs.
 
 ### `POST /admin/agents`
 - Current codebase purpose: create an agent account
@@ -209,4 +253,4 @@ Important:
 - backend role enum now includes `admin`
 - `client_requests` schema and model now exist in backend
 - `assigned_clients` schema and model now exist in backend
-- full request history, status-update, due-date, assignment-management, and role-management routes are still not complete
+- assignment-management and user-role-management routes are still not complete
