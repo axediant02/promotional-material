@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import LandingPage from '../features/landing-page/pages/LandingPage.vue'
 import LoginPage from '../features/auth/pages/LoginPage.vue'
 import RegisterPage from '../features/auth/pages/RegisterPage.vue'
 import ClientDashboardPage from '../features/client-dashboard/pages/ClientDashboardPage.vue'
@@ -10,7 +11,7 @@ import AgentDashboardPage from '../features/agent-dashboard/pages/AgentDashboard
 import AdminDashboardPage from '../features/admin-dashboard/pages/AdminDashboardPage.vue'
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  { path: '/', name: 'landing', component: LandingPage, meta: { guestOnly: true } },
   { path: '/login', name: 'login', component: LoginPage, meta: { guestOnly: true } },
   { path: '/register', name: 'register', component: RegisterPage, meta: { guestOnly: true } },
   { path: '/client', name: 'client-dashboard', component: ClientDashboardPage, meta: { requiresAuth: true, role: 'client' } },
