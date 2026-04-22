@@ -32,4 +32,28 @@ class LoginTest extends TestCase
         $this->assertIsString($response->json('data.token'));
         $this->assertNotEmpty($response->json('data.token'));
     }
+
+    public function test_admin_user_can_log_in(): void
+    {
+        User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'password123',
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'admin@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Login successful.')
+            ->assertJsonPath('data.user.email', 'admin@example.com')
+            ->assertJsonPath('data.user.role', User::ROLE_ADMIN);
+
+        $this->assertIsString($response->json('data.token'));
+        $this->assertNotEmpty($response->json('data.token'));
+    }
 }

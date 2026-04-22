@@ -34,12 +34,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
-        if ($user->isAdmin()) {
-            return response()->json([
-                'message' => 'Admin accounts are not available in the live portal yet. Use a production, agent, or client account.',
-            ], 403);
-        }
-
         $token = $user->createToken('frontend')->plainTextToken;
 
         return response()->json([
