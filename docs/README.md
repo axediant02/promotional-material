@@ -11,5 +11,5 @@ This folder contains the current working docs for the portal.
 
 ## Reading order
 1. Read `system-flow.md` for the implemented onboarding and delivery flow.
-2. Read `request-workflow.md` for request handling.
+2. Read `request-workflow.md` for request ownership and lifecycle.
 3. Use `api-reference.md`, `frontend-routes.md`, and `schemas-relationship.md` while implementing or debugging.

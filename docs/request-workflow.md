@@ -1,13 +1,13 @@
 # Request Workflow
 
-This document describes the implemented client request workflow. Backend foundations already exist, but the full admin-managed workflow is still incomplete across live routes and UI.
+This document defines the agreed request workflow and role ownership for the portal.
 
 ## Purpose
 Allow clients to request:
 - new assets
 - updates to existing assets
 
-Requests are managed internally by admin and production users.
+Requests are governed by admin and executed by production.
 
 ## Core Request Data
 
@@ -52,9 +52,10 @@ Client ownership is intended to live at the client level, not through per-reques
 
 ### Admin
 - can view all client requests
-- can manage request state
 - can assign production ownership to clients
 - can set `due_date`
+- can manage user-role changes
+- does not use the file portal directly by default
 
 ### Production
 - can view requests for assigned clients
@@ -63,6 +64,7 @@ Client ownership is intended to live at the client level, not through per-reques
 
 ### Agent
 - no request module access in v1
+- can browse and download allowed files only
 
 ## Current Workflow
 1. User registers with default role `client`.
@@ -70,16 +72,20 @@ Client ownership is intended to live at the client level, not through per-reques
 3. If the client has no assigned folder yet, the first submitted request creates and assigns it automatically.
 4. Client submits a request.
 5. Request is linked to the client and assigned folder.
-6. Request is created with status `pending`.
+6. Admin assigns the client to production when operational ownership is needed.
+7. Admin sets or updates `due_date` when needed.
+8. Production works the request through `pending`, `in_progress`, and `done`.
 
 ## Operational Notes
 - Registration does not create the folder.
 - The first request creates the assigned folder, and future requests reuse it.
-- Clients can access files in their assigned folder after production uploads them.
+- Production uploads files for assigned-client work.
+- Agents can download allowed files for operational use.
+- Clients can download files in their assigned folder only.
 
 ## Implementation Note
 - Backend schema and models for requests and assignments already exist.
-- Full end-to-end request handling is still not fully exposed across all live routes and screens.
+- The route and UI surface still needs to be aligned fully to this role model.
 - Read this file with:
   - [system-flow.md](./system-flow.md)
   - [api-reference.md](./api-reference.md)

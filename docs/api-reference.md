@@ -64,9 +64,10 @@ Most endpoints return:
   - `folders`
   - `recentFiles`
 - Scope:
-  - client sees assigned folder only
-  - agent sees all accessible folders/files
-  - production sees admin-oriented folder/file stats
+  - client sees the assigned folder only
+  - agent sees allowed folders/files for download work
+  - production sees production-owned operational stats
+  - admin should see governance-oriented stats once the dedicated surface is implemented
 - Notes:
   - folder payloads now use backend naming such as `folder_id` and `folder_name`
   - file payloads are in a contract-transition period while frontend consumers catch up
@@ -81,7 +82,7 @@ Most endpoints return:
 ### `POST /folders`
 - Purpose: create a folder
 - Access:
-  - production only
+  - production only in the current codebase
 - Body:
   - `folder_name`
   - `client_id`
@@ -90,7 +91,7 @@ Most endpoints return:
 - Purpose: fetch one folder and its files
 - Access:
   - client can only access assigned folder
-  - other authenticated roles can access all folders in the current implementation
+  - other authenticated roles follow the current backend authorization rules
 
 ### `PUT|PATCH /folders/{folder}`
 - Purpose: update a folder
@@ -154,6 +155,28 @@ Most endpoints return:
   - if the client has no assigned folder yet, request creation creates and assigns it first
   - the request is then stored against that folder with `pending` status
 
+## Agreed Role Ownership
+
+The role model this project is implementing is:
+- `admin`
+  - assigns clients to production
+  - sets and updates request due dates
+  - manages user-role changes
+  - oversees request workflow
+  - does not use the file portal directly by default
+- `production`
+  - uploads files
+  - views assigned-client folders
+  - views assigned-client requests
+  - updates operational request status
+- `agent`
+  - browses and downloads allowed files only
+  - does not participate in request management
+- `client`
+  - creates requests
+  - views own requests
+  - downloads files from own assigned folder only
+
 ## Recycle bin routes
 
 ### `GET /recycle-bin`
@@ -166,24 +189,24 @@ Most endpoints return:
 - Access:
   - production only
 
-## Admin-prefixed routes
+## Legacy Admin-Prefixed Routes
 
 Important:
-- These routes are currently protected by `role:production`.
-- Planned system state introduces a separate `admin` role, but that role is not implemented in the current live routes yet.
+- These routes exist in the current codebase, but their naming does not match the agreed role model.
+- Treat them as legacy transition routes until dedicated `admin` and `production` route surfaces are implemented.
 
 ### `POST /admin/agents`
-- Purpose: create an agent account
+- Current codebase purpose: create an agent account
 - Body:
   - `name`
   - `email`
   - `password`
 
 ### `GET /admin/activity-logs`
-- Purpose: fetch recent activity logs
+- Current codebase purpose: fetch recent activity logs
 
 ## Backend foundations present
 - backend role enum now includes `admin`
 - `client_requests` schema and model now exist in backend
 - `assigned_clients` schema and model now exist in backend
-- full request CRUD, due-date handling, and assignment management routes are still not complete
+- full request history, status-update, due-date, assignment-management, and role-management routes are still not complete
