@@ -66,15 +66,15 @@ Client ownership is intended to live at the client level, not through per-reques
 
 ## Current Workflow
 1. User registers with default role `client`.
-2. Registration creates and assigns the client folder immediately.
-3. User can sign in immediately.
+2. User can sign in immediately.
+3. If the client has no assigned folder yet, the first submitted request creates and assigns it automatically.
 4. Client submits a request.
 5. Request is linked to the client and assigned folder.
 6. Request is created with status `pending`.
 
 ## Operational Notes
-- Registration creates the assigned folder before any request is submitted.
-- Future requests reuse the same assigned folder.
+- Registration does not create the folder.
+- The first request creates the assigned folder, and future requests reuse it.
 - Clients can access files in their assigned folder after production uploads them.
 
 ## Implementation Note

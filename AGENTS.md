@@ -25,7 +25,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - UUID-first schema naming such as `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, `category`
 - One client maps to one assigned folder.
 - Registration creates a default `client` account immediately.
-- Registration also creates and assigns the client folder immediately.
+- The client's folder is created and assigned when the first request is submitted.
 
 ## Target Direction
 - Introduce a first-class live `admin` role.

@@ -30,7 +30,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `client` -> `/client`
 - Public entry currently redirects `/` to `/login`.
 - Current client request UI targets the live `POST /requests` endpoint.
-- Registration creates both the client account and assigned folder immediately.
+- Registration creates the client account immediately, and the first submitted request creates the assigned folder.
 
 ## Core Rules
 - Backend authorization is the source of truth.
@@ -113,7 +113,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-17: Shared dashboard UI is reused across role pages.
 - 2026-04-17: Some screens still rely on compatibility payload fields during contract migration.
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
-- 2026-04-22: Registration currently creates both the client account and assigned folder immediately.
+- 2026-04-22: Registration creates the client account first, and the first submitted request creates the assigned folder.
 - 2026-04-21: Temporary `/production`, `/agent-new`, and `/admin-new` routes exist ahead of full backend role separation.
 
 ## Success Criteria

@@ -28,7 +28,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - `category`
 - `client_requests` and `assigned_clients` tables/models exist.
 - Registration creates the client account immediately.
-- Registration also creates and assigns the client folder immediately.
+- The first client request creates and assigns the client's folder.
 
 ## Core Rules
 - Backend authorization is the source of truth.
@@ -112,7 +112,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-20: Requests and assignments are present as backend foundations, not full live workflow.
 - 2026-04-20: Naming has shifted toward `user_id`, `folder_id`, `file_id`, `folder_name`, `file_name`, `category`.
 - 2026-04-20: Upload/delete/restore flows should continue using `ActivityLogService`.
-- 2026-04-22: Registration currently creates both the client account and the assigned folder immediately.
+- 2026-04-22: Registration creates the client account first, and the first client request creates and assigns the folder.
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
 
 ## Success Criteria
