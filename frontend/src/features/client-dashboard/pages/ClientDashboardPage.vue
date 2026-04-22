@@ -3,10 +3,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { fetchFiles } from '../../../services/fileService'
+import { fetchRequests } from '../../../services/requestService'
 import ClientAssetCatalog from '../components/ClientAssetCatalog.vue'
 import ClientDashboardTopbar from '../components/ClientDashboardTopbar.vue'
 import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
 import ClientPortalFooter from '../components/ClientPortalFooter.vue'
+import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.vue'
 import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
 import ClientStatusBanner from '../components/ClientStatusBanner.vue'
 import ClientSupportCard from '../components/ClientSupportCard.vue'
@@ -15,7 +17,9 @@ const authStore = useAuthStore()
 
 const payload = ref({ user: null, stats: {}, folders: [], recentFiles: [] })
 const files = ref([])
+const requests = ref([])
 const loading = ref(false)
+const requestsLoading = ref(false)
 const searchQuery = ref('')
 const viewMode = ref('grid')
 const selectedFile = ref(null)
@@ -108,21 +112,38 @@ const clearSelectedFile = () => {
   selectedFile.value = null
 }
 
-onMounted(async () => {
-  loading.value = true
+const loadRequests = async () => {
+  requestsLoading.value = true
 
   try {
-    const [dashboardResponse, filesResponse] = await Promise.all([
+    const response = await fetchRequests()
+    requests.value = response.data.data.requests || []
+  } catch (error) {
+    console.error('Failed to load client requests:', error)
+  } finally {
+    requestsLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  loading.value = true
+  requestsLoading.value = true
+
+  try {
+    const [dashboardResponse, filesResponse, requestsResponse] = await Promise.all([
       fetchDashboard(),
       fetchFiles(),
+      fetchRequests(),
     ])
 
     payload.value = dashboardResponse.data.data
     files.value = filesResponse.data.data.files || []
+    requests.value = requestsResponse.data.data.requests || []
   } catch (error) {
     console.error('Failed to load client dashboard:', error)
   } finally {
     loading.value = false
+    requestsLoading.value = false
   }
 })
 
@@ -178,6 +199,11 @@ function formatBytes(bytes) {
             :selected-file="selectedFile"
             :support-summary="supportSummary"
             @clear-selected-file="clearSelectedFile"
+            @request-created="loadRequests"
+          />
+          <ClientRequestHistoryPanel
+            :requests="requests"
+            :loading="requestsLoading"
           />
           <ClientSupportCard />
         </div>
