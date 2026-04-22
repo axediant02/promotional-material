@@ -83,43 +83,59 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <article class="group overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_28px_70px_rgba(37,99,235,0.14)]">
-    <div :class="['aspect-[16/10] bg-gradient-to-br p-6', palette.frame]">
-      <div class="flex h-full flex-col justify-between rounded-[1.4rem] border border-white/70 bg-white/65 p-5 backdrop-blur">
+  <article class="group overflow-hidden rounded-[1.4rem] border bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.1)]"
+    :class="[
+      file.category === 'image' ? 'border-blue-200 bg-blue-50/30' : '',
+      file.category === 'pdf' ? 'border-rose-200 bg-rose-50/30' : '',
+      file.category === 'video' ? 'border-violet-200 bg-violet-50/30' : '',
+      !['image', 'pdf', 'video'].includes(file.category) ? 'border-slate-200' : '',
+    ]"
+  >
+    <div :class="['aspect-[16/9] p-4', palette.frame]">
+      <div class="flex h-full flex-col justify-between rounded-[1rem] border border-white/80 bg-white/70 p-4 backdrop-blur-sm">
         <div class="flex items-start justify-between gap-3">
-          <span :class="['rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em]', palette.badge]">
+          <span :class="['rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]', palette.badge]">
             {{ file.category ?? 'file' }}
           </span>
-          <span class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">{{ sizeLabel }}</span>
+          <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{{ sizeLabel }}</span>
         </div>
 
-        <div>
-          <p :class="['text-4xl font-semibold tracking-[0.35em]', palette.accent]">{{ palette.icon }}</p>
-          <p class="mt-3 text-sm text-slate-500">{{ file.folder?.folder_name ?? 'Assigned folder' }}</p>
+        <div class="flex h-full items-center justify-center">
+          <img
+            v-if="file.category === 'image'"
+            :src="`/api/files/${file.file_id}/preview`"
+            :alt="file.file_name"
+            class="h-full w-full rounded-2xl object-cover"
+          />
+          <div v-else class="flex flex-col items-center justify-center gap-2 text-center">
+            <p :class="['text-4xl font-semibold tracking-[0.18em]', palette.accent]">{{ palette.icon }}</p>
+            <p class="text-sm font-medium text-slate-700">
+              {{ file.category === 'video' ? 'Video File' : file.category === 'pdf' ? 'PDF' : 'File' }}
+            </p>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="p-5">
-      <div class="flex items-start justify-between gap-4">
-        <div class="min-w-0">
-          <h4 class="truncate text-base font-semibold text-slate-950" :title="file.file_name">
-            {{ file.file_name }}
-          </h4>
-          <p class="mt-1 text-sm text-slate-500">Updated {{ updatedLabel }}</p>
-        </div>
+    <div class="p-4">
+      <div class="min-w-0">
+        <h4 class="truncate text-sm font-semibold text-slate-950" :title="file.file_name">
+          {{ file.file_name }}
+        </h4>
+        <p class="mt-2 text-sm text-slate-500">{{ file.folder?.folder_name ?? 'Assigned folder' }}</p>
+        <p class="mt-2 text-sm text-slate-400">Uploaded {{ updatedLabel }}</p>
       </div>
 
-      <div class="mt-5 flex gap-3">
+      <div class="mt-4 flex translate-y-2 gap-2 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
         <button
-          class="flex-1 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          class="flex-1 rounded-xl bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="isDownloading"
           @click="handleDownload"
         >
-          {{ isDownloading ? 'Preparing…' : 'Download' }}
+          {{ isDownloading ? 'Preparing...' : 'Download' }}
         </button>
         <button
-          class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
+          class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
           @click="emit('request-change', file)"
         >
           Request Change

@@ -50,12 +50,13 @@ This document describes the current Vue frontend routing in `frontend/src/router
 ### Register page
 - uses auth store
 - calls `POST /auth/register`
+- successful registration creates and assigns the client folder
 
 ### Client dashboard
 - calls `GET /dashboard`
 - calls `GET /files` for the media grid
-- currently renders request-change UI scaffolding from the client media cards
 - request submission calls `POST /requests`
+- requests use the client's existing assigned folder
 
 ### Agent workspace
 - calls `GET /dashboard`
@@ -71,10 +72,6 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - The `admin` route scaffold does not mean the backend has live dedicated `admin` authorization yet.
 - Treat these routes as frontend scaffolding until backend role separation and API support are actually implemented.
 
-## Planned frontend routes not yet implemented
-- admin role-specific route separation
-- request list screen
-- request detail screen
-- request creation route-backed flow
-- assigned-clients management screen
-- due date management screen
+## Notes
+- `/admin` is still the production-operated admin workspace.
+- `/production`, `/agent-new`, and `/admin-new` are temporary role-dashboard routes ahead of full backend role separation.

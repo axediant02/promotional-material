@@ -1,6 +1,6 @@
 # Request Workflow
 
-This document describes the target client request system. The backend schema and models now exist, but the full workflow is not implemented across the live routes and UI yet.
+This document describes the implemented client request workflow. Backend foundations already exist, but the full admin-managed workflow is still incomplete across live routes and UI.
 
 ## Purpose
 Allow clients to request:
@@ -9,7 +9,7 @@ Allow clients to request:
 
 Requests are managed internally by admin and production users.
 
-## Planned core table
+## Core Request Data
 
 ### `client_requests`
 - `request_id`
@@ -20,11 +20,9 @@ Requests are managed internally by admin and production users.
 - `request_type`
 - `status`
 - `due_date`
-- `created_at`
-- `updated_at`
-- `deleted_at`
+- timestamps and soft-delete fields
 
-### Planned values
+### Expected values
 - `request_type`
   - `new_asset`
   - `update_asset`
@@ -33,17 +31,18 @@ Requests are managed internally by admin and production users.
   - `in_progress`
   - `done`
 
-## Ownership model
+## Ownership Model
 
 ### `assigned_clients`
 - `id`
 - `production_id`
 - `client_id`
 - `status`
-- `created_at`
-- `updated_at`
+- timestamps
 
-## Planned access rules
+Client ownership is intended to live at the client level, not through per-request assignment.
+
+## Access Rules
 
 ### Client
 - can create requests
@@ -58,21 +57,30 @@ Requests are managed internally by admin and production users.
 - can set `due_date`
 
 ### Production
-- can view client requests for assigned clients
-- can work requests through operational completion
+- can view requests for assigned clients
+- can work requests through completion
+- can upload files for client requests
 
 ### Agent
 - no request module access in v1
 
-## Planned workflow
-1. Client creates request.
-2. Request is linked to client and folder.
-3. Admin reviews request.
-4. Admin sets `due_date`.
-5. Assigned production user handles the request.
-6. Request status progresses from `pending` to `in_progress` to `done`.
+## Current Workflow
+1. User registers with default role `client`.
+2. Registration creates and assigns the client folder immediately.
+3. User can sign in immediately.
+4. Client submits a request.
+5. Request is linked to the client and assigned folder.
+6. Request is created with status `pending`.
 
-## Implementation note
-- The agreed direction is client-level production assignment through `assigned_clients`.
-- Per-request `assigned_to` is not the preferred target model.
-- Read this file together with [existing-features.md](./existing-features.md) and [current-vs-planned.md](./current-vs-planned.md): the data foundation exists in backend, but the operational feature is still incomplete.
+## Operational Notes
+- Registration creates the assigned folder before any request is submitted.
+- Future requests reuse the same assigned folder.
+- Clients can access files in their assigned folder after production uploads them.
+
+## Implementation Note
+- Backend schema and models for requests and assignments already exist.
+- Full end-to-end request handling is still not fully exposed across all live routes and screens.
+- Read this file with:
+  - [system-flow.md](./system-flow.md)
+  - [api-reference.md](./api-reference.md)
+  - [schemas-relationship.md](./schemas-relationship.md)

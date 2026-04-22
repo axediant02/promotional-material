@@ -1,6 +1,6 @@
 # Schemas And Relationships
 
-This document separates the current implemented backend schema foundation from the still-incomplete target behavior across the full system.
+This document describes the current schema foundation and the core relationships used by the implemented flow.
 
 ## Current implemented backend schema
 
@@ -11,7 +11,6 @@ This document separates the current implemented backend schema foundation from t
 - `email_verified_at`
 - `password`
 - `role`
-- `status`
 - `assigned_folder_id`
 - `remember_token`
 - `created_at`
@@ -22,11 +21,6 @@ Current role enum values in backend schema:
 - `production`
 - `agent`
 - `client`
-
-Current status enum values:
-- `pending`
-- `approved`
-- `rejected`
 
 ### `folders`
 - `folder_id`
@@ -133,7 +127,6 @@ Current assignment statuses in backend schema:
 - one client should have one active production ownership record at a time
 
 ## Important implementation notes
-- The backend schema and models have moved to the target relationship structure.
-- The rest of the system is still catching up in routes, UI, and documentation.
+- registration creates the client account and assigned folder together.
+- request linkage should stay aligned with [system-flow.md](./system-flow.md) and [request-workflow.md](./request-workflow.md).
 - Do not assume every schema relationship is already fully exposed through APIs or screens.
-- The backend role enum and request/assignment tables are ahead of the currently implemented production-operated UI behavior.

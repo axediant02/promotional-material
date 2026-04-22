@@ -9,40 +9,48 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::query()->updateOrCreate(
-            ['email' => 'production@example.com'],
-            [
-                'name' => 'Production Team',
-                'password' => 'password123',
-                'role' => User::ROLE_PRODUCTION,
-            ]
+        $this->seedUser(
+            User::factory()->admin(),
+            'admin@example.com',
+            'Admin User'
         );
 
-        User::query()->updateOrCreate(
-            ['email' => 'agent@example.com'],
-            [
-                'name' => 'Agent User',
-                'password' => 'password123',
-                'role' => User::ROLE_AGENT,
-            ]
+        $this->seedUser(
+            User::factory()->production(),
+            'production@example.com',
+            'Production Team'
         );
 
-        User::query()->updateOrCreate(
-            ['email' => 'client1@example.com'],
-            [
-                'name' => 'Client One',
-                'password' => 'password123',
-                'role' => User::ROLE_CLIENT,
-            ]
+        $this->seedUser(
+            User::factory()->agent(),
+            'agent@example.com',
+            'Agent User'
         );
 
+        $this->seedUser(
+            User::factory()->client(),
+            'client1@example.com',
+            'Client One'
+        );
+
+        $this->seedUser(
+            User::factory()->client(),
+            'client2@example.com',
+            'Client Two'
+        );
+    }
+
+    protected function seedUser(\Illuminate\Database\Eloquent\Factories\Factory $factory, string $email, string $name): void
+    {
+        $attributes = $factory->raw([
+            'email' => $email,
+            'name' => $name,
+            'password' => 'password123',
+        ]);
+
         User::query()->updateOrCreate(
-            ['email' => 'client2@example.com'],
-            [
-                'name' => 'Client Two',
-                'password' => 'password123',
-                'role' => User::ROLE_CLIENT,
-            ]
+            ['email' => $email],
+            $attributes
         );
     }
 }

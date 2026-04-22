@@ -8,7 +8,6 @@ This document describes the currently implemented backend API in `backend/routes
 ## Auth model
 - Token auth uses Laravel Sanctum.
 - Protected routes require `Authorization: Bearer <token>`.
-- Current implementation issues with Sanctum and UUID users are documented in [known-issues.md](./known-issues.md).
 
 ## Response shape
 Most endpoints return:
@@ -23,7 +22,7 @@ Most endpoints return:
 ## Public auth routes
 
 ### `POST /auth/register`
-- Purpose: create a client account and assign its folder immediately
+- Purpose: create a client account
 - Body:
   - `name`
   - `email`
@@ -145,6 +144,16 @@ Most endpoints return:
 ### `GET /files/{file}/preview`
 - Purpose: stream a previewable file response
 
+## Request routes
+
+### `POST /requests`
+- Purpose: create a client request
+- Access:
+  - client
+- Notes:
+  - request creation requires an assigned folder
+  - current implementation returns `422` if the client has no assigned folder
+
 ## Recycle bin routes
 
 ### `GET /recycle-bin`
@@ -173,7 +182,7 @@ Important:
 ### `GET /admin/activity-logs`
 - Purpose: fetch recent activity logs
 
-## Backend foundations present but not fully exposed yet
+## Backend foundations present
 - backend role enum now includes `admin`
 - `client_requests` schema and model now exist in backend
 - `assigned_clients` schema and model now exist in backend

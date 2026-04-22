@@ -1,5 +1,26 @@
-# Vue 3 + Vite
+# Frontend
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue client for the Promotional Materials Portal.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Responsibilities
+- landing page, login, and registration
+- role-based routing
+- client, agent, and production dashboards
+- request submission UI
+- API consumption through shared services
+
+## Current flow notes
+- public entry redirects `/` to `/login`
+- sign-in is `/login`
+- registration creates the account and assigned folder immediately
+- `/admin` still represents the production-operated admin workspace
+
+## Common commands
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+## Primary guide
+- [AGENTS.md](./AGENTS.md)
