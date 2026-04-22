@@ -32,7 +32,7 @@ import LandingShowcaseSection from '../components/LandingShowcaseSection.vue'
         </div>
       </header>
 
-      <main class="mx-auto max-w-6xl px-6 sm:px-8 lg:px-10">
+      <main class="mx-auto max-w-7xl px-6 sm:px-8 lg:pl-10 lg:pr-10">
         <LandingHeroSection />
         <LandingShowcaseSection />
       </main>

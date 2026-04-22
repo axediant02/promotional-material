@@ -8,7 +8,7 @@ const { element, isVisible } = useScrollReveal()
 
 <template>
   <section ref="element" class="border-b border-white/10 py-16 sm:py-20 lg:py-24">
-    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center xl:gap-16">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22.5rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_32rem] xl:gap-16">
       <div
         :class="[
           revealClass(isVisible),
@@ -55,7 +55,7 @@ const { element, isVisible } = useScrollReveal()
       <LandingQuickAccess
         :class="[
           revealClass(isVisible),
-          'self-start transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transform-none motion-reduce:transition-none',
+          'self-start lg:mt-0.5 transition-all duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transform-none motion-reduce:transition-none',
         ]"
         style="transition-delay: 320ms"
       />
