@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ActivityLogController;
+use App\Http\Controllers\Api\Admin\AdminAssignmentController;
 use App\Http\Controllers\Api\Admin\AdminRequestController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Client\ClientRequestController;
@@ -43,8 +45,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::prefix('admin')->group(function (): void {
         Route::post('agents', [AgentController::class, 'store']);
+        Route::post('assignments', [AdminAssignmentController::class, 'store']);
         Route::get('activity-logs', [ActivityLogController::class, 'index']);
         Route::get('requests', [AdminRequestController::class, 'index']);
         Route::patch('requests/{clientRequest}', [AdminRequestController::class, 'update']);
+        Route::patch('users/{user}', [AdminUserController::class, 'update']);
     });
 });
