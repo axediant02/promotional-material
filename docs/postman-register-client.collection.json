@@ -1,0 +1,120 @@
+{
+  "info": {
+    "_postman_id": "58d80d0c-0923-4ca6-8ee3-6e8568e0e4a8",
+    "name": "Promotional Materials Portal - Register Client",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register Client",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const timestamp = Date.now();",
+              "pm.collectionVariables.set('registerName', `Client ${timestamp}`);",
+              "pm.collectionVariables.set('registerEmail', `client.${timestamp}@example.com`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns HTTP 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test('returns the expected success message', function () {",
+              "  pm.expect(json.message).to.eql('Registration completed. Your folder will be created when you submit your first request.');",
+              "});",
+              "",
+              "pm.test('returns a user payload', function () {",
+              "  pm.expect(json).to.have.property('data');",
+              "  pm.expect(json.data).to.have.property('user');",
+              "});",
+              "",
+              "pm.test('creates a client user with the submitted name and email', function () {",
+              "  pm.expect(json.data.user.name).to.eql(pm.collectionVariables.get('registerName'));",
+              "  pm.expect(json.data.user.email).to.eql(pm.collectionVariables.get('registerEmail'));",
+              "  pm.expect(json.data.user.role).to.eql('client');",
+              "});",
+              "",
+              "pm.test('does not assign a folder during registration', function () {",
+              "  pm.expect(json.data.user.assigned_folder_id).to.eql(null);",
+              "});",
+              "",
+              "pm.collectionVariables.set('registeredClientId', json.data.user.user_id);",
+              "pm.collectionVariables.set('registeredClientEmail', json.data.user.email);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{registerName}}\",\n  \"email\": \"{{registerEmail}}\",\n  \"password\": \"{{registerPassword}}\",\n  \"password_confirmation\": \"{{registerPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "description": "Registers a new client account and verifies the current lazy folder-creation behavior."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000/api"
+    },
+    {
+      "key": "registerName",
+      "value": "Client Example"
+    },
+    {
+      "key": "registerEmail",
+      "value": "client@example.com"
+    },
+    {
+      "key": "registerPassword",
+      "value": "password123"
+    },
+    {
+      "key": "registeredClientId",
+      "value": ""
+    },
+    {
+      "key": "registeredClientEmail",
+      "value": ""
+    }
+  ]
+}

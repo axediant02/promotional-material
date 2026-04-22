@@ -9,7 +9,7 @@ class RegisterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_client_registration_creates_and_assigns_a_folder(): void
+    public function test_client_registration_creates_an_unassigned_client_account(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Client Example',
@@ -20,23 +20,16 @@ class RegisterTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('message', 'Registration completed. Your folder has been assigned.')
-            ->assertJsonPath('data.user.email', 'client@example.com');
-
-        $assignedFolderId = $response->json('data.user.assigned_folder_id');
-
-        $this->assertNotEmpty($assignedFolderId);
+            ->assertJsonPath('message', 'Registration completed. Your folder will be created when you submit your first request.')
+            ->assertJsonPath('data.user.email', 'client@example.com')
+            ->assertJsonPath('data.user.assigned_folder_id', null);
 
         $this->assertDatabaseHas('users', [
             'email' => 'client@example.com',
             'role' => 'client',
-            'assigned_folder_id' => $assignedFolderId,
+            'assigned_folder_id' => null,
         ]);
 
-        $this->assertDatabaseHas('folders', [
-            'folder_id' => $assignedFolderId,
-            'client_id' => $response->json('data.user.user_id'),
-            'folder_name' => 'Client Example',
-        ]);
+        $this->assertDatabaseCount('folders', 0);
     }
 }

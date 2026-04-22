@@ -30,8 +30,8 @@ Most endpoints return:
   - `password_confirmation`
 - Success:
   - creates a `client` user
-  - creates the assigned folder
-  - returns the user with the assigned folder relation loaded
+  - does not create the folder yet
+  - returns the created user payload
 
 ### `POST /auth/login`
 - Purpose: login for registered users
@@ -151,8 +151,8 @@ Most endpoints return:
 - Access:
   - client
 - Notes:
-  - request creation requires an assigned folder
-  - current implementation returns `422` if the client has no assigned folder
+  - if the client has no assigned folder yet, request creation creates and assigns it first
+  - the request is then stored against that folder with `pending` status
 
 ## Recycle bin routes
 

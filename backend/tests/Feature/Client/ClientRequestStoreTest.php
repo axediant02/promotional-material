@@ -45,6 +45,46 @@ class ClientRequestStoreTest extends TestCase
         ]);
     }
 
+    public function test_client_request_creates_and_assigns_a_folder_when_missing(): void
+    {
+        $client = User::query()->create([
+            'name' => 'Client Without Folder',
+            'email' => 'client-no-folder@example.com',
+            'password' => 'password123',
+            'role' => User::ROLE_CLIENT,
+        ]);
+
+        Sanctum::actingAs($client);
+
+        $response = $this->postJson('/api/requests', [
+            'title' => 'Launch poster',
+            'description' => 'Create a new poster for the product launch.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+        ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.request.client_id', $client->user_id)
+            ->assertJsonPath('data.request.request_type', ClientRequest::TYPE_NEW_ASSET)
+            ->assertJsonPath('data.request.status', ClientRequest::STATUS_PENDING);
+
+        $client->refresh();
+
+        $this->assertNotNull($client->assigned_folder_id);
+
+        $this->assertDatabaseHas('folders', [
+            'folder_id' => $client->assigned_folder_id,
+            'client_id' => $client->user_id,
+            'folder_name' => 'Client Without Folder',
+        ]);
+
+        $this->assertDatabaseHas('client_requests', [
+            'client_id' => $client->user_id,
+            'folder_id' => $client->assigned_folder_id,
+            'title' => 'Launch poster',
+        ]);
+    }
+
     public function test_client_cannot_set_due_date_when_creating_a_request(): void
     {
         [$client] = $this->createClientWithAssignedFolder();

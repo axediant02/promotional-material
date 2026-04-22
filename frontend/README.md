@@ -12,7 +12,7 @@ Vue client for the Promotional Materials Portal.
 ## Current flow notes
 - public entry redirects `/` to `/login`
 - sign-in is `/login`
-- registration creates the account and assigned folder immediately
+- registration creates the account immediately, and the first request creates the assigned folder
 - `/admin` still represents the production-operated admin workspace
 
 ## Common commands

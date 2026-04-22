@@ -50,13 +50,13 @@ This document describes the current Vue frontend routing in `frontend/src/router
 ### Register page
 - uses auth store
 - calls `POST /auth/register`
-- successful registration creates and assigns the client folder
+- successful registration creates the client account only
 
 ### Client dashboard
 - calls `GET /dashboard`
 - calls `GET /files` for the media grid
 - request submission calls `POST /requests`
-- requests use the client's existing assigned folder
+- the first request creates and assigns the client's folder when needed
 
 ### Agent workspace
 - calls `GET /dashboard`

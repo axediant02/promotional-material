@@ -127,6 +127,7 @@ Current assignment statuses in backend schema:
 - one client should have one active production ownership record at a time
 
 ## Important implementation notes
-- registration creates the client account and assigned folder together.
+- registration creates the client account first.
+- the first client request creates and assigns the folder.
 - request linkage should stay aligned with [system-flow.md](./system-flow.md) and [request-workflow.md](./request-workflow.md).
 - Do not assume every schema relationship is already fully exposed through APIs or screens.

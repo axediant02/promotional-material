@@ -25,7 +25,7 @@ const submit = async () => {
 
     success.value = folderName
       ? `Registration completed. Your folder "${folderName}" is ready. You can sign in now.`
-      : 'Registration completed. Your folder is ready. You can sign in now.'
+      : 'Registration completed. Your folder will be created when you submit your first request after signing in.'
 
     Object.assign(form, {
       name: '',
@@ -46,7 +46,7 @@ const submit = async () => {
     <section class="w-full max-w-2xl rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_25px_80px_rgba(15,23,42,0.08)] lg:p-10">
       <p class="text-xs font-semibold uppercase tracking-[0.35em] text-orange-600">Client registration</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Request access to your files</h1>
-      <p class="mt-2 text-sm text-slate-500">Local testing mode creates your client folder immediately after registration.</p>
+      <p class="mt-2 text-sm text-slate-500">Local testing mode creates your client folder when you submit your first request after signing in.</p>
 
       <form class="mt-8 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
         <label class="block sm:col-span-2">

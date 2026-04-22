@@ -27,7 +27,7 @@ Note:
 ## Current Truth
 - One client maps to one assigned folder.
 - Registration creates the client account immediately.
-- Registration also creates and assigns the client folder immediately.
+- The client folder is created and assigned when the first request is submitted.
 - Production manages uploads and current admin actions.
 - Agents can browse and download across visible folders.
 - Clients can access only their assigned folder and files.

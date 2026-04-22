@@ -32,10 +32,6 @@ const resetForm = () => {
 }
 
 const validateForm = () => {
-  if (!props.folder?.folder_id) {
-    error.value = 'Your account does not have an assigned folder yet.'
-    return false
-  }
   if (!form.value.title.trim()) {
     error.value = 'Please enter a title for your request.'
     return false
@@ -128,6 +124,15 @@ const submitRequest = async () => {
     <div v-if="file" class="rounded-xl bg-slate-50 p-3">
       <p class="text-xs text-slate-500">Selected file</p>
       <p class="truncate font-medium text-slate-900">{{ file.file_name }}</p>
+    </div>
+
+    <div
+      v-else-if="!folder?.folder_id"
+      class="rounded-xl border border-amber-200 bg-amber-50 p-3"
+    >
+      <p class="text-sm text-amber-800">
+        Your client folder will be created automatically when you submit this first request.
+      </p>
     </div>
 
     <!-- Description -->

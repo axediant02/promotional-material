@@ -8,9 +8,7 @@ This document describes the implemented system flow for onboarding, file deliver
 1. User opens `/register`.
 2. User submits registration form.
 3. Backend creates the account with default role `client`.
-4. Backend creates the client's folder immediately.
-5. Backend sets `assigned_folder_id` on the user.
-6. User can sign in immediately.
+4. User can sign in immediately.
 
 ### 2. Login and role routing
 1. User submits login credentials.
@@ -37,9 +35,10 @@ This document describes the implemented system flow for onboarding, file deliver
 
 ### 4. Client request flow
 1. Client signs in.
-2. Client submits a request.
-3. Request is linked to the client's already assigned folder.
-4. Request starts as `pending`.
+2. If the client has no assigned folder, the backend creates one and sets `assigned_folder_id`.
+3. Client submits a request.
+4. Request is linked to the client's assigned folder.
+5. Request starts as `pending`.
 
 ### 5. Recycle bin
 1. Production deletes a file.
