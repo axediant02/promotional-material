@@ -4,9 +4,7 @@
 
 :root {
   color: #14213d;
-  background:
-    radial-gradient(circle at top, rgba(244, 162, 97, 0.25), transparent 34%),
-    linear-gradient(180deg, #f8fafc 0%, #eef4f8 100%);
+  background-color: #111111;
   font-family: "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -14,6 +12,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  min-height: 100%;
+  background-color: #111111;
 }
 
 * {
@@ -24,6 +27,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #111111;
 }
 
 button,
@@ -34,4 +38,5 @@ select {
 
 #app {
   min-height: 100vh;
+  background-color: #111111;
 }
