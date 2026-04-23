@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     if (user.value.role === 'production') {
-      return { name: 'production-dashboard' }
+      return { name: 'production-folder-index' }
     }
 
     if (user.value.role === 'agent') {
