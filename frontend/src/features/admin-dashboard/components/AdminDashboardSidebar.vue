@@ -28,16 +28,17 @@ const initials = (props.currentUser?.name ?? 'Admin User')
 </script>
 
 <template>
-  <aside class="border-r border-border/80 bg-brand-50 text-ink dark:border-white/10 dark:bg-[#181818] dark:text-zinc-200">
+  <aside class="bg-[linear-gradient(180deg,#58489b_0%,#4b3d74_100%)] text-white shadow-[24px_0_60px_rgba(75,61,116,0.24)] dark:border-white/10 dark:bg-[#181818] dark:text-zinc-200">
     <div class="flex min-h-full flex-col">
-      <div class="border-b border-border/80 px-8 py-6 dark:border-white/10">
-        <p class="text-[11px] uppercase tracking-[0.42em] text-muted">Work &amp; Flow</p>
-        <h1 class="mt-3 text-[2.4rem] font-semibold tracking-[-0.05em] text-brand-600 [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+      <div class="border-b border-white/10 px-8 py-7 dark:border-white/10">
+        <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Nexus Archive</p>
+        <h1 class="mt-3 text-[2.4rem] font-semibold tracking-[-0.05em] text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           Studio.
         </h1>
-        <div class="mt-6 inline-flex items-center gap-2 border border-border/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-ink dark:border-white/10 dark:text-white">
-          <span class="text-brand-500">&bull;</span>
-          Admin
+        <p class="mt-1 text-sm text-white/65">Enterprise governance</p>
+        <div class="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-white dark:border-white/10 dark:text-white">
+          <span class="text-[#d8c5ff]">&bull;</span>
+          Admin Command
         </div>
       </div>
 
@@ -47,14 +48,14 @@ const initials = (props.currentUser?.name ?? 'Admin User')
           :key="item.id"
           type="button"
           :class="[
-            'mb-2 flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition',
+            'mb-2 flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left text-sm transition',
             activeItem === item.id
-              ? 'border-l-2 border-brand-500 bg-brand-100 text-ink dark:bg-white/[0.04] dark:text-white'
-              : 'border-l-2 border-transparent text-muted hover:bg-brand-100 hover:text-ink dark:text-zinc-400 dark:hover:bg-white/[0.03] dark:hover:text-white',
+              ? 'bg-white text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)] dark:bg-white/[0.04] dark:text-white'
+              : 'text-white/72 hover:bg-white/10 hover:text-white dark:text-zinc-400 dark:hover:bg-white/[0.03] dark:hover:text-white',
           ]"
           @click="emit('navigate', item.id)"
         >
-          <span class="text-zinc-500">
+          <span :class="activeItem === item.id ? 'text-brand-600' : 'text-white/65'">
             <svg v-if="item.icon === 'grid'" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="4" y="4" width="6" height="6" />
               <rect x="14" y="4" width="6" height="6" />
@@ -84,16 +85,16 @@ const initials = (props.currentUser?.name ?? 'Admin User')
         </button>
       </nav>
 
-      <div class="border-t border-black/10 px-6 py-5 dark:border-white/10">
+      <div class="border-t border-white/10 px-6 py-5 dark:border-white/10">
         <div class="flex items-center gap-4">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-brand-100 text-sm font-semibold text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-white dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
             {{ initials }}
           </div>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-lg font-medium text-ink dark:text-white">{{ currentUser?.name ?? 'Admin User' }}</p>
-            <p class="text-[11px] uppercase tracking-[0.28em] text-muted">{{ currentUser?.role ?? 'admin' }}</p>
+            <p class="truncate text-lg font-medium text-white dark:text-white">{{ currentUser?.name ?? 'Admin User' }}</p>
+            <p class="text-[11px] uppercase tracking-[0.28em] text-white/55">{{ currentUser?.role ?? 'admin' }}</p>
           </div>
-          <span class="text-muted">
+          <span class="text-white/60">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M13 5h6v6" />
               <path d="m19 5-8 8" />

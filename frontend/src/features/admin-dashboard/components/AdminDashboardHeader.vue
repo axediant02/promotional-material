@@ -51,32 +51,41 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <header class="border-b border-border/80 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
-    <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+  <header class="border-b border-border/70 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
+    <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
       <div>
-        <p class="text-[11px] uppercase tracking-[0.38em] text-brand-500">{{ activeCopy.eyebrow }}</p>
+        <p class="text-[11px] uppercase tracking-[0.38em] text-brand-600 dark:text-brand-100">{{ activeCopy.eyebrow }}</p>
         <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           {{ activeCopy.title }}
         </h1>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-500">
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-300">
           {{ activeCopy.description }}
         </p>
       </div>
 
-      <div class="flex items-center gap-3 self-start">
-        <button class="pm-button-secondary inline-flex items-center gap-3 px-4 py-2.5 text-sm font-medium dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/[0.03]">
+      <div class="flex flex-col gap-3 self-start sm:flex-row sm:items-center">
+        <label class="relative">
+          <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted dark:text-zinc-400">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input class="pm-input w-full rounded-2xl py-3 pl-11 pr-4 text-sm sm:w-72" placeholder="Search command center..." />
+        </label>
+        <button class="pm-button-secondary inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium dark:text-white">
           <span>{{ activeCopy.action }}</span>
           <span aria-hidden="true">&rarr;</span>
         </button>
         <button
-          class="pm-button-secondary inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium dark:border-white/10 dark:text-zinc-300 dark:hover:border-[#a58bd0] dark:hover:bg-white/[0.04] dark:hover:text-white"
+          class="pm-button-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium dark:text-white"
           type="button"
           @click="handleLogout"
         >
           <span>Logout</span>
         </button>
         <button
-          class="flex h-11 w-11 items-center justify-center border border-border/80 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:hover:border-white/20 dark:hover:text-white"
+          class="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-white/60 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20 dark:hover:text-white"
           type="button"
           @click="themeStore.toggleTheme()"
         >

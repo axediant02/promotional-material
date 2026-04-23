@@ -386,18 +386,18 @@ onMounted(() => {
 
 <template>
   <div class="pm-page text-ink transition-colors dark:text-zinc-100">
-    <div class="min-h-screen xl:grid xl:grid-cols-[17.75rem_minmax(0,1fr)]">
+    <div class="min-h-screen xl:grid xl:grid-cols-[18.5rem_minmax(0,1fr)]">
       <AdminDashboardSidebar :current-user="currentUser" :active-item="activeItem" @navigate="activeItem = $event" />
 
-      <main class="min-w-0 bg-[linear-gradient(to_right,rgba(109,80,162,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(109,80,162,0.08)_1px,transparent_1px)] bg-[size:8px_8px] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)]">
+      <main class="min-w-0">
         <AdminDashboardHeader :active-item="activeItem" />
 
         <div class="px-6 py-8 sm:px-8 lg:px-10">
-          <p v-if="error" class="mb-6 border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700 dark:border-[#57231f] dark:bg-[#261716] dark:text-[#f06753]">
+          <p v-if="error" class="mb-6 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">
             {{ error }}
           </p>
 
-          <div v-if="loading" class="flex min-h-[18rem] items-center justify-center border border-border/80 bg-surface/60 text-sm uppercase tracking-[0.3em] text-muted dark:border-white/10 dark:bg-[#1a1a1a]">
+          <div v-if="loading" class="pm-surface flex min-h-[18rem] items-center justify-center rounded-[2rem] text-sm uppercase tracking-[0.3em] text-muted">
             Loading admin overview
           </div>
 
@@ -409,7 +409,7 @@ onMounted(() => {
                 <AdminDashboardAttentionPanel :items="attentionItems" />
               </div>
 
-              <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.9fr)]">
+              <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(20rem,0.92fr)]">
                 <AdminDashboardRequestsSection :requests="queueRows.slice(0, 6)" />
                 <AdminDashboardSecondaryPanels :folders="folderCards" :insights="governanceInsights" />
               </div>
