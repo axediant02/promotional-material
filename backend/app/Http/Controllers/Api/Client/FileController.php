@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\File\StoreFileRequest;
 use App\Http\Requests\File\UpdateFileRequest;
+use App\Models\AssignedClient;
 use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Models\User;
@@ -20,12 +21,21 @@ class FileController extends Controller
     {
     }
 
-    public static function accessibleFilesQuery(User $user): Builder
+    public static function accessibleFilesQuery(User $user, bool $onlyTrashed = false, bool $withTrashed = false): Builder
     {
-        $query = MediaFile::query()->with('folder:folder_id,folder_name,client_id', 'uploader:user_id,name,email');
+        $query = MediaFile::query()
+            ->when($onlyTrashed, fn (Builder $builder) => $builder->onlyTrashed())
+            ->when($withTrashed && ! $onlyTrashed, fn (Builder $builder) => $builder->withTrashed())
+            ->with('folder:folder_id,folder_name,client_id', 'uploader:user_id,name,email');
 
         if ($user->isClient()) {
             return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->where('folder_id', $user->assigned_folder_id));
+        }
+
+        if ($user->isProduction()) {
+            return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->whereIn('client_id', AssignedClient::query()
+                ->select('client_id')
+                ->where('production_id', $user->user_id)));
         }
 
         return $query;
@@ -50,6 +60,9 @@ class FileController extends Controller
         abort_unless($request->user()->isProduction(), 403);
 
         $folder = Folder::query()->findOrFail($request->input('folder_id'));
+        abort_unless(FolderController::accessibleFoldersQuery($request->user())
+            ->whereKey($folder->getKey())
+            ->exists(), 403, 'You cannot access this folder.');
         $uploadedFile = $request->file('file');
         $disk = config('filesystems.default', 'local');
         $path = $uploadedFile->storeAs(
@@ -93,6 +106,7 @@ class FileController extends Controller
     public function update(UpdateFileRequest $request, MediaFile $file): JsonResponse
     {
         abort_unless($request->user()->isProduction(), 403);
+        $this->authorizeFile($file, $request->user());
 
         $file->fill($request->validated());
         $file->save();
@@ -106,6 +120,7 @@ class FileController extends Controller
     public function destroy(MediaFile $file): JsonResponse
     {
         abort_unless(request()->user()->isProduction(), 403);
+        $this->authorizeFile($file, request()->user());
 
         $file->last_deleted_at = now();
         $file->save();
@@ -145,6 +160,12 @@ class FileController extends Controller
     protected function authorizeFile(MediaFile $file, User $user): void
     {
         if ($user->isClient() && $file->folder?->folder_id !== $user->assigned_folder_id) {
+            abort(403, 'You cannot access this file.');
+        }
+
+        if ($user->isProduction() && ! self::accessibleFilesQuery($user, withTrashed: true)
+            ->whereKey($file->getKey())
+            ->exists()) {
             abort(403, 'You cannot access this file.');
         }
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Folder\StoreFolderRequest;
 use App\Http\Requests\Folder\UpdateFolderRequest;
+use App\Models\AssignedClient;
 use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,12 @@ class FolderController extends Controller
 
         if ($user->isClient()) {
             return $query->where('folder_id', $user->assigned_folder_id);
+        }
+
+        if ($user->isProduction()) {
+            return $query->whereIn('client_id', AssignedClient::query()
+                ->select('client_id')
+                ->where('production_id', $user->user_id));
         }
 
         return $query;
@@ -80,6 +87,12 @@ class FolderController extends Controller
     protected function authorizeFolder(Folder $folder, User $user): void
     {
         if ($user->isClient() && $folder->folder_id !== $user->assigned_folder_id) {
+            abort(403, 'You cannot access this folder.');
+        }
+
+        if ($user->isProduction() && ! self::accessibleFoldersQuery($user)
+            ->whereKey($folder->getKey())
+            ->exists()) {
             abort(403, 'You cannot access this folder.');
         }
     }
