@@ -81,6 +81,77 @@ class AdminManagementRoutesTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_list_all_current_assignments(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $firstProduction = $this->createUser('Production One', 'production-one@example.com', User::ROLE_PRODUCTION);
+        $secondProduction = $this->createUser('Production Two', 'production-two@example.com', User::ROLE_PRODUCTION);
+        $firstClient = $this->createUser('Client One', 'client-one@example.com', User::ROLE_CLIENT);
+        $secondClient = $this->createUser('Client Two', 'client-two@example.com', User::ROLE_CLIENT);
+
+        $firstAssignment = AssignedClient::query()->create([
+            'production_id' => $firstProduction->user_id,
+            'client_id' => $firstClient->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+
+        $secondAssignment = AssignedClient::query()->create([
+            'production_id' => $secondProduction->user_id,
+            'client_id' => $secondClient->user_id,
+            'status' => AssignedClient::STATUS_DONE,
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/assignments');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Assignments fetched.')
+            ->assertJsonCount(2, 'data.assignments')
+            ->assertJsonPath('data.assignments.0.id', $secondAssignment->id)
+            ->assertJsonPath('data.assignments.1.id', $firstAssignment->id);
+
+        $response->assertJsonFragment([
+            'id' => $firstAssignment->id,
+            'production_id' => $firstProduction->user_id,
+            'client_id' => $firstClient->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+
+        $response->assertJsonFragment([
+            'id' => $secondAssignment->id,
+            'production_id' => $secondProduction->user_id,
+            'client_id' => $secondClient->user_id,
+            'status' => AssignedClient::STATUS_DONE,
+        ]);
+    }
+
+    public function test_admin_can_unassign_a_client(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+
+        $assignment = AssignedClient::query()->create([
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_IN_PROGRESS,
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->deleteJson("/api/admin/assignments/{$assignment->id}");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Client assignment removed.');
+
+        $this->assertDatabaseMissing('assigned_clients', [
+            'id' => $assignment->id,
+        ]);
+    }
+
     public function test_non_admin_users_cannot_manage_client_assignments(): void
     {
         $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
@@ -95,6 +166,18 @@ class AdminManagementRoutesTest extends TestCase
                 'client_id' => $client->user_id,
                 'status' => AssignedClient::STATUS_PENDING,
             ])->assertForbidden();
+
+            $this->getJson('/api/admin/assignments')->assertForbidden();
+
+            $assignment = AssignedClient::query()->create([
+                'production_id' => $production->user_id,
+                'client_id' => $client->user_id,
+                'status' => AssignedClient::STATUS_PENDING,
+            ]);
+
+            $this->deleteJson("/api/admin/assignments/{$assignment->id}")->assertForbidden();
+
+            $assignment->delete();
         }
     }
 

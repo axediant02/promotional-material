@@ -65,6 +65,43 @@ class RequestManagementRoutesTest extends TestCase
         ]);
     }
 
+    public function test_production_can_fetch_assigned_client_requests_for_each_assignment_status(): void
+    {
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+
+        foreach ([
+            AssignedClient::STATUS_PENDING,
+            AssignedClient::STATUS_IN_PROGRESS,
+            AssignedClient::STATUS_DONE,
+        ] as $index => $status) {
+            $client = $this->createUser("Client {$index}", "client-{$index}@example.com", User::ROLE_CLIENT);
+            $folder = $this->assignFolderToClient($client, $production);
+
+            AssignedClient::query()->create([
+                'production_id' => $production->user_id,
+                'client_id' => $client->user_id,
+                'status' => $status,
+            ]);
+
+            ClientRequest::query()->create([
+                'client_id' => $client->user_id,
+                'folder_id' => $folder->folder_id,
+                'title' => "Request {$status}",
+                'description' => "Request with {$status} assignment.",
+                'request_type' => ClientRequest::TYPE_NEW_ASSET,
+                'status' => ClientRequest::STATUS_PENDING,
+                'due_date' => null,
+            ]);
+        }
+
+        Sanctum::actingAs($production);
+
+        $this->getJson('/api/production/requests')
+            ->assertOk()
+            ->assertJsonPath('message', 'Requests fetched.')
+            ->assertJsonCount(3, 'data.requests');
+    }
+
     public function test_non_production_users_cannot_fetch_production_request_listing(): void
     {
         $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
@@ -95,6 +132,45 @@ class RequestManagementRoutesTest extends TestCase
             ->assertJsonPath('data.request.status', ClientRequest::STATUS_IN_PROGRESS);
     }
 
+    public function test_reassignment_transfers_request_visibility_to_the_new_production_owner(): void
+    {
+        [$firstProduction, $assignedRequest] = $this->createProductionAssignmentsWithRequests();
+        $secondProduction = $this->createUser('Production Two', 'production-two@example.com', User::ROLE_PRODUCTION);
+
+        AssignedClient::query()
+            ->where('client_id', $assignedRequest->client_id)
+            ->update([
+                'production_id' => $secondProduction->user_id,
+                'status' => AssignedClient::STATUS_DONE,
+            ]);
+
+        Sanctum::actingAs($firstProduction);
+        $this->getJson('/api/production/requests')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.requests');
+
+        Sanctum::actingAs($secondProduction);
+        $this->getJson('/api/production/requests')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.requests')
+            ->assertJsonPath('data.requests.0.request_id', $assignedRequest->request_id);
+    }
+
+    public function test_unassignment_removes_request_visibility_from_the_previous_production_owner(): void
+    {
+        [$production, $assignedRequest] = $this->createProductionAssignmentsWithRequests();
+
+        AssignedClient::query()
+            ->where('client_id', $assignedRequest->client_id)
+            ->delete();
+
+        Sanctum::actingAs($production);
+
+        $this->getJson('/api/production/requests')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.requests');
+    }
+
     public function test_production_cannot_update_due_date_on_the_production_request_route(): void
     {
         [$production, $assignedRequest] = $this->createProductionAssignmentsWithRequests();
@@ -117,6 +193,45 @@ class RequestManagementRoutesTest extends TestCase
         Sanctum::actingAs($production);
 
         $this->patchJson("/api/production/requests/{$unassignedRequest->request_id}", [
+            'status' => ClientRequest::STATUS_DONE,
+        ])->assertForbidden();
+    }
+
+    public function test_reassignment_transfers_request_update_access_to_the_new_production_owner(): void
+    {
+        [$firstProduction, $assignedRequest] = $this->createProductionAssignmentsWithRequests();
+        $secondProduction = $this->createUser('Production Two', 'production-two@example.com', User::ROLE_PRODUCTION);
+
+        AssignedClient::query()
+            ->where('client_id', $assignedRequest->client_id)
+            ->update([
+                'production_id' => $secondProduction->user_id,
+                'status' => AssignedClient::STATUS_PENDING,
+            ]);
+
+        Sanctum::actingAs($firstProduction);
+        $this->patchJson("/api/production/requests/{$assignedRequest->request_id}", [
+            'status' => ClientRequest::STATUS_DONE,
+        ])->assertForbidden();
+
+        Sanctum::actingAs($secondProduction);
+        $this->patchJson("/api/production/requests/{$assignedRequest->request_id}", [
+            'status' => ClientRequest::STATUS_DONE,
+        ])->assertOk()
+            ->assertJsonPath('data.request.status', ClientRequest::STATUS_DONE);
+    }
+
+    public function test_unassignment_removes_request_update_access_from_the_previous_production_owner(): void
+    {
+        [$production, $assignedRequest] = $this->createProductionAssignmentsWithRequests();
+
+        AssignedClient::query()
+            ->where('client_id', $assignedRequest->client_id)
+            ->delete();
+
+        Sanctum::actingAs($production);
+
+        $this->patchJson("/api/production/requests/{$assignedRequest->request_id}", [
             'status' => ClientRequest::STATUS_DONE,
         ])->assertForbidden();
     }
