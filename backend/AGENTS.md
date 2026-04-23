@@ -43,6 +43,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Agents may browse/download according to visibility rules but must not gain request-management access.
 - Keep the current `message` + `data` response shape unless a coordinated contract change is intentional.
 - Treat schema foundations as separate from fully live feature exposure.
+- For TDD work, do not weaken or rewrite a failing newly added test just to make it pass; fix the backend behavior, fixtures, or setup instead.
 
 ## Code Rules
 - Reuse model constants for roles, statuses, request types, and categories.
@@ -91,6 +92,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Use `docs/system-flow.md`, `docs/request-workflow.md`, and `docs/api-reference.md` as the current docs baseline.
 - If docs and code disagree, code against the live backend unless the task is an intentional migration.
 - Preserve role boundaries for uploads, downloads, request visibility, due-date ownership, and assignment ownership.
+- When writing tests first, treat the initial approved test as the acceptance target and adapt implementation to satisfy it unless the requirement itself is corrected explicitly.
 
 ## Verification
 - Run from `backend`:
@@ -124,6 +126,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-22: Registration creates the client account first, and the first client request creates and assigns the folder.
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
 - 2026-04-22: Admin owns assignment, due dates, and role changes. Production owns uploads and assigned-client execution. Agents and clients can download files, but agents stay outside the request workflow.
+- 2026-04-23: Backend TDD work keeps newly written failing tests fixed as acceptance criteria; implementation must move to the test, not the other way around.
 
 ## Success Criteria
 - Correct authorization
