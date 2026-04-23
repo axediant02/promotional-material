@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            FreshProductionUserSeeder::class,
             FolderSeeder::class,
             MediaFileSeeder::class,
             AssignedClientSeeder::class,
