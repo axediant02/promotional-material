@@ -83,7 +83,7 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <article class="group overflow-hidden rounded-[1.4rem] border bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.1)]"
+  <article class="group overflow-hidden rounded-[1.4rem] border bg-white/85 shadow-[0_14px_32px_rgba(75,61,116,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(75,61,116,0.12)] dark:bg-white/5"
     :class="[
       file.category === 'image' ? 'border-blue-200 bg-blue-50/30' : '',
       file.category === 'pdf' ? 'border-rose-200 bg-rose-50/30' : '',
@@ -97,7 +97,7 @@ function formatBytes(bytes) {
           <span :class="['rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]', palette.badge]">
             {{ file.category ?? 'file' }}
           </span>
-          <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{{ sizeLabel }}</span>
+          <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted dark:text-zinc-400">{{ sizeLabel }}</span>
         </div>
 
         <div class="flex h-full items-center justify-center">
@@ -109,7 +109,7 @@ function formatBytes(bytes) {
           />
           <div v-else class="flex flex-col items-center justify-center gap-2 text-center">
             <p :class="['text-4xl font-semibold tracking-[0.18em]', palette.accent]">{{ palette.icon }}</p>
-            <p class="text-sm font-medium text-slate-700">
+            <p class="text-sm font-medium text-ink dark:text-white">
               {{ file.category === 'video' ? 'Video File' : file.category === 'pdf' ? 'PDF' : 'File' }}
             </p>
           </div>
@@ -119,23 +119,23 @@ function formatBytes(bytes) {
 
     <div class="p-4">
       <div class="min-w-0">
-        <h4 class="truncate text-sm font-semibold text-slate-950" :title="file.file_name">
+        <h4 class="truncate text-sm font-semibold text-ink dark:text-white" :title="file.file_name">
           {{ file.file_name }}
         </h4>
-        <p class="mt-2 text-sm text-slate-500">{{ file.folder?.folder_name ?? 'Assigned folder' }}</p>
-        <p class="mt-2 text-sm text-slate-400">Uploaded {{ updatedLabel }}</p>
+        <p class="mt-2 text-sm text-muted dark:text-zinc-300">{{ file.folder?.folder_name ?? 'Assigned folder' }}</p>
+        <p class="mt-2 text-sm text-muted dark:text-zinc-400">Uploaded {{ updatedLabel }}</p>
       </div>
 
       <div class="mt-4 flex translate-y-2 gap-2 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
         <button
-          class="flex-1 rounded-xl bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          class="pm-gradient-primary flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="isDownloading"
           @click="handleDownload"
         >
           {{ isDownloading ? 'Preparing...' : 'Download' }}
         </button>
         <button
-          class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
+          class="rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-medium text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
           @click="emit('request-change', file)"
         >
           Request Change

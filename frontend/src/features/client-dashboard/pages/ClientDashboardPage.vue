@@ -70,7 +70,7 @@ const heroStats = computed(() => [
   {
     label: 'Access',
     value: 'Private',
-    help: folderLabel.value,
+    help: 'Client-only scope',
   },
 ])
 
@@ -84,8 +84,8 @@ const statusDetails = computed(() => [
     value: `${filteredFiles.value.length}`,
   },
   {
-    label: 'Access Scope',
-    value: 'Approved client only',
+    label: 'Open Requests',
+    value: `${requests.value.filter((request) => request.status !== 'done').length}`,
   },
 ])
 
@@ -161,7 +161,7 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <div class="pm-page text-ink">
+  <div class="pm-page text-ink dark:text-white">
     <ClientDashboardTopbar
       v-model:search-query="searchQuery"
       :folder-label="folderLabel"
@@ -192,7 +192,7 @@ function formatBytes(bytes) {
         />
       </section>
 
-      <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(248,244,255,0.88),rgba(241,236,251,0.72))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px]">
+      <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(250,246,255,0.92),rgba(244,238,252,0.78))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]">
         <div class="flex h-full flex-col gap-6">
           <ClientRequestSidebar
             :folder="assignedFolder"

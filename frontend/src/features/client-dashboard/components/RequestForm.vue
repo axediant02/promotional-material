@@ -81,7 +81,7 @@ const submitRequest = async () => {
   <form @submit.prevent="submitRequest" class="space-y-4">
     <!-- Request Type -->
     <div>
-      <label class="mb-2 block text-sm font-medium text-slate-700">Request Type</label>
+      <label class="mb-2 block text-sm font-medium text-ink dark:text-white">Request Type</label>
       <div class="space-y-2">
         <label
           v-for="type in requestTypes"
@@ -89,19 +89,19 @@ const submitRequest = async () => {
           :class="[
             'flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all',
             form.request_type === type.value
-              ? 'border-orange-500 bg-orange-50'
-              : 'border-slate-200 hover:border-slate-300'
+              ? 'border-brand-500 bg-brand-50 dark:border-white/20 dark:bg-white/10'
+              : 'border-border hover:border-brand-300 dark:border-white/10 dark:hover:border-white/20'
           ]"
         >
           <input
             type="radio"
             :value="type.value"
             v-model="form.request_type"
-            class="h-4 w-4 accent-orange-600"
+            class="h-4 w-4 accent-[rgb(95,80,155)]"
           />
           <div class="flex-1">
-            <p class="font-medium text-slate-900">{{ type.label }}</p>
-            <p class="text-xs text-slate-500">{{ type.description }}</p>
+            <p class="font-medium text-ink dark:text-white">{{ type.label }}</p>
+            <p class="text-xs text-muted dark:text-zinc-300">{{ type.description }}</p>
           </div>
         </label>
       </div>
@@ -109,7 +109,7 @@ const submitRequest = async () => {
 
     <!-- Title -->
     <div>
-      <label for="title" class="mb-2 block text-sm font-medium text-slate-700">
+      <label for="title" class="mb-2 block text-sm font-medium text-ink dark:text-white">
         Title <span class="text-red-500">*</span>
       </label>
       <input
@@ -117,27 +117,27 @@ const submitRequest = async () => {
         v-model="form.title"
         type="text"
         placeholder="Brief title for your request"
-        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+        class="pm-input w-full rounded-xl px-4 py-3 text-sm"
       />
     </div>
 
-    <div v-if="file" class="rounded-xl bg-slate-50 p-3">
-      <p class="text-xs text-slate-500">Selected file</p>
-      <p class="truncate font-medium text-slate-900">{{ file.file_name }}</p>
+    <div v-if="file" class="rounded-xl bg-white/70 p-3 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
+      <p class="text-xs text-muted dark:text-zinc-400">Selected file</p>
+      <p class="truncate font-medium text-ink dark:text-white">{{ file.file_name }}</p>
     </div>
 
     <div
       v-else-if="!folder?.folder_id"
-      class="rounded-xl border border-amber-200 bg-amber-50 p-3"
+      class="rounded-xl border border-brand-200 bg-brand-50 p-3 dark:border-white/10 dark:bg-white/10"
     >
-      <p class="text-sm text-amber-800">
+      <p class="text-sm text-brand-700 dark:text-white">
         Your client folder will be created automatically when you submit this first request.
       </p>
     </div>
 
     <!-- Description -->
     <div>
-      <label for="description" class="mb-2 block text-sm font-medium text-slate-700">
+      <label for="description" class="mb-2 block text-sm font-medium text-ink dark:text-white">
         Changes Needed <span class="text-red-500">*</span>
       </label>
       <textarea
@@ -145,13 +145,13 @@ const submitRequest = async () => {
         v-model="form.description"
         rows="4"
         placeholder="Describe what changes or updates you need for this file..."
-        class="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+        class="pm-input w-full resize-none rounded-xl px-4 py-3 text-sm"
       ></textarea>
     </div>
 
     <!-- Error Message -->
-    <div v-if="error" class="rounded-xl bg-red-50 p-3">
-      <p class="text-sm text-red-600">{{ error }}</p>
+    <div v-if="error" class="rounded-xl bg-red-50 p-3 dark:bg-red-500/10">
+      <p class="text-sm text-red-600 dark:text-red-200">{{ error }}</p>
     </div>
 
     <!-- Actions -->
@@ -159,7 +159,7 @@ const submitRequest = async () => {
       <button
         type="button"
         @click="resetForm(); emit('close')"
-        class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        class="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/10"
       >
         Clear
       </button>
@@ -167,10 +167,10 @@ const submitRequest = async () => {
         type="submit"
         :disabled="isSubmitting"
         :class="[
-          'flex-1 rounded-xl bg-orange-600 px-4 py-3 text-sm font-medium text-white transition',
+          'pm-gradient-primary flex-1 rounded-xl px-4 py-3 text-sm font-medium transition',
           isSubmitting
             ? 'cursor-not-allowed opacity-50'
-            : 'hover:bg-orange-700'
+            : 'hover:brightness-110'
         ]"
       >
         {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}

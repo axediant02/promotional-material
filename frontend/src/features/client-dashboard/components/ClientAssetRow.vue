@@ -53,33 +53,33 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <article class="flex flex-col gap-4 border-b border-slate-200/70 px-5 py-5 last:border-b-0 md:flex-row md:items-center md:justify-between">
+  <article class="flex flex-col gap-4 border-b border-border/70 px-5 py-5 last:border-b-0 dark:border-white/10 md:flex-row md:items-center md:justify-between">
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center gap-3">
-        <h4 class="truncate text-base font-semibold text-slate-950">{{ file.file_name }}</h4>
-        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600">
+        <h4 class="truncate text-base font-semibold text-ink dark:text-white">{{ file.file_name }}</h4>
+        <span class="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-brand-700 dark:bg-white/10 dark:text-white">
           {{ file.category ?? 'file' }}
         </span>
       </div>
-      <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+      <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted dark:text-zinc-300">
         <span>{{ file.folder?.folder_name ?? 'Assigned folder' }}</span>
-        <span class="text-slate-300">•</span>
+        <span class="text-brand-300 dark:text-zinc-500">•</span>
         <span>{{ sizeLabel }}</span>
-        <span class="text-slate-300">•</span>
+        <span class="text-brand-300 dark:text-zinc-500">•</span>
         <span>Updated {{ updatedLabel }}</span>
       </div>
     </div>
 
     <div class="flex gap-3">
       <button
-        class="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        class="pm-gradient-primary rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
         :disabled="isDownloading"
         @click="handleDownload"
       >
         {{ isDownloading ? 'Preparing...' : 'Download' }}
       </button>
       <button
-        class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
+        class="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:text-white dark:hover:border-white/20"
         @click="emit('request-change', file)"
       >
         Request Change
