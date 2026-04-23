@@ -10,7 +10,7 @@ const props = defineProps({
   user: { type: Object, default: null },
 })
 
-const emit = defineEmits(['update:searchQuery'])
+const emit = defineEmits(['update:searchQuery', 'open-request'])
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -48,7 +48,13 @@ const handleLogout = async () => {
         <nav class="flex flex-wrap items-center gap-3 text-sm font-medium text-muted dark:text-zinc-300">
           <span class="rounded-full bg-brand-50 px-3 py-1 text-brand-700 dark:bg-white/10 dark:text-white">{{ folderLabel }}</span>
           <a href="#asset-catalog" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">Assets</a>
-          <a href="#request-panel" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">Request</a>
+          <button
+            type="button"
+            class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white"
+            @click="emit('open-request')"
+          >
+            Request
+          </button>
           <a href="#request-history" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">History</a>
         </nav>
       </div>

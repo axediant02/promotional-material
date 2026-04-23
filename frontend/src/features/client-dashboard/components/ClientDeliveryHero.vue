@@ -10,6 +10,8 @@ const props = defineProps({
   actionLabel: { type: String, default: '' },
   actionTarget: { type: String, default: '#asset-catalog' },
 })
+
+const emit = defineEmits(['action-click'])
 </script>
 
 <template>
@@ -29,12 +31,13 @@ const props = defineProps({
           {{ subtitle }}
         </p>
         <div class="mt-6 flex flex-wrap items-center gap-3">
-          <a
-            :href="actionTarget"
+          <button
+            type="button"
             class="pm-gradient-primary inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold transition hover:brightness-110"
+            @click="emit('action-click')"
           >
             {{ actionLabel }}
-          </a>
+          </button>
           <span class="text-sm text-muted dark:text-zinc-300">
             {{ stats[0]?.value ?? '0' }} {{ stats[0]?.help ?? 'Approved files' }}
           </span>

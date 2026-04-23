@@ -12,7 +12,7 @@ defineProps({
   selectedFileId: { type: String, default: null },
 })
 
-const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search'])
+const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', 'open-request'])
 </script>
 
 <template>
@@ -145,13 +145,14 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search'])
         >
           Clear search
         </button>
-        <a
+        <button
           v-else
-          href="#request-panel"
+          type="button"
           class="pm-gradient-primary rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-110"
+          @click="emit('open-request')"
         >
           Submit a request
-        </a>
+        </button>
       </div>
     </div>
 

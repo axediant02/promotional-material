@@ -22,6 +22,7 @@ const requestsLoading = ref(false)
 const searchQuery = ref('')
 const viewMode = ref('grid')
 const selectedFile = ref(null)
+const isRequestDrawerOpen = ref(false)
 
 const assignedFolder = computed(() => payload.value.folders?.[0] ?? null)
 
@@ -77,7 +78,7 @@ const heroContent = computed(() => {
       accent: 'Folder created after submission',
       subtitle: 'Your folder will be created automatically when you send your first request. Use the request panel to tell production what you need.',
       actionLabel: 'Start a request',
-      actionTarget: '#request-panel',
+      actionTarget: 'request',
     }
   }
 
@@ -88,7 +89,7 @@ const heroContent = computed(() => {
       accent: 'Waiting for approved files',
       subtitle: 'You already have a secured folder. Submit a request if you need new materials or changes while production prepares delivery.',
       actionLabel: 'Open request panel',
-      actionTarget: '#request-panel',
+      actionTarget: 'request',
     }
   }
 
@@ -131,10 +132,33 @@ const supportSummary = computed(() => ({
 
 const selectFileForRequest = (file) => {
   selectedFile.value = file
+  isRequestDrawerOpen.value = true
 }
 
 const clearSelectedFile = () => {
   selectedFile.value = null
+}
+
+const openRequestDrawer = () => {
+  isRequestDrawerOpen.value = true
+}
+
+const closeRequestDrawer = () => {
+  isRequestDrawerOpen.value = false
+}
+
+const handleHeroAction = () => {
+  if (heroContent.value.actionTarget === 'request') {
+    openRequestDrawer()
+    return
+  }
+
+  const element = document.querySelector(heroContent.value.actionTarget)
+  element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+const handleRequestCreated = async () => {
+  await loadRequests()
 }
 
 const loadRequests = async () => {
@@ -191,6 +215,7 @@ function formatBytes(bytes) {
       v-model:search-query="searchQuery"
       :folder-label="folderLabel"
       :user="authStore.user"
+      @open-request="openRequestDrawer"
     />
 
     <main class="flex flex-col xl:flex-row">
@@ -205,6 +230,7 @@ function formatBytes(bytes) {
           :subtitle="heroContent.subtitle"
           :action-label="heroContent.actionLabel"
           :action-target="heroContent.actionTarget"
+          @action-click="handleHeroAction"
         />
 
         <ClientAssetCatalog
@@ -218,19 +244,61 @@ function formatBytes(bytes) {
           :selected-file-id="selectedFile?.file_id ?? null"
           @request-change="selectFileForRequest"
           @clear-search="searchQuery = ''"
+          @open-request="openRequestDrawer"
         />
       </section>
 
       <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(250,246,255,0.92),rgba(244,238,252,0.78))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]">
         <div class="flex h-full flex-col gap-6">
-          <ClientRequestSidebar
-            id="request-panel"
-            :folder="assignedFolder"
-            :selected-file="selectedFile"
-            :support-summary="supportSummary"
-            @clear-selected-file="clearSelectedFile"
-            @request-created="loadRequests"
-          />
+          <section id="request-panel" class="pm-surface rounded-[1.75rem] p-6">
+            <div class="flex items-start gap-4">
+              <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-white">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.4-8.6a2 2 0 1 1 2.8 2.8L11.8 16H9v-2.8l8.6-8.6Z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request Updates</p>
+                <h3 class="mt-2 text-xl font-semibold text-ink dark:text-white">{{ supportSummary.label }}</h3>
+                <p class="mt-2 text-sm leading-6 text-muted dark:text-zinc-300">{{ supportSummary.description }}</p>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl bg-white/70 p-4 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Assigned Folder</p>
+              <p class="mt-2 text-sm font-semibold text-ink dark:text-white">{{ assignedFolder?.folder_name ?? 'Created after first request' }}</p>
+
+              <div v-if="selectedFile" class="mt-4 rounded-xl border border-brand-200 bg-brand-50/80 p-3 dark:border-white/10 dark:bg-white/10">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-100">Ready To Update</p>
+                    <p class="mt-1 truncate text-sm font-semibold text-ink dark:text-white">{{ selectedFile.file_name }}</p>
+                  </div>
+                  <button
+                    class="rounded-full border border-brand-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700 transition hover:border-brand-300 dark:border-white/10 dark:text-white"
+                    @click="clearSelectedFile"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-3">
+              <div class="rounded-2xl border border-border/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">How it works</p>
+                <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Open the request drawer when you are ready</p>
+                <p class="mt-1 text-sm text-muted dark:text-zinc-300">Choose a file for a precise update request, or start a folder-level request if you need something new.</p>
+              </div>
+            </div>
+
+            <button
+              class="pm-gradient-primary mt-5 w-full rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110"
+              @click="openRequestDrawer"
+            >
+              {{ selectedFile ? 'Update selected asset' : 'Start a request' }}
+            </button>
+          </section>
           <ClientRequestHistoryPanel
             :requests="requests"
             :loading="requestsLoading"
@@ -244,6 +312,16 @@ function formatBytes(bytes) {
       :file-count="files.length"
       :folder-label="folderLabel"
       :total-size-label="totalBytes > 0 ? formatBytes(totalBytes) : null"
+    />
+
+    <ClientRequestSidebar
+      :open="isRequestDrawerOpen"
+      :folder="assignedFolder"
+      :selected-file="selectedFile"
+      :support-summary="supportSummary"
+      @close="closeRequestDrawer"
+      @clear-selected-file="clearSelectedFile"
+      @request-created="handleRequestCreated"
     />
   </div>
 </template>
