@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import ProductionSidebar from '../components/ProductionSidebar.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
+import { provideProductionWorkspace } from '../productionWorkspace'
 import { fetchRecycleBin } from '../../../services/activityLogService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { downloadFile, fetchFiles, restoreFile } from '../../../services/fileService'
@@ -10,17 +11,40 @@ import { fetchFolders } from '../../../services/folderService'
 import { fetchProductionRequests, updateProductionRequestStatus } from '../../../services/requestService'
 import { useAuthStore } from '../../../stores/auth'
 
+const FILE_BROWSER_STORAGE_KEY = 'production_folder_view_mode'
+const DUE_SOON_DAYS = 3
+const FOLDER_FILTERS = ['all', 'needs_action', 'has_requests', 'recently_updated', 'empty']
+const FOLDER_SORTS = ['recent', 'client_name', 'due_date', 'request_volume']
+
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+
+const getSavedBrowserMode = () => {
+  if (typeof window === 'undefined') {
+    return 'grid'
+  }
+
+  const savedMode = window.localStorage.getItem(FILE_BROWSER_STORAGE_KEY)
+  return savedMode === 'list' ? 'list' : 'grid'
+}
+
+const normalizeBrowserMode = (value) => (value === 'list' ? 'list' : 'grid')
+const normalizeFilter = (value) => (FOLDER_FILTERS.includes(value) ? value : 'all')
+const normalizeSort = (value) => (FOLDER_SORTS.includes(value) ? value : 'recent')
 
 const loading = ref(true)
 const error = ref('')
-const activeSection = ref('queue')
+const activeSection = ref('files')
 const activeQueueFilter = ref('all')
 const searchQuery = ref('')
+const folderBrowserMode = ref(getSavedBrowserMode())
+const folderBrowserFilter = ref('all')
+const folderBrowserSort = ref('recent')
 const updatingRequestId = ref('')
 const restoringFileId = ref('')
 const downloadingFileId = ref('')
+const syncingFolderQuery = ref(false)
 
 const dashboardData = ref({
   user: null,
@@ -37,19 +61,20 @@ const files = ref([])
 const recycleBinFiles = ref([])
 
 const currentUser = computed(() => dashboardData.value.user ?? authStore.user ?? {})
+const isFolderRoute = computed(() => ['production-folder-index', 'production-folder-detail'].includes(route.name))
 
 const sectionCounts = computed(() => ({
+  files: folders.value.length,
   queue: productionRequests.value.length,
-  files: files.value.length,
   recycle: recycleBinFiles.value.length,
 }))
 
 const currentSectionMeta = computed(() => {
   if (activeSection.value === 'files') {
     return {
-      eyebrow: `${dashboardData.value.stats.files ?? files.value.length} visible assets`,
-      title: 'Assigned files.',
-      description: 'Browse the real file inventory across your assigned client folders, with downloads and the latest activity in scope.',
+      eyebrow: currentUser.value?.name ? `${currentUser.value.name} / production` : 'Production workspace',
+      title: 'Assigned folders.',
+      description: 'Review assigned client workspaces, inspect request pressure, and open folder contents without leaving the production shell.',
     }
   }
 
@@ -62,38 +87,10 @@ const currentSectionMeta = computed(() => {
   }
 
   return {
-    eyebrow: currentUser.value?.name ? `${currentUser.value.name} · production` : 'Production workspace',
+    eyebrow: `${productionRequests.value.length} requests in scope`,
     title: 'Assigned work.',
-    description: 'Track active request work, see which client spaces are assigned to you, and keep request statuses aligned with delivery progress.',
+    description: 'Track request movement across your assigned folders and keep delivery statuses aligned with production progress.',
   }
-})
-
-const folderLookup = computed(() => {
-  const map = new Map()
-
-  for (const folder of folders.value) {
-    map.set(folder.folder_id, folder)
-  }
-
-  for (const folder of dashboardData.value.folders ?? []) {
-    map.set(folder.folder_id ?? folder.id, map.get(folder.folder_id ?? folder.id) ?? folder)
-  }
-
-  return map
-})
-
-const queueStats = computed(() => {
-  const total = productionRequests.value.length
-  const pending = productionRequests.value.filter((request) => request.status === 'pending').length
-  const inProgress = productionRequests.value.filter((request) => request.status === 'in_progress').length
-  const done = productionRequests.value.filter((request) => request.status === 'done').length
-
-  return [
-    { id: 'assigned_clients', label: 'Assigned Clients', value: folders.value.length, detail: 'Visible workspaces', accent: true },
-    { id: 'open_requests', label: 'Open Requests', value: pending + inProgress, detail: `${total} total in queue` },
-    { id: 'in_progress', label: 'In Progress', value: inProgress, detail: 'Actively moving' },
-    { id: 'done', label: 'Done', value: done, detail: 'Completed requests' },
-  ]
 })
 
 const queueFilterMeta = [
@@ -103,16 +100,35 @@ const queueFilterMeta = [
   { id: 'done', label: 'Done' },
 ]
 
-const statusToneLookup = {
-  pending: 'pending',
-  in_progress: 'in_progress',
-  done: 'done',
-}
-
 const categoryToneLookup = {
   image: 'border-brand-300/20 bg-brand-50 text-brand-700 dark:bg-brand-300/10 dark:text-brand-100',
   video: 'border-brand-400/20 bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-100',
   pdf: 'border-border bg-white/70 text-muted dark:border-white/10 dark:bg-white/5 dark:text-white/75',
+}
+
+const folderLookup = computed(() => {
+  const map = new Map()
+
+  for (const folder of folders.value) {
+    map.set(folder.folder_id, folder)
+  }
+
+  for (const folder of dashboardData.value.folders ?? []) {
+    const folderId = folder.folder_id ?? folder.id
+    if (!map.has(folderId)) {
+      map.set(folderId, folder)
+    }
+  }
+
+  return map
+})
+
+const normalizeTimestamp = (value) => {
+  if (!value) {
+    return 0
+  }
+
+  return new Date(value).getTime()
 }
 
 const formatShortId = (value, prefix = 'REQ') => {
@@ -143,13 +159,33 @@ const formatRequestType = (value) => {
   return 'New asset'
 }
 
+const getDueSoonState = (value) => {
+  if (!value) {
+    return { isDueSoon: false, isOverdue: false }
+  }
+
+  const dueAt = normalizeTimestamp(value)
+  const now = Date.now()
+  const diff = dueAt - now
+  const threshold = DUE_SOON_DAYS * 24 * 60 * 60 * 1000
+
+  return {
+    isDueSoon: diff >= 0 && diff <= threshold,
+    isOverdue: diff < 0,
+  }
+}
+
+const getFileFolderId = (file) => file.folder?.folder_id ?? file.folder_id ?? null
+const getFileFolderName = (file) =>
+  file.folder?.folder_name ?? folderLookup.value.get(getFileFolderId(file))?.folder_name ?? 'Workspace'
+const getFileClientName = (file) =>
+  folderLookup.value.get(getFileFolderId(file))?.client?.name ?? 'Assigned client'
+const getFileUploaderName = (file) => file.uploader?.name ?? currentUser.value?.name ?? 'Uploader'
+
 const queueRows = computed(() =>
   productionRequests.value.map((request) => {
     const folder = folderLookup.value.get(request.folder_id)
-    const relatedFiles = files.value.filter((file) => {
-      const fileFolderId = file.folder?.folder_id ?? file.folder_id
-      return fileFolderId === request.folder_id
-    })
+    const relatedFiles = files.value.filter((file) => getFileFolderId(file) === request.folder_id)
 
     return {
       id: request.request_id,
@@ -160,11 +196,11 @@ const queueRows = computed(() =>
       workspace: folder?.folder_name ?? 'Assigned workspace',
       requestType: formatRequestType(request.request_type),
       status: request.status ?? 'pending',
-      statusTone: statusToneLookup[request.status] ?? 'pending',
-      dueLabel: formatDateLabel(request.due_date),
+      statusTone: request.status ?? 'pending',
+      statusLabel: (request.status ?? 'pending').replaceAll('_', ' '),
+      dueLabel: request.due_date ? `Due ${formatDateLabel(request.due_date)}` : 'No due date set',
       fileCount: relatedFiles.length,
       fileNames: relatedFiles.slice(0, 3).map((file) => file.file_name),
-      hasDueDate: Boolean(request.due_date),
     }
   })
 )
@@ -189,22 +225,173 @@ const filteredQueueRows = computed(() => {
   })
 })
 
-const assignedClientWorkspaces = computed(() =>
+const folderWorkspaceRows = computed(() =>
   folders.value.map((folder) => {
-    const folderFiles = files.value.filter((file) => (file.folder?.folder_id ?? file.folder_id) === folder.folder_id)
-    const folderRequests = productionRequests.value.filter((request) => request.folder_id === folder.folder_id)
+    const folderFiles = files.value
+      .filter((file) => getFileFolderId(file) === folder.folder_id)
+      .sort((left, right) => normalizeTimestamp(right.updated_at) - normalizeTimestamp(left.updated_at))
+
+    const folderRequests = productionRequests.value
+      .filter((request) => request.folder_id === folder.folder_id)
+      .sort((left, right) => normalizeTimestamp(left.due_date ?? left.updated_at ?? left.created_at) - normalizeTimestamp(right.due_date ?? right.updated_at ?? right.created_at))
+
+    const activeRequestCount = folderRequests.filter((request) => request.status !== 'done').length
+    const dueSoonRequests = folderRequests.filter((request) => {
+      const { isDueSoon, isOverdue } = getDueSoonState(request.due_date)
+      return request.status !== 'done' && (isDueSoon || isOverdue)
+    })
+
+    const latestFileAt = folderFiles[0]?.updated_at ?? ''
+    const latestRequestAt = folderRequests.reduce((latest, request) => {
+      const candidate = request.updated_at ?? request.created_at ?? request.due_date ?? ''
+      return normalizeTimestamp(candidate) > normalizeTimestamp(latest) ? candidate : latest
+    }, '')
+    const latestActivityAt = normalizeTimestamp(latestFileAt) >= normalizeTimestamp(latestRequestAt) ? latestFileAt : latestRequestAt
+
+    let statusTone = 'ready'
+    let statusLabel = 'Ready'
+
+    if (!folderFiles.length && !folderRequests.length) {
+      statusTone = 'empty'
+      statusLabel = 'Empty'
+    } else if (dueSoonRequests.length) {
+      statusTone = 'needs_action'
+      statusLabel = 'Needs action'
+    } else if (activeRequestCount) {
+      statusTone = 'in_progress'
+      statusLabel = 'In progress'
+    }
+
+    const nextDueDate = folderRequests
+      .filter((request) => request.status !== 'done' && request.due_date)
+      .sort((left, right) => normalizeTimestamp(left.due_date) - normalizeTimestamp(right.due_date))[0]?.due_date
 
     return {
       id: folder.folder_id,
       clientName: folder.client?.name ?? 'Assigned client',
       email: folder.client?.email ?? '',
-      workspace: folder.folder_name,
+      workspace: folder.folder_name ?? 'Assigned workspace',
       requestCount: folderRequests.length,
+      activeRequestCount,
       fileCount: folderFiles.length,
-      activeRequestCount: folderRequests.filter((request) => request.status !== 'done').length,
-      newestFileLabel: folderFiles[0] ? formatDateLabel(folderFiles[0].updated_at) : 'No files yet',
+      latestActivityAt,
+      latestActivityLabel: latestActivityAt ? `Updated ${formatDateLabel(latestActivityAt)}` : 'No activity yet',
+      dueSoonCount: dueSoonRequests.length,
+      dueDate: nextDueDate ?? '',
+      dueDateLabel: nextDueDate ? `Next due ${formatDateLabel(nextDueDate)}` : 'No due date set',
+      statusTone,
+      statusLabel,
+      fileNamesSearch: folderFiles.map((file) => file.file_name).join(' '),
     }
   })
+)
+
+const selectedFolder = computed(() => {
+  const folderId = typeof route.params.folderId === 'string' ? route.params.folderId : ''
+  return folderWorkspaceRows.value.find((folder) => folder.id === folderId) ?? null
+})
+
+const selectedFolderRequests = computed(() => {
+  if (!selectedFolder.value) {
+    return []
+  }
+
+  return queueRows.value.filter((request) => {
+    const source = productionRequests.value.find((item) => item.request_id === request.id)
+    return source?.folder_id === selectedFolder.value.id
+  })
+})
+
+const selectedFolderFiles = computed(() => {
+  if (!selectedFolder.value) {
+    return []
+  }
+
+  return files.value
+    .filter((file) => getFileFolderId(file) === selectedFolder.value.id)
+    .sort((left, right) => normalizeTimestamp(right.updated_at) - normalizeTimestamp(left.updated_at))
+    .map((file) => ({
+      ...file,
+      shortId: formatShortId(file.file_id, 'FILE'),
+      uploaderName: getFileUploaderName(file),
+      updatedLabel: formatDateLabel(file.updated_at),
+      folderName: getFileFolderName(file),
+    }))
+})
+
+const workspaceSummaryStats = computed(() => {
+  const openRequests = productionRequests.value.filter((request) => request.status !== 'done').length
+  const dueSoon = productionRequests.value.filter((request) => {
+    const { isDueSoon, isOverdue } = getDueSoonState(request.due_date)
+    return request.status !== 'done' && (isDueSoon || isOverdue)
+  }).length
+
+  return [
+    { id: 'assigned_folders', label: 'Assigned folders', value: folderWorkspaceRows.value.length, detail: 'Visible client workspaces' },
+    { id: 'open_requests', label: 'Open requests', value: openRequests, detail: `${productionRequests.value.length} total tracked` },
+    { id: 'files_in_scope', label: 'Files in scope', value: files.value.length, detail: 'Accessible production assets' },
+    { id: 'due_soon', label: 'Due soon', value: dueSoon, detail: 'Active requests nearing deadline' },
+  ]
+})
+
+const visibleFolderRows = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const now = Date.now()
+  const recentThreshold = now - 7 * 24 * 60 * 60 * 1000
+
+  return folderWorkspaceRows.value
+    .filter((folder) => {
+      if (query) {
+        const haystack = `${folder.clientName} ${folder.workspace} ${folder.email} ${folder.fileNamesSearch}`.toLowerCase()
+        if (!haystack.includes(query)) {
+          return false
+        }
+      }
+
+      if (folderBrowserFilter.value === 'needs_action') {
+        return folder.statusTone === 'needs_action'
+      }
+
+      if (folderBrowserFilter.value === 'has_requests') {
+        return folder.requestCount > 0
+      }
+
+      if (folderBrowserFilter.value === 'recently_updated') {
+        return folder.latestActivityAt && normalizeTimestamp(folder.latestActivityAt) >= recentThreshold
+      }
+
+      if (folderBrowserFilter.value === 'empty') {
+        return folder.statusTone === 'empty'
+      }
+
+      return true
+    })
+    .slice()
+    .sort((left, right) => {
+      if (folderBrowserSort.value === 'client_name') {
+        return left.clientName.localeCompare(right.clientName)
+      }
+
+      if (folderBrowserSort.value === 'due_date') {
+        const leftDue = left.dueDate ? normalizeTimestamp(left.dueDate) : Number.MAX_SAFE_INTEGER
+        const rightDue = right.dueDate ? normalizeTimestamp(right.dueDate) : Number.MAX_SAFE_INTEGER
+        return leftDue - rightDue
+      }
+
+      if (folderBrowserSort.value === 'request_volume') {
+        return right.requestCount - left.requestCount || right.activeRequestCount - left.activeRequestCount
+      }
+
+      return normalizeTimestamp(right.latestActivityAt) - normalizeTimestamp(left.latestActivityAt)
+    })
+})
+
+const fileCategoryStats = computed(() =>
+  ['image', 'video', 'pdf'].map((category) => ({
+    id: category,
+    label: category.toUpperCase(),
+    value: files.value.filter((file) => file.category === category).length,
+  }))
 )
 
 const recentActivityFiles = computed(() =>
@@ -216,37 +403,6 @@ const recentActivityFiles = computed(() =>
     category: file.category ?? 'asset',
   }))
 )
-
-const filteredFiles = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-
-  return files.value.filter((file) => {
-    if (!query) {
-      return true
-    }
-
-    return [
-      file.file_name,
-      file.folder?.folder_name,
-      folderLookup.value.get(file.folder?.folder_id ?? file.folder_id)?.client?.name,
-      file.category,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(query)
-  })
-})
-
-const fileCategoryStats = computed(() => {
-  const categories = ['image', 'video', 'pdf']
-
-  return categories.map((category) => ({
-    id: category,
-    label: category.toUpperCase(),
-    value: files.value.filter((file) => file.category === category).length,
-  }))
-})
 
 const filteredRecycleBinFiles = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -268,6 +424,118 @@ const filteredRecycleBinFiles = computed(() => {
       .includes(query)
   })
 })
+
+const buildFolderQuery = () => {
+  const query = {}
+
+  if (folderBrowserMode.value) {
+    query.view = folderBrowserMode.value
+  }
+
+  if (folderBrowserFilter.value !== 'all') {
+    query.filter = folderBrowserFilter.value
+  }
+
+  if (folderBrowserSort.value !== 'recent') {
+    query.sort = folderBrowserSort.value
+  }
+
+  if (searchQuery.value.trim()) {
+    query.q = searchQuery.value.trim()
+  }
+
+  return query
+}
+
+const syncFolderStateFromRoute = () => {
+  if (!isFolderRoute.value) {
+    return
+  }
+
+  syncingFolderQuery.value = true
+  folderBrowserMode.value = normalizeBrowserMode(route.query.view ?? getSavedBrowserMode())
+  folderBrowserFilter.value = normalizeFilter(route.query.filter)
+  folderBrowserSort.value = normalizeSort(route.query.sort)
+  searchQuery.value = typeof route.query.q === 'string' ? route.query.q : ''
+  syncingFolderQuery.value = false
+
+  if (!route.query.view) {
+    router.replace({
+      name: route.name,
+      params: route.params,
+      query: buildFolderQuery(),
+    })
+  }
+}
+
+watch(
+  () => [route.name, route.query.view, route.query.filter, route.query.sort, route.query.q],
+  () => {
+    if (isFolderRoute.value) {
+      activeSection.value = 'files'
+      syncFolderStateFromRoute()
+    }
+  },
+  { immediate: true }
+)
+
+watch(folderBrowserMode, (value) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(FILE_BROWSER_STORAGE_KEY, value)
+})
+
+watch(searchQuery, (value) => {
+  if (syncingFolderQuery.value || activeSection.value !== 'files' || !isFolderRoute.value) {
+    return
+  }
+
+  const nextQuery = { ...buildFolderQuery(), q: value.trim() || undefined }
+  if (!nextQuery.q) {
+    delete nextQuery.q
+  }
+
+  router.replace({ name: route.name, params: route.params, query: nextQuery })
+})
+
+const setFolderBrowserMode = (value) => {
+  folderBrowserMode.value = normalizeBrowserMode(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const setFolderBrowserFilter = (value) => {
+  folderBrowserFilter.value = normalizeFilter(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const setFolderBrowserSort = (value) => {
+  folderBrowserSort.value = normalizeSort(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const openFolder = (folderId) =>
+  router.push({
+    name: 'production-folder-detail',
+    params: { folderId },
+    query: buildFolderQuery(),
+  })
+
+const goToFolderIndex = () =>
+  router.push({
+    name: 'production-folder-index',
+    query: buildFolderQuery(),
+  })
 
 const restoreRecycleFile = async (fileId) => {
   restoringFileId.value = fileId
@@ -326,6 +594,14 @@ const signOut = async () => {
   router.push({ name: 'login' })
 }
 
+const handleSectionChange = (section) => {
+  activeSection.value = section
+
+  if (section === 'files') {
+    goToFolderIndex()
+  }
+}
+
 const loadData = async () => {
   loading.value = true
   error.value = ''
@@ -351,6 +627,27 @@ const loadData = async () => {
   }
 }
 
+provideProductionWorkspace({
+  loading,
+  visibleFolderRows,
+  folderBrowserMode,
+  folderBrowserFilter,
+  folderBrowserSort,
+  selectedFolder,
+  selectedFolderFiles,
+  selectedFolderRequests,
+  downloadingFileId,
+  updatingRequestId,
+  categoryToneLookup,
+  setFolderBrowserMode,
+  setFolderBrowserFilter,
+  setFolderBrowserSort,
+  openFolder,
+  goToFolderIndex,
+  handleDownloadFile,
+  updateRequestStatus,
+})
+
 onMounted(() => {
   loadData()
 })
@@ -363,7 +660,7 @@ onMounted(() => {
         :current-user="currentUser"
         :active-section="activeSection"
         :section-counts="sectionCounts"
-        @change-section="activeSection = $event"
+        @change-section="handleSectionChange"
         @sign-out="signOut"
       />
 
@@ -389,20 +686,33 @@ onMounted(() => {
           </div>
 
           <template v-else>
-            <section v-if="activeSection === 'queue'" class="space-y-8">
+            <section v-if="activeSection === 'files'" class="space-y-8">
               <section class="grid gap-4 xl:grid-cols-4">
                 <article
-                  v-for="stat in queueStats"
+                  v-for="stat in workspaceSummaryStats"
                   :key="stat.id"
-                  :class="[
-                    'pm-surface rounded-[1.8rem] px-5 py-5',
-                    stat.accent
-                      ? 'border-brand-200 bg-[radial-gradient(circle_at_top_left,rgba(109,80,162,0.22),transparent_58%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,239,251,0.96))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]'
-                      : '',
-                  ]"
+                  class="pm-surface rounded-[1.7rem] px-5 py-5"
+                >
+                  <p class="text-[10px] uppercase tracking-[0.36em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                    {{ stat.value }}
+                  </p>
+                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
+                </article>
+              </section>
+
+              <RouterView />
+            </section>
+
+            <section v-else-if="activeSection === 'queue'" class="space-y-8">
+              <section class="grid gap-4 xl:grid-cols-4">
+                <article
+                  v-for="stat in workspaceSummaryStats"
+                  :key="stat.id"
+                  class="pm-surface rounded-[1.8rem] px-5 py-5"
                 >
                   <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p :class="['mt-4 text-4xl leading-none [font-family:\'Iowan_Old_Style\',\'Palatino_Linotype\',\'Book_Antiqua\',Palatino,serif]', stat.accent ? 'text-brand-700 dark:text-white' : 'text-ink dark:text-white']">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
                     {{ stat.value }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
@@ -437,17 +747,8 @@ onMounted(() => {
                         <div class="min-w-0">
                           <div class="flex flex-wrap items-center gap-3">
                             <span class="text-[11px] uppercase tracking-[0.26em] text-muted dark:text-zinc-400">{{ row.reference }}</span>
-                            <span
-                              :class="[
-                                'inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
-                                row.statusTone === 'in_progress'
-                                  ? 'border-brand-400/30 bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-white'
-                                  : row.statusTone === 'done'
-                                    ? 'border-emerald-400/20 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
-                                    : 'border-brand-300/20 bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-white',
-                              ]"
-                            >
-                              {{ row.status.replaceAll('_', ' ') }}
+                            <span class="inline-flex items-center rounded-full border border-brand-300/20 bg-brand-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 dark:bg-white/10 dark:text-white">
+                              {{ row.statusLabel }}
                             </span>
                             <span class="inline-flex items-center rounded-full border border-border bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted dark:border-white/10 dark:bg-white/5 dark:text-zinc-300">
                               {{ row.requestType }}
@@ -466,7 +767,7 @@ onMounted(() => {
                             <span>/</span>
                             <span>{{ row.workspace }}</span>
                             <span>{{ row.fileCount }} files in workspace</span>
-                            <span>{{ row.hasDueDate ? `due ${row.dueLabel}` : 'No due date set' }}</span>
+                            <span>{{ row.dueLabel }}</span>
                           </div>
 
                           <div v-if="row.fileNames.length" class="mt-4 flex flex-wrap gap-2">
@@ -509,35 +810,6 @@ onMounted(() => {
 
                 <aside class="space-y-4">
                   <section class="pm-surface rounded-[1.8rem] p-5">
-                    <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Assigned workspaces</p>
-                    <div class="mt-5 space-y-3">
-                      <article
-                        v-for="workspace in assignedClientWorkspaces"
-                        :key="workspace.id"
-                        class="rounded-2xl border border-border bg-white/60 p-4 dark:border-white/10 dark:bg-black/10"
-                      >
-                        <div class="flex items-start justify-between gap-4">
-                          <div class="min-w-0">
-                            <h3 class="truncate text-lg font-semibold text-ink dark:text-white">{{ workspace.clientName }}</h3>
-                            <p class="mt-1 text-sm text-muted dark:text-zinc-300">{{ workspace.workspace }}</p>
-                          </div>
-                          <span class="rounded-full border border-brand-400/20 bg-brand-50 px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] text-brand-700 dark:bg-white/10 dark:text-white">
-                            {{ workspace.activeRequestCount }} active
-                          </span>
-                        </div>
-                        <div class="mt-4 flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.18em] text-muted dark:text-zinc-400">
-                          <span>{{ workspace.requestCount }} requests</span>
-                          <span>{{ workspace.fileCount }} files</span>
-                          <span>{{ workspace.newestFileLabel }}</span>
-                        </div>
-                      </article>
-                      <p v-if="!assignedClientWorkspaces.length" class="text-sm text-muted dark:text-zinc-300">
-                        No client workspace is currently assigned to this production user.
-                      </p>
-                    </div>
-                  </section>
-
-                  <section class="pm-surface rounded-[1.8rem] p-5">
                     <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Recent file activity</p>
                     <div class="mt-5 space-y-3">
                       <article
@@ -559,95 +831,17 @@ onMounted(() => {
                       </p>
                     </div>
                   </section>
-                </aside>
-              </section>
-            </section>
 
-            <section v-else-if="activeSection === 'files'" class="space-y-8">
-              <section class="grid gap-4 xl:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.15fr)]">
-                <article class="pm-surface rounded-[1.8rem] px-5 py-5">
-                  <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Visible files</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-                    {{ files.length }}
-                  </p>
-                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">Current accessible file inventory</p>
-                </article>
-                <article class="pm-surface rounded-[1.8rem] px-5 py-5">
-                  <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Folders</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-                    {{ folders.length }}
-                  </p>
-                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">Assigned client workspaces</p>
-                </article>
-                <article class="pm-surface rounded-[1.8rem] px-5 py-5">
-                  <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Recent files</p>
-                  <p class="mt-4 text-4xl leading-none text-brand-700 dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-                    {{ recentActivityFiles.length }}
-                  </p>
-                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">Latest scoped activity</p>
-                </article>
-                <article class="pm-surface rounded-[1.8rem] px-5 py-5">
-                  <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Categories</p>
-                  <div class="mt-4 grid grid-cols-3 gap-3">
-                    <div v-for="stat in fileCategoryStats" :key="stat.id" class="rounded-2xl border border-border bg-white/60 px-3 py-3 text-center dark:border-white/10 dark:bg-black/10">
-                      <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                      <p class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ stat.value }}</p>
-                    </div>
-                  </div>
-                </article>
-              </section>
-
-              <section class="grid gap-3 xl:grid-cols-2">
-                <article
-                  v-for="file in filteredFiles"
-                  :key="file.file_id"
-                  class="pm-surface rounded-[1.8rem] px-5 py-5 transition hover:border-brand-500"
-                >
-                  <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span
-                          :class="[
-                            'rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
-                            categoryToneLookup[file.category] ?? 'border-white/10 bg-white/5 text-white/75',
-                          ]"
-                        >
-                          {{ file.category ?? 'asset' }}
-                        </span>
-                        <span class="text-[11px] uppercase tracking-[0.22em] text-muted dark:text-zinc-400">
-                          {{ formatShortId(file.file_id, 'FILE') }}
-                        </span>
+                  <section class="pm-surface rounded-[1.8rem] p-5">
+                    <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Category coverage</p>
+                    <div class="mt-4 grid grid-cols-3 gap-3">
+                      <div v-for="stat in fileCategoryStats" :key="stat.id" class="rounded-2xl border border-border bg-white/60 px-3 py-3 text-center dark:border-white/10 dark:bg-black/10">
+                        <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
+                        <p class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ stat.value }}</p>
                       </div>
-                      <h2 class="mt-3 truncate text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-                        {{ file.file_name }}
-                      </h2>
                     </div>
-                    <button
-                      class="pm-gradient-primary rounded-2xl px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="downloadingFileId === file.file_id"
-                      @click="handleDownloadFile(file)"
-                    >
-                      {{ downloadingFileId === file.file_id ? 'Downloading...' : 'Download' }}
-                    </button>
-                  </div>
-
-                  <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-muted dark:text-zinc-400">
-                    <span>{{ folderLookup.get(file.folder?.folder_id ?? file.folder_id)?.client?.name ?? 'Assigned client' }}</span>
-                    <span>{{ file.folder?.folder_name ?? folderLookup.get(file.folder_id)?.folder_name ?? 'Workspace' }}</span>
-                    <span>{{ file.uploader?.name ?? currentUser.name ?? 'Uploader' }}</span>
-                    <span>{{ formatDateLabel(file.updated_at) }}</span>
-                  </div>
-                </article>
-
-                <article
-                  v-if="!filteredFiles.length"
-                  class="pm-surface rounded-[1.8rem] border-dashed px-6 py-10 text-center xl:col-span-2"
-                >
-                  <p class="text-[10px] uppercase tracking-[0.32em] text-brand-600 dark:text-brand-100">No files found</p>
-                  <h2 class="mt-3 text-2xl font-semibold text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
-                    No assigned files match the current search.
-                  </h2>
-                </article>
+                  </section>
+                </aside>
               </section>
             </section>
 

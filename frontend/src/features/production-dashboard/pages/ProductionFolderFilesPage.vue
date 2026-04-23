@@ -1,0 +1,194 @@
+<script setup>
+import { computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ProductionFolderDetailPanel from '../components/ProductionFolderDetailPanel.vue'
+import { useProductionWorkspace } from '../productionWorkspace'
+
+const route = useRoute()
+const router = useRouter()
+const workspace = useProductionWorkspace()
+
+const fileGrid = computed(() => workspace.folderBrowserMode.value === 'grid')
+const selectedFolder = computed(() => workspace.selectedFolder.value)
+const folderFiles = computed(() => workspace.selectedFolderFiles.value)
+
+const ensureValidFolder = () => {
+  if (workspace.loading.value) {
+    return
+  }
+
+  if (!selectedFolder.value) {
+    router.replace({ name: 'production-folder-index', query: route.query })
+  }
+}
+
+watch(selectedFolder, ensureValidFolder)
+watch(() => workspace.loading.value, ensureValidFolder)
+
+onMounted(() => {
+  ensureValidFolder()
+})
+</script>
+
+<template>
+  <section class="space-y-5">
+    <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500">
+      <button
+        class="rounded-full border border-border bg-white/60 px-3 py-1.5 transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:text-white"
+        @click="workspace.goToFolderIndex"
+      >
+        Production
+      </button>
+      <span>/</span>
+      <button
+        class="rounded-full border border-border bg-white/60 px-3 py-1.5 transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:text-white"
+        @click="workspace.goToFolderIndex"
+      >
+        Client folders
+      </button>
+      <span>/</span>
+      <span class="rounded-full border border-[#9cdcfe]/30 bg-[#9cdcfe]/10 px-3 py-1.5 text-[#6ecff6] dark:text-[#b9e7ff]">
+        {{ selectedFolder?.workspace ?? 'Folder' }}
+      </span>
+    </nav>
+
+    <section class="grid gap-6 2xl:grid-cols-[minmax(0,1.4fr)_24rem]">
+      <div class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
+        <div class="border-b border-white/10 px-5 py-5">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div class="min-w-0">
+              <p class="text-[10px] uppercase tracking-[0.36em] text-[#9cdcfe]">Folder contents</p>
+              <h2 class="mt-2 truncate text-2xl font-semibold text-white">{{ selectedFolder?.workspace ?? 'Assigned folder' }}</h2>
+              <p class="mt-2 text-sm text-zinc-400">
+                {{ selectedFolder?.clientName ?? 'Assigned client' }} / {{ folderFiles.length }} files visible in this workspace.
+              </p>
+            </div>
+
+            <div class="inline-flex rounded-xl border border-white/10 bg-black/20 p-1 self-start">
+              <button
+                :class="[
+                  'rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition',
+                  fileGrid ? 'bg-white text-slate-900 shadow-[0_10px_24px_rgba(255,255,255,0.14)]' : 'text-zinc-300 hover:text-white',
+                ]"
+                @click="workspace.setFolderBrowserMode('grid')"
+              >
+                Grid
+              </button>
+              <button
+                :class="[
+                  'rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition',
+                  !fileGrid ? 'bg-white text-slate-900 shadow-[0_10px_24px_rgba(255,255,255,0.14)]' : 'text-zinc-300 hover:text-white',
+                ]"
+                @click="workspace.setFolderBrowserMode('list')"
+              >
+                List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-5 py-5">
+          <div v-if="fileGrid" class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            <article
+              v-for="file in folderFiles"
+              :key="file.file_id"
+              class="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 transition hover:border-[#9cdcfe]/35 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))]"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span
+                      :class="[
+                        'rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
+                        workspace.categoryToneLookup[file.category] ?? 'border-white/10 bg-white/5 text-white/75',
+                      ]"
+                    >
+                      {{ file.category ?? 'asset' }}
+                    </span>
+                    <span class="text-[11px] uppercase tracking-[0.22em] text-zinc-500">{{ file.shortId }}</span>
+                  </div>
+                  <h3 class="mt-3 truncate text-lg font-semibold text-white">{{ file.file_name }}</h3>
+                  <p class="mt-2 text-sm text-zinc-400">{{ file.uploaderName }}</p>
+                </div>
+
+                <button
+                  class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-[#9cdcfe]/35 hover:bg-[#9cdcfe]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="workspace.downloadingFileId.value === file.file_id"
+                  @click="workspace.handleDownloadFile(file)"
+                >
+                  {{ workspace.downloadingFileId.value === file.file_id ? 'Downloading...' : 'Download' }}
+                </button>
+              </div>
+
+              <div class="mt-4 space-y-2 text-sm text-zinc-400">
+                <p>{{ file.updatedLabel }}</p>
+                <p>{{ file.folderName }}</p>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/20">
+            <div class="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_8rem_9rem] gap-4 border-b border-white/10 bg-white/[0.04] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-400 md:grid">
+              <span>Name</span>
+              <span>Updated</span>
+              <span>Type</span>
+              <span class="text-right">Action</span>
+            </div>
+
+            <article
+              v-for="file in folderFiles"
+              :key="file.file_id"
+              class="border-b border-white/8 px-5 py-4 last:border-b-0"
+            >
+              <div class="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_8rem_9rem] md:items-center md:gap-4">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-white">{{ file.file_name }}</p>
+                  <p class="mt-1 text-xs text-zinc-500">{{ file.shortId }} · {{ file.uploaderName }}</p>
+                </div>
+                <p class="truncate text-sm text-zinc-300">{{ file.updatedLabel }}</p>
+                <div>
+                  <span
+                    :class="[
+                      'inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
+                      workspace.categoryToneLookup[file.category] ?? 'border-white/10 bg-white/5 text-white/75',
+                    ]"
+                  >
+                    {{ file.category ?? 'asset' }}
+                  </span>
+                </div>
+                <div class="md:text-right">
+                  <button
+                    class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-[#9cdcfe]/35 hover:bg-[#9cdcfe]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="workspace.downloadingFileId.value === file.file_id"
+                    @click="workspace.handleDownloadFile(file)"
+                  >
+                    {{ workspace.downloadingFileId.value === file.file_id ? 'Downloading...' : 'Download' }}
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <article
+            v-if="!folderFiles.length"
+            class="rounded-[1.6rem] border border-dashed border-white/15 bg-white/[0.03] px-6 py-12 text-center"
+          >
+            <p class="text-[10px] uppercase tracking-[0.32em] text-[#9cdcfe]">No files found</p>
+            <h3 class="mt-3 text-xl font-semibold text-white">No files are currently available in this assigned folder.</h3>
+          </article>
+        </div>
+      </div>
+
+      <ProductionFolderDetailPanel
+        :selected-folder="selectedFolder"
+        :folder-files="folderFiles"
+        :folder-requests="workspace.selectedFolderRequests.value"
+        :downloading-file-id="workspace.downloadingFileId.value"
+        :updating-request-id="workspace.updatingRequestId.value"
+        :show-files-section="false"
+        @download-file="workspace.handleDownloadFile"
+        @update-request-status="workspace.updateRequestStatus"
+      />
+    </section>
+  </section>
+</template>

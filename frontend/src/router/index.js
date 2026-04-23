@@ -7,6 +7,8 @@ import ClientDashboardPage from '../features/client-dashboard/pages/ClientDashbo
 import AgentWorkspacePage from '../features/agent-workspace/pages/AgentWorkspacePage.vue'
 import AdminOverviewPage from '../features/admin/pages/AdminOverviewPage.vue'
 import ProductionDashboardPage from '../features/production-dashboard/pages/ProductionDashboardPage.vue'
+import ProductionFolderFilesPage from '../features/production-dashboard/pages/ProductionFolderFilesPage.vue'
+import ProductionFolderIndexPage from '../features/production-dashboard/pages/ProductionFolderIndexPage.vue'
 import AgentDashboardPage from '../features/agent-dashboard/pages/AgentDashboardPage.vue'
 import AdminDashboardPage from '../features/admin-dashboard/pages/AdminDashboardPage.vue'
 
@@ -17,7 +19,17 @@ const routes = [
   { path: '/client', name: 'client-dashboard', component: ClientDashboardPage, meta: { requiresAuth: true, role: 'client' } },
   { path: '/agent', name: 'agent-workspace', component: AgentWorkspacePage, meta: { requiresAuth: true, role: 'agent' } },
   { path: '/admin', name: 'admin-overview', component: AdminOverviewPage, meta: { requiresAuth: true, role: 'production' } },
-  { path: '/production', name: 'production-dashboard', component: ProductionDashboardPage, meta: { requiresAuth: true, role: 'production' } },
+  {
+    path: '/production',
+    name: 'production-dashboard',
+    component: ProductionDashboardPage,
+    meta: { requiresAuth: true, role: 'production' },
+    children: [
+      { path: '', redirect: { name: 'production-folder-index' } },
+      { path: 'folders', name: 'production-folder-index', component: ProductionFolderIndexPage },
+      { path: 'folders/:folderId', name: 'production-folder-detail', component: ProductionFolderFilesPage },
+    ],
+  },
   { path: '/agent-new', name: 'agent-dashboard', component: AgentDashboardPage, meta: { requiresAuth: true, role: 'agent' } },
   { path: '/admin-new', name: 'admin-dashboard', component: AdminDashboardPage, meta: { requiresAuth: true, role: 'admin' } },
 ]
