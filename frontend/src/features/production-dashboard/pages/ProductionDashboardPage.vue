@@ -1,10 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import ProductionFolderBrowser from '../components/ProductionFolderBrowser.vue'
-import ProductionFolderDetailPanel from '../components/ProductionFolderDetailPanel.vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import ProductionSidebar from '../components/ProductionSidebar.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
+import { provideProductionWorkspace } from '../productionWorkspace'
 import { fetchRecycleBin } from '../../../services/activityLogService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { downloadFile, fetchFiles, restoreFile } from '../../../services/fileService'
@@ -14,11 +13,14 @@ import { useAuthStore } from '../../../stores/auth'
 
 const FILE_BROWSER_STORAGE_KEY = 'production_folder_view_mode'
 const DUE_SOON_DAYS = 3
+const FOLDER_FILTERS = ['all', 'needs_action', 'has_requests', 'recently_updated', 'empty']
+const FOLDER_SORTS = ['recent', 'client_name', 'due_date', 'request_volume']
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
-const getInitialBrowserMode = () => {
+const getSavedBrowserMode = () => {
   if (typeof window === 'undefined') {
     return 'grid'
   }
@@ -27,18 +29,22 @@ const getInitialBrowserMode = () => {
   return savedMode === 'list' ? 'list' : 'grid'
 }
 
+const normalizeBrowserMode = (value) => (value === 'list' ? 'list' : 'grid')
+const normalizeFilter = (value) => (FOLDER_FILTERS.includes(value) ? value : 'all')
+const normalizeSort = (value) => (FOLDER_SORTS.includes(value) ? value : 'recent')
+
 const loading = ref(true)
 const error = ref('')
 const activeSection = ref('files')
 const activeQueueFilter = ref('all')
 const searchQuery = ref('')
-const folderBrowserMode = ref(getInitialBrowserMode())
+const folderBrowserMode = ref(getSavedBrowserMode())
 const folderBrowserFilter = ref('all')
 const folderBrowserSort = ref('recent')
-const selectedFolderId = ref('')
 const updatingRequestId = ref('')
 const restoringFileId = ref('')
 const downloadingFileId = ref('')
+const syncingFolderQuery = ref(false)
 
 const dashboardData = ref({
   user: null,
@@ -55,6 +61,7 @@ const files = ref([])
 const recycleBinFiles = ref([])
 
 const currentUser = computed(() => dashboardData.value.user ?? authStore.user ?? {})
+const isFolderRoute = computed(() => ['production-folder-index', 'production-folder-detail'].includes(route.name))
 
 const sectionCounts = computed(() => ({
   files: folders.value.length,
@@ -67,7 +74,7 @@ const currentSectionMeta = computed(() => {
     return {
       eyebrow: currentUser.value?.name ? `${currentUser.value.name} / production` : 'Production workspace',
       title: 'Assigned folders.',
-      description: 'Review assigned client workspaces, inspect request pressure, and download the assets you need without losing folder context.',
+      description: 'Review assigned client workspaces, inspect request pressure, and open folder contents without leaving the production shell.',
     }
   }
 
@@ -189,6 +196,7 @@ const queueRows = computed(() =>
       workspace: folder?.folder_name ?? 'Assigned workspace',
       requestType: formatRequestType(request.request_type),
       status: request.status ?? 'pending',
+      statusTone: request.status ?? 'pending',
       statusLabel: (request.status ?? 'pending').replaceAll('_', ' '),
       dueLabel: request.due_date ? `Due ${formatDateLabel(request.due_date)}` : 'No due date set',
       fileCount: relatedFiles.length,
@@ -278,6 +286,39 @@ const folderWorkspaceRows = computed(() =>
   })
 )
 
+const selectedFolder = computed(() => {
+  const folderId = typeof route.params.folderId === 'string' ? route.params.folderId : ''
+  return folderWorkspaceRows.value.find((folder) => folder.id === folderId) ?? null
+})
+
+const selectedFolderRequests = computed(() => {
+  if (!selectedFolder.value) {
+    return []
+  }
+
+  return queueRows.value.filter((request) => {
+    const source = productionRequests.value.find((item) => item.request_id === request.id)
+    return source?.folder_id === selectedFolder.value.id
+  })
+})
+
+const selectedFolderFiles = computed(() => {
+  if (!selectedFolder.value) {
+    return []
+  }
+
+  return files.value
+    .filter((file) => getFileFolderId(file) === selectedFolder.value.id)
+    .sort((left, right) => normalizeTimestamp(right.updated_at) - normalizeTimestamp(left.updated_at))
+    .map((file) => ({
+      ...file,
+      shortId: formatShortId(file.file_id, 'FILE'),
+      uploaderName: getFileUploaderName(file),
+      updatedLabel: formatDateLabel(file.updated_at),
+      folderName: getFileFolderName(file),
+    }))
+})
+
 const workspaceSummaryStats = computed(() => {
   const openRequests = productionRequests.value.filter((request) => request.status !== 'done').length
   const dueSoon = productionRequests.value.filter((request) => {
@@ -345,41 +386,6 @@ const visibleFolderRows = computed(() => {
     })
 })
 
-const selectedFolder = computed(() =>
-  visibleFolderRows.value.find((folder) => folder.id === selectedFolderId.value)
-  ?? folderWorkspaceRows.value.find((folder) => folder.id === selectedFolderId.value)
-  ?? null
-)
-
-const selectedFolderRequests = computed(() => {
-  if (!selectedFolder.value) {
-    return []
-  }
-
-  return queueRows.value.filter((request) => {
-    const source = productionRequests.value.find((item) => item.request_id === request.id)
-    return source?.folder_id === selectedFolder.value.id
-  })
-})
-
-const selectedFolderFiles = computed(() => {
-  if (!selectedFolder.value) {
-    return []
-  }
-
-  return files.value
-    .filter((file) => getFileFolderId(file) === selectedFolder.value.id)
-    .sort((left, right) => normalizeTimestamp(right.updated_at) - normalizeTimestamp(left.updated_at))
-    .map((file) => ({
-      ...file,
-      shortId: formatShortId(file.file_id, 'FILE'),
-      uploaderName: getFileUploaderName(file),
-      updatedLabel: formatDateLabel(file.updated_at),
-    }))
-})
-
-const filteredFiles = computed(() => selectedFolderFiles.value)
-
 const fileCategoryStats = computed(() =>
   ['image', 'video', 'pdf'].map((category) => ({
     id: category,
@@ -419,6 +425,60 @@ const filteredRecycleBinFiles = computed(() => {
   })
 })
 
+const buildFolderQuery = () => {
+  const query = {}
+
+  if (folderBrowserMode.value) {
+    query.view = folderBrowserMode.value
+  }
+
+  if (folderBrowserFilter.value !== 'all') {
+    query.filter = folderBrowserFilter.value
+  }
+
+  if (folderBrowserSort.value !== 'recent') {
+    query.sort = folderBrowserSort.value
+  }
+
+  if (searchQuery.value.trim()) {
+    query.q = searchQuery.value.trim()
+  }
+
+  return query
+}
+
+const syncFolderStateFromRoute = () => {
+  if (!isFolderRoute.value) {
+    return
+  }
+
+  syncingFolderQuery.value = true
+  folderBrowserMode.value = normalizeBrowserMode(route.query.view ?? getSavedBrowserMode())
+  folderBrowserFilter.value = normalizeFilter(route.query.filter)
+  folderBrowserSort.value = normalizeSort(route.query.sort)
+  searchQuery.value = typeof route.query.q === 'string' ? route.query.q : ''
+  syncingFolderQuery.value = false
+
+  if (!route.query.view) {
+    router.replace({
+      name: route.name,
+      params: route.params,
+      query: buildFolderQuery(),
+    })
+  }
+}
+
+watch(
+  () => [route.name, route.query.view, route.query.filter, route.query.sort, route.query.q],
+  () => {
+    if (isFolderRoute.value) {
+      activeSection.value = 'files'
+      syncFolderStateFromRoute()
+    }
+  },
+  { immediate: true }
+)
+
 watch(folderBrowserMode, (value) => {
   if (typeof window === 'undefined') {
     return
@@ -427,17 +487,55 @@ watch(folderBrowserMode, (value) => {
   window.localStorage.setItem(FILE_BROWSER_STORAGE_KEY, value)
 })
 
-watch(visibleFolderRows, (rows) => {
-  if (!rows.length) {
-    selectedFolderId.value = ''
+watch(searchQuery, (value) => {
+  if (syncingFolderQuery.value || activeSection.value !== 'files' || !isFolderRoute.value) {
     return
   }
 
-  const selectedIsVisible = rows.some((folder) => folder.id === selectedFolderId.value)
-  if (!selectedIsVisible) {
-    selectedFolderId.value = rows[0].id
+  const nextQuery = { ...buildFolderQuery(), q: value.trim() || undefined }
+  if (!nextQuery.q) {
+    delete nextQuery.q
   }
-}, { immediate: true })
+
+  router.replace({ name: route.name, params: route.params, query: nextQuery })
+})
+
+const setFolderBrowserMode = (value) => {
+  folderBrowserMode.value = normalizeBrowserMode(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const setFolderBrowserFilter = (value) => {
+  folderBrowserFilter.value = normalizeFilter(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const setFolderBrowserSort = (value) => {
+  folderBrowserSort.value = normalizeSort(value)
+
+  if (isFolderRoute.value) {
+    router.replace({ name: route.name, params: route.params, query: buildFolderQuery() })
+  }
+}
+
+const openFolder = (folderId) =>
+  router.push({
+    name: 'production-folder-detail',
+    params: { folderId },
+    query: buildFolderQuery(),
+  })
+
+const goToFolderIndex = () =>
+  router.push({
+    name: 'production-folder-index',
+    query: buildFolderQuery(),
+  })
 
 const restoreRecycleFile = async (fileId) => {
   restoringFileId.value = fileId
@@ -496,6 +594,14 @@ const signOut = async () => {
   router.push({ name: 'login' })
 }
 
+const handleSectionChange = (section) => {
+  activeSection.value = section
+
+  if (section === 'files') {
+    goToFolderIndex()
+  }
+}
+
 const loadData = async () => {
   loading.value = true
   error.value = ''
@@ -521,6 +627,27 @@ const loadData = async () => {
   }
 }
 
+provideProductionWorkspace({
+  loading,
+  visibleFolderRows,
+  folderBrowserMode,
+  folderBrowserFilter,
+  folderBrowserSort,
+  selectedFolder,
+  selectedFolderFiles,
+  selectedFolderRequests,
+  downloadingFileId,
+  updatingRequestId,
+  categoryToneLookup,
+  setFolderBrowserMode,
+  setFolderBrowserFilter,
+  setFolderBrowserSort,
+  openFolder,
+  goToFolderIndex,
+  handleDownloadFile,
+  updateRequestStatus,
+})
+
 onMounted(() => {
   loadData()
 })
@@ -533,7 +660,7 @@ onMounted(() => {
         :current-user="currentUser"
         :active-section="activeSection"
         :section-counts="sectionCounts"
-        @change-section="activeSection = $event"
+        @change-section="handleSectionChange"
         @sign-out="signOut"
       />
 
@@ -574,29 +701,7 @@ onMounted(() => {
                 </article>
               </section>
 
-              <section class="grid gap-6 2xl:grid-cols-[minmax(0,1.5fr)_26rem]">
-                <ProductionFolderBrowser
-                  :folders="visibleFolderRows"
-                  :selected-folder-id="selectedFolderId"
-                  :browser-mode="folderBrowserMode"
-                  :active-filter="folderBrowserFilter"
-                  :active-sort="folderBrowserSort"
-                  @select-folder="selectedFolderId = $event"
-                  @update:browser-mode="folderBrowserMode = $event"
-                  @update:active-filter="folderBrowserFilter = $event"
-                  @update:active-sort="folderBrowserSort = $event"
-                />
-
-                <ProductionFolderDetailPanel
-                  :selected-folder="selectedFolder"
-                  :folder-files="filteredFiles"
-                  :folder-requests="selectedFolderRequests"
-                  :downloading-file-id="downloadingFileId"
-                  :updating-request-id="updatingRequestId"
-                  @download-file="handleDownloadFile"
-                  @update-request-status="updateRequestStatus"
-                />
-              </section>
+              <RouterView />
             </section>
 
             <section v-else-if="activeSection === 'queue'" class="space-y-8">

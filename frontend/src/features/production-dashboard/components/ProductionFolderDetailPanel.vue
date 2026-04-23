@@ -20,6 +20,10 @@ defineProps({
     type: String,
     default: '',
   },
+  showFilesSection: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const emit = defineEmits(['download-file', 'update-request-status'])
@@ -122,7 +126,7 @@ const categoryClasses = {
         </div>
       </section>
 
-      <section class="mt-6">
+      <section v-if="showFilesSection" class="mt-6">
         <div class="flex items-center justify-between gap-3">
           <div>
             <p class="text-[10px] uppercase tracking-[0.3em] text-brand-600 dark:text-brand-100">Files</p>
@@ -153,7 +157,7 @@ const categoryClasses = {
                   <span class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">{{ file.shortId }}</span>
                 </div>
                 <p class="mt-3 truncate text-sm font-semibold text-ink dark:text-white">{{ file.file_name }}</p>
-                <p class="mt-2 text-xs text-muted dark:text-zinc-400">{{ file.uploaderName }} · {{ file.updatedLabel }}</p>
+                <p class="mt-2 text-xs text-muted dark:text-zinc-400">{{ file.uploaderName }} / {{ file.updatedLabel }}</p>
               </div>
 
               <button
