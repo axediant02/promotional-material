@@ -4,6 +4,7 @@ import { downloadFile } from '../../../services/fileService'
 
 const props = defineProps({
   file: { type: Object, required: true },
+  selected: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['request-change'])
@@ -53,19 +54,28 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <article class="flex flex-col gap-4 border-b border-border/70 px-5 py-5 last:border-b-0 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+  <article
+    class="flex flex-col gap-4 border-b border-border/70 px-5 py-5 last:border-b-0 dark:border-white/10 md:flex-row md:items-center md:justify-between"
+    :class="selected ? 'bg-brand-50/60 dark:bg-white/5' : ''"
+  >
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center gap-3">
         <h4 class="truncate text-base font-semibold text-ink dark:text-white">{{ file.file_name }}</h4>
         <span class="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-brand-700 dark:bg-white/10 dark:text-white">
           {{ file.category ?? 'file' }}
         </span>
+        <span
+          v-if="selected"
+          class="rounded-full border border-brand-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-700 dark:border-white/10 dark:bg-white/10 dark:text-white"
+        >
+          Selected
+        </span>
       </div>
       <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted dark:text-zinc-300">
         <span>{{ file.folder?.folder_name ?? 'Assigned folder' }}</span>
-        <span class="text-brand-300 dark:text-zinc-500">•</span>
+        <span class="text-brand-300 dark:text-zinc-500">&bull;</span>
         <span>{{ sizeLabel }}</span>
-        <span class="text-brand-300 dark:text-zinc-500">•</span>
+        <span class="text-brand-300 dark:text-zinc-500">&bull;</span>
         <span>Updated {{ updatedLabel }}</span>
       </div>
     </div>

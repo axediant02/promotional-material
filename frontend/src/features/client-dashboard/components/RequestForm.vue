@@ -80,7 +80,7 @@ const submitRequest = async () => {
 <template>
   <form @submit.prevent="submitRequest" class="space-y-4">
     <!-- Request Type -->
-    <div>
+    <div v-if="!file">
       <label class="mb-2 block text-sm font-medium text-ink dark:text-white">Request Type</label>
       <div class="space-y-2">
         <label
@@ -107,6 +107,15 @@ const submitRequest = async () => {
       </div>
     </div>
 
+    <div
+      v-else
+      class="rounded-xl border border-brand-200 bg-brand-50 p-3 dark:border-white/10 dark:bg-white/10"
+    >
+      <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-100">Request Type</p>
+      <p class="mt-2 font-medium text-ink dark:text-white">Update Asset</p>
+      <p class="mt-1 text-xs text-muted dark:text-zinc-300">This request is tied to the selected file and will be submitted as an update request.</p>
+    </div>
+
     <!-- Title -->
     <div>
       <label for="title" class="mb-2 block text-sm font-medium text-ink dark:text-white">
@@ -119,6 +128,7 @@ const submitRequest = async () => {
         placeholder="Brief title for your request"
         class="pm-input w-full rounded-xl px-4 py-3 text-sm"
       />
+      <p class="mt-2 text-xs text-muted dark:text-zinc-400">Use a short, specific title so your request is easy to scan later.</p>
     </div>
 
     <div v-if="file" class="rounded-xl bg-white/70 p-3 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
@@ -147,6 +157,7 @@ const submitRequest = async () => {
         placeholder="Describe what changes or updates you need for this file..."
         class="pm-input w-full resize-none rounded-xl px-4 py-3 text-sm"
       ></textarea>
+      <p class="mt-2 text-xs text-muted dark:text-zinc-400">Helpful details: exact text changes, target size or format, deadline context, and what should stay unchanged.</p>
     </div>
 
     <!-- Error Message -->

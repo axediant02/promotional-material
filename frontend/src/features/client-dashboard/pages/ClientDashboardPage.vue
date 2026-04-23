@@ -10,7 +10,6 @@ import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
 import ClientPortalFooter from '../components/ClientPortalFooter.vue'
 import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.vue'
 import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
-import ClientStatusBanner from '../components/ClientStatusBanner.vue'
 import ClientSupportCard from '../components/ClientSupportCard.vue'
 
 const authStore = useAuthStore()
@@ -25,6 +24,20 @@ const viewMode = ref('grid')
 const selectedFile = ref(null)
 
 const assignedFolder = computed(() => payload.value.folders?.[0] ?? null)
+
+const latestUpdatedAt = computed(() => {
+  const timestamps = files.value
+    .map((file) => file.updated_at)
+    .filter(Boolean)
+    .map((value) => new Date(value).getTime())
+    .filter((value) => Number.isFinite(value))
+
+  if (!timestamps.length) {
+    return null
+  }
+
+  return new Date(Math.max(...timestamps))
+})
 
 const filteredFiles = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -56,36 +69,56 @@ const totalBytes = computed(() =>
 
 const folderLabel = computed(() => assignedFolder.value?.folder_name ?? 'Assigned Folder')
 
+const heroContent = computed(() => {
+  if (!assignedFolder.value?.folder_id) {
+    return {
+      eyebrow: 'Secure review workspace',
+      title: 'Request your first asset',
+      accent: 'Folder created after submission',
+      subtitle: 'Your folder will be created automatically when you send your first request. Use the request panel to tell production what you need.',
+      actionLabel: 'Start a request',
+      actionTarget: '#request-panel',
+    }
+  }
+
+  if (!files.value.length) {
+    return {
+      eyebrow: 'Assigned folder active',
+      title: 'Your workspace is ready',
+      accent: 'Waiting for approved files',
+      subtitle: 'You already have a secured folder. Submit a request if you need new materials or changes while production prepares delivery.',
+      actionLabel: 'Open request panel',
+      actionTarget: '#request-panel',
+    }
+  }
+
+  return {
+    eyebrow: 'Assigned folder active',
+    title: 'Files ready for review',
+    accent: 'Select an asset or download directly',
+    subtitle: `Review approved materials in ${folderLabel.value} and submit focused change requests with clear context.`,
+    actionLabel: 'Browse assets',
+    actionTarget: '#asset-catalog',
+  }
+})
+
+const catalogSummary = computed(() => ({
+  visibleAssets: filteredFiles.value.length,
+  folderLabel: folderLabel.value,
+  lastUpdatedLabel: latestUpdatedAt.value
+    ? new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(latestUpdatedAt.value)
+    : 'No files yet',
+}))
+
 const heroStats = computed(() => [
   {
     label: 'Total Assets',
     value: `${files.value.length}`,
     help: files.value.length === 1 ? 'Approved file' : 'Approved files',
-  },
-  {
-    label: 'Size',
-    value: totalBytes.value > 0 ? formatBytes(totalBytes.value) : 'Secure',
-    help: totalBytes.value > 0 ? 'Combined download size' : 'Protected delivery',
-  },
-  {
-    label: 'Access',
-    value: 'Private',
-    help: 'Client-only scope',
-  },
-])
-
-const statusDetails = computed(() => [
-  {
-    label: 'Folder',
-    value: folderLabel.value,
-  },
-  {
-    label: 'Visible Files',
-    value: `${filteredFiles.value.length}`,
-  },
-  {
-    label: 'Open Requests',
-    value: `${requests.value.filter((request) => request.status !== 'done').length}`,
   },
 ])
 
@@ -95,14 +128,6 @@ const supportSummary = computed(() => ({
     ? `Feedback will be attached to ${selectedFile.value.file_name}.`
     : 'Select a file from the catalog to prefill your request context, or submit a folder-level note.',
 }))
-
-const welcomeSubtitle = computed(() => {
-  if (assignedFolder.value?.folder_name) {
-    return `Review approved materials in ${assignedFolder.value.folder_name} and send change requests with clear context.`
-  }
-
-  return 'Review approved materials, track your assigned folder, and send change requests with clear context.'
-})
 
 const selectFileForRequest = (file) => {
   selectedFile.value = file
@@ -174,27 +199,32 @@ function formatBytes(bytes) {
           :folder="assignedFolder"
           :stats="heroStats"
           :user="authStore.user"
-          :subtitle="welcomeSubtitle"
-        />
-
-        <ClientStatusBanner
-          :details="statusDetails"
-          :folder="assignedFolder"
-          :selected-file="selectedFile"
+          :eyebrow="heroContent.eyebrow"
+          :title="heroContent.title"
+          :accent="heroContent.accent"
+          :subtitle="heroContent.subtitle"
+          :action-label="heroContent.actionLabel"
+          :action-target="heroContent.actionTarget"
         />
 
         <ClientAssetCatalog
+          id="asset-catalog"
           v-model:view-mode="viewMode"
           :files="filteredFiles"
           :loading="loading"
           :search-query="searchQuery"
+          :folder-label="catalogSummary.folderLabel"
+          :last-updated-label="catalogSummary.lastUpdatedLabel"
+          :selected-file-id="selectedFile?.file_id ?? null"
           @request-change="selectFileForRequest"
+          @clear-search="searchQuery = ''"
         />
       </section>
 
       <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(250,246,255,0.92),rgba(244,238,252,0.78))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]">
         <div class="flex h-full flex-col gap-6">
           <ClientRequestSidebar
+            id="request-panel"
             :folder="assignedFolder"
             :selected-file="selectedFile"
             :support-summary="supportSummary"

@@ -22,7 +22,7 @@ const handleRequestSuccess = (payload) => {
 </script>
 
 <template>
-  <section class="pm-surface rounded-[1.75rem] p-6">
+  <section id="request-panel" class="pm-surface rounded-[1.75rem] p-6">
     <div class="flex items-start gap-4">
       <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-white">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,9 +30,27 @@ const handleRequestSuccess = (payload) => {
         </svg>
       </div>
       <div>
-        <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request Feedback</p>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Guided Request Flow</p>
         <h3 class="mt-2 text-xl font-semibold text-ink dark:text-white">{{ supportSummary.label }}</h3>
         <p class="mt-2 text-sm leading-6 text-muted dark:text-zinc-300">{{ supportSummary.description }}</p>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-3">
+      <div class="rounded-2xl border border-border/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 1</p>
+        <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Choose a file or request something new</p>
+        <p class="mt-1 text-sm text-muted dark:text-zinc-300">Pick an asset from the catalog for a precise update request, or leave the selection empty for a folder-level request.</p>
+      </div>
+      <div class="rounded-2xl border border-border/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 2</p>
+        <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Describe what changed or what you need</p>
+        <p class="mt-1 text-sm text-muted dark:text-zinc-300">Specific notes, copy changes, sizes, and delivery context usually help production respond faster.</p>
+      </div>
+      <div class="rounded-2xl border border-border/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 3</p>
+        <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Submit and track progress below</p>
+        <p class="mt-1 text-sm text-muted dark:text-zinc-300">Your request will appear in recent history so you can review status and due date updates in one place.</p>
       </div>
     </div>
 
@@ -59,9 +77,11 @@ const handleRequestSuccess = (payload) => {
     <div class="mt-6">
       <div
         v-if="successMessage"
-        class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+        class="mb-4 rounded-[1.5rem] border border-emerald-200 bg-emerald-50/90 px-4 py-4 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
       >
-        {{ successMessage }}
+        <p class="text-[10px] font-semibold uppercase tracking-[0.28em]">Request sent</p>
+        <p class="mt-2 text-base font-semibold">Your request is now in the review queue.</p>
+        <p class="mt-1 leading-6">{{ successMessage }}</p>
       </div>
 
       <RequestForm

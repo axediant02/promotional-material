@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../../stores/auth'
+import { useThemeStore } from '../../../stores/theme'
 
 const props = defineProps({
   searchQuery: { type: String, default: '' },
@@ -13,6 +14,7 @@ const emit = defineEmits(['update:searchQuery'])
 
 const router = useRouter()
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
 const initials = computed(() => {
   const name = props.user?.name?.trim()
@@ -43,11 +45,11 @@ const handleLogout = async () => {
           <h1 class="mt-1 text-2xl font-semibold tracking-tight text-ink dark:text-white">Client Portal</h1>
         </div>
 
-        <nav class="flex flex-wrap items-center gap-4 text-sm font-medium text-muted dark:text-zinc-300">
+        <nav class="flex flex-wrap items-center gap-3 text-sm font-medium text-muted dark:text-zinc-300">
           <span class="rounded-full bg-brand-50 px-3 py-1 text-brand-700 dark:bg-white/10 dark:text-white">{{ folderLabel }}</span>
-          <span class="transition-colors hover:text-brand-700 dark:hover:text-white">History</span>
-          <span class="transition-colors hover:text-brand-700 dark:hover:text-white">Delivery</span>
-          <span class="transition-colors hover:text-brand-700 dark:hover:text-white">Support</span>
+          <a href="#asset-catalog" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">Assets</a>
+          <a href="#request-panel" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">Request</a>
+          <a href="#request-history" class="rounded-full px-3 py-1 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white">History</a>
         </nav>
       </div>
 
@@ -71,6 +73,26 @@ const handleLogout = async () => {
           <button class="rounded-full border border-border bg-white/60 p-3 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0m6 0H9" />
+            </svg>
+          </button>
+          <button
+            class="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-border bg-white/60 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
+            type="button"
+            @click="themeStore.toggleTheme()"
+          >
+            <svg v-if="themeStore.isDark" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3.5" />
+              <path d="M12 2v3" />
+              <path d="M12 19v3" />
+              <path d="m4.93 4.93 2.12 2.12" />
+              <path d="m16.95 16.95 2.12 2.12" />
+              <path d="M2 12h3" />
+              <path d="M19 12h3" />
+              <path d="m4.93 19.07 2.12-2.12" />
+              <path d="m16.95 7.05 2.12-2.12" />
+            </svg>
+            <svg v-else class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7.1 7.1 0 0 0 9.8 9.8Z" />
             </svg>
           </button>
 

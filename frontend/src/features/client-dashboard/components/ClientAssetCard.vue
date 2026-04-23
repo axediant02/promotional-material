@@ -4,6 +4,7 @@ import { downloadFile } from '../../../services/fileService'
 
 const props = defineProps({
   file: { type: Object, required: true },
+  selected: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['request-change'])
@@ -89,6 +90,7 @@ function formatBytes(bytes) {
       file.category === 'pdf' ? 'border-rose-200 bg-rose-50/30' : '',
       file.category === 'video' ? 'border-violet-200 bg-violet-50/30' : '',
       !['image', 'pdf', 'video'].includes(file.category) ? 'border-slate-200' : '',
+      selected ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-[#fbf8ff] dark:ring-white/40 dark:ring-offset-transparent' : '',
     ]"
   >
     <div :class="['aspect-[16/9] p-4', palette.frame]">
@@ -140,6 +142,13 @@ function formatBytes(bytes) {
         >
           Request Change
         </button>
+      </div>
+
+      <div
+        v-if="selected"
+        class="mt-3 rounded-xl border border-brand-200 bg-brand-50/80 px-3 py-2 text-xs font-semibold text-brand-700 dark:border-white/10 dark:bg-white/10 dark:text-white"
+      >
+        Selected for your next request
       </div>
     </div>
   </article>

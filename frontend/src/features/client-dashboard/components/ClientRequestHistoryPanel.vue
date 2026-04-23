@@ -34,7 +34,7 @@ function formatRequestType(type) {
 
 function formatDate(value) {
   if (!value) {
-    return 'No due date yet'
+    return 'Awaiting admin review'
   }
 
   return new Intl.DateTimeFormat('en-US', {
@@ -46,7 +46,7 @@ function formatDate(value) {
 </script>
 
 <template>
-  <section class="pm-surface rounded-[1.75rem] p-6">
+  <section id="request-history" class="pm-surface rounded-[1.75rem] p-6">
     <div class="flex items-start justify-between gap-4">
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request History</p>
@@ -85,6 +85,7 @@ function formatDate(value) {
         v-for="request in requests"
         :key="request.request_id"
         class="rounded-2xl border border-border bg-white/60 p-4 transition hover:border-brand-300 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20"
+        :class="request.status === 'done' ? 'opacity-80' : 'shadow-[0_12px_28px_rgba(75,61,116,0.05)]'"
       >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div class="min-w-0">
@@ -98,13 +99,18 @@ function formatDate(value) {
               <span class="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted dark:text-zinc-400">
                 {{ formatRequestType(request.request_type) }}
               </span>
+              <span
+                class="rounded-full bg-brand-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-700 dark:bg-white/10 dark:text-white"
+              >
+                {{ request.status === 'done' ? 'Completed' : 'Open Request' }}
+              </span>
             </div>
             <h4 class="mt-3 text-base font-semibold text-ink dark:text-white">{{ request.title }}</h4>
             <p class="mt-2 text-sm leading-6 text-muted dark:text-zinc-300">{{ request.description }}</p>
           </div>
 
           <div class="sm:w-40 sm:flex-shrink-0">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted dark:text-zinc-400">Due Date</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted dark:text-zinc-400">{{ request.due_date ? 'Due Date' : 'Timeline' }}</p>
             <p class="mt-2 text-sm font-semibold text-ink dark:text-white">{{ formatDate(request.due_date) }}</p>
           </div>
         </div>
