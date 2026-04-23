@@ -125,6 +125,48 @@ class AdminManagementRoutesTest extends TestCase
             'client_id' => $secondClient->user_id,
             'status' => AssignedClient::STATUS_DONE,
         ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $firstProduction->user_id,
+            'name' => $firstProduction->name,
+            'email' => $firstProduction->email,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $secondProduction->user_id,
+            'name' => $secondProduction->name,
+            'email' => $secondProduction->email,
+        ]);
+    }
+
+    public function test_admin_assignment_listing_includes_all_production_users_even_without_activity_or_assignments(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $productionOne = $this->createUser('Production One', 'production-one@example.com', User::ROLE_PRODUCTION);
+        $productionTwo = $this->createUser('Production Two', 'production-two@example.com', User::ROLE_PRODUCTION);
+        $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/assignments');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Assignments fetched.')
+            ->assertJsonCount(0, 'data.assignments')
+            ->assertJsonCount(2, 'data.production_users');
+
+        $response->assertJsonFragment([
+            'user_id' => $productionOne->user_id,
+            'name' => $productionOne->name,
+            'email' => $productionOne->email,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $productionTwo->user_id,
+            'name' => $productionTwo->name,
+            'email' => $productionTwo->email,
+        ]);
     }
 
     public function test_admin_can_unassign_a_client(): void
