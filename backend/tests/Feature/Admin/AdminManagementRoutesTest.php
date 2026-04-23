@@ -19,6 +19,17 @@ class AdminManagementRoutesTest extends TestCase
         $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
         $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
         $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $folder = $this->assignFolderToClient($client, $production);
+
+        ClientRequest::query()->create([
+            'client_id' => $client->user_id,
+            'folder_id' => $folder->folder_id,
+            'title' => 'Client User Request',
+            'description' => 'Initial request to make the client eligible for assignment.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => null,
+        ]);
 
         Sanctum::actingAs($admin);
 
@@ -42,12 +53,48 @@ class AdminManagementRoutesTest extends TestCase
         ]);
     }
 
+    public function test_admin_cannot_assign_a_client_without_any_request(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson('/api/admin/assignments', [
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['client_id']);
+
+        $this->assertDatabaseMissing('assigned_clients', [
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+    }
+
     public function test_admin_updates_an_existing_client_assignment_instead_of_creating_a_duplicate(): void
     {
         $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
         $firstProduction = $this->createUser('Production One', 'production-one@example.com', User::ROLE_PRODUCTION);
         $secondProduction = $this->createUser('Production Two', 'production-two@example.com', User::ROLE_PRODUCTION);
         $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $folder = $this->assignFolderToClient($client, $firstProduction);
+
+        ClientRequest::query()->create([
+            'client_id' => $client->user_id,
+            'folder_id' => $folder->folder_id,
+            'title' => 'Client User Request',
+            'description' => 'Initial request to make the client eligible for reassignment.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => null,
+        ]);
 
         $assignment = AssignedClient::query()->create([
             'production_id' => $firstProduction->user_id,
