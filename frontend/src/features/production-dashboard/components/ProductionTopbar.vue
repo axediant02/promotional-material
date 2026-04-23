@@ -30,21 +30,21 @@ const themeStore = useThemeStore()
 </script>
 
 <template>
-  <header class="border-b border-white/8 px-6 py-6 sm:px-8 lg:px-10">
+  <header class="border-b border-border/70 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0">
-        <p class="text-[11px] uppercase tracking-[0.42em] text-brand-200/60">{{ eyebrow }}</p>
-        <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <p class="text-[11px] uppercase tracking-[0.42em] text-brand-600 dark:text-brand-100">{{ eyebrow }}</p>
+        <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           {{ title }}
         </h1>
-        <p v-if="description" class="mt-3 max-w-2xl text-sm leading-6 text-white/52">
+        <p v-if="description" class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-300">
           {{ description }}
         </p>
       </div>
 
       <div class="flex w-full max-w-xl items-center gap-4 lg:justify-end">
         <div class="relative flex-1">
-          <span class="absolute inset-y-0 left-3 flex items-center text-white/30">
+          <span class="absolute inset-y-0 left-3 flex items-center text-muted dark:text-zinc-400">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="m21 21-4.35-4.35m1.6-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
             </svg>
@@ -53,13 +53,13 @@ const themeStore = useThemeStore()
             :value="searchQuery"
             type="text"
             placeholder="Search queue, files, or folders..."
-            class="w-full border border-white/10 bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-brand-400 focus:bg-brand-500/8"
+            class="pm-input w-full rounded-2xl py-3 pl-10 pr-4 text-sm placeholder:text-muted dark:placeholder:text-zinc-500"
             @input="$emit('update:searchQuery', $event.target.value)"
           >
         </div>
 
         <button
-          class="flex h-11 w-11 items-center justify-center border border-white/10 text-white/52 transition hover:border-brand-400 hover:text-brand-100"
+          class="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-white/60 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20 dark:hover:text-white"
           type="button"
           @click="themeStore.toggleTheme()"
         >
