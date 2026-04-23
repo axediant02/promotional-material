@@ -17,8 +17,8 @@ defineProps({
 defineEmits(['change-section', 'sign-out'])
 
 const sectionMeta = [
+  { id: 'files', label: 'Folders', icon: 'files' },
   { id: 'queue', label: 'Queue', icon: 'queue' },
-  { id: 'files', label: 'Files', icon: 'files' },
   { id: 'recycle', label: 'Recycle Bin', icon: 'recycle' },
 ]
 </script>
