@@ -14,6 +14,9 @@ This folder contains the current working docs for the portal.
 2. Read `request-workflow.md` for request ownership and lifecycle.
 3. Use `api-reference.md`, `frontend-routes.md`, and `schemas-relationship.md` while implementing or debugging.
 
+## Current routing note
+- The production UI now uses a nested folder workspace under `/production`, with `/production/folders` for the folder browser and `/production/folders/:folderId` for the selected-folder file view.
+
 ## Testing rule
 - The project uses TDD for new backend functionality.
 - After a test is written and approved as the target behavior, do not rewrite that test only to force a pass.

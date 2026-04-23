@@ -11,7 +11,9 @@ This document describes the current Vue frontend routing in `frontend/src/router
 | `/register` | `register` | guest only | `RegisterPage.vue` | Client registration form |
 | `/client` | `client-dashboard` | `client` only | `ClientDashboardPage.vue` | Client dashboard |
 | `/agent` | `agent-workspace` | `agent` only | `AgentWorkspacePage.vue` | Agent dashboard |
-| `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Temporary production dashboard route |
+| `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Production shell route that redirects to the nested folder browser |
+| `/production/folders` | `production-folder-index` | `production` only | `ProductionFolderIndexPage.vue` | Assigned folder browser inside the production shell |
+| `/production/folders/:folderId` | `production-folder-detail` | `production` only | `ProductionFolderFilesPage.vue` | Selected-folder file view inside the production shell |
 | `/agent-new` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Temporary agent dashboard route |
 | `/admin-new` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Temporary admin dashboard scaffold |
 | `/admin` | `admin-overview` | legacy | `AdminOverviewPage.vue` | Legacy transition route that should not be treated as the final admin surface |
@@ -26,6 +28,18 @@ This document describes the current Vue frontend routing in `frontend/src/router
 - `agent` -> `agent-dashboard` (`/agent-new`)
 - `admin` -> `admin-dashboard` (`/admin-new`)
 - any other authenticated user -> `client-dashboard` (`/client`)
+
+## Nested production workspace behavior
+- `/production` is the authenticated production shell and redirects to `production-folder-index`.
+- The folder workspace uses nested routes so only the workspace section changes:
+  - `/production/folders` for the assigned folder browser
+  - `/production/folders/:folderId` for files inside one selected folder
+- Production folder workspace state is restored from query params:
+  - `view`
+  - `filter`
+  - `sort`
+  - `q`
+- Breadcrumb navigation in the production workspace should return to `/production/folders` while preserving those query params.
 
 ## Current frontend page coverage
 
@@ -69,7 +83,8 @@ This document describes the current Vue frontend routing in `frontend/src/router
   - `GET /admin/activity-logs`
 
 ### Temporary dashboard scaffolding
-- `/production`, `/agent-new`, and `/admin-new` currently exist in the router as temporary role-dashboard routes.
+- `/agent-new` and `/admin-new` currently exist in the router as temporary role-dashboard routes.
+- `/production` now acts as a production shell route with nested folder workspace children.
 - These routes are the current UI transition layer while the backend route surface is being aligned to the agreed role model.
 
 ## Notes
