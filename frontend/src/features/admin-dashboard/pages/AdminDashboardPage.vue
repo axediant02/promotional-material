@@ -10,7 +10,13 @@ import AdminDashboardSidebar from '../components/AdminDashboardSidebar.vue'
 import AdminDashboardStatGrid from '../components/AdminDashboardStatGrid.vue'
 import AdminDashboardUsersTab from '../components/AdminDashboardUsersTab.vue'
 import { adminDashboardFallbacks } from '../data/adminDashboardFallbacks'
-import { fetchAdminRequests, fetchAdminActivityLogs } from '../../../services/adminService'
+import {
+  fetchAdminActivityLogs,
+  fetchAdminAssignments,
+  fetchAdminRequests,
+  removeAdminAssignment,
+  saveAdminAssignment,
+} from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -29,14 +35,101 @@ const dashboardPayload = ref({
 })
 const requestsPayload = ref([])
 const activityLogs = ref([])
+const assignmentsPayload = ref([])
+const assignmentsSaving = ref(false)
+const assignmentDeletingId = ref('')
 
 const currentUser = computed(() => authStore.user ?? {})
+
+const formatIdLabel = (value, prefix) => {
+  if (!value) {
+    return prefix
+  }
+
+  return `${prefix} ${value.slice(0, 8).toUpperCase()}`
+}
 
 const folderLookup = computed(() => {
   const map = new Map()
 
   for (const folder of dashboardPayload.value.folders ?? []) {
     map.set(folder.folder_id ?? folder.id, folder)
+  }
+
+  return map
+})
+
+const productionUserLookup = computed(() => {
+  const map = new Map()
+
+  for (const log of activityLogs.value ?? []) {
+    const user = log.user
+
+    if (user?.role === 'production' && user.user_id) {
+      map.set(user.user_id, {
+        id: user.user_id,
+        name: user.name ?? formatIdLabel(user.user_id, 'Production'),
+        email: user.email ?? '',
+      })
+    }
+  }
+
+  for (const assignment of assignmentsPayload.value ?? []) {
+    if (assignment.production_id && !map.has(assignment.production_id)) {
+      map.set(assignment.production_id, {
+        id: assignment.production_id,
+        name: formatIdLabel(assignment.production_id, 'Production'),
+        email: '',
+      })
+    }
+  }
+
+  return map
+})
+
+const clientLookup = computed(() => {
+  const map = new Map()
+
+  for (const folder of dashboardPayload.value.folders ?? []) {
+    const client = folder.client
+
+    if (client?.user_id) {
+      map.set(client.user_id, {
+        id: client.user_id,
+        name: client.name ?? folder.folder_name ?? formatIdLabel(client.user_id, 'Client'),
+        email: client.email ?? '',
+        folderName: folder.folder_name ?? 'Assigned Folder',
+      })
+    } else if (folder.client_id) {
+      map.set(folder.client_id, {
+        id: folder.client_id,
+        name: folder.folder_name ?? formatIdLabel(folder.client_id, 'Client'),
+        email: '',
+        folderName: folder.folder_name ?? 'Assigned Folder',
+      })
+    }
+  }
+
+  for (const request of requestsPayload.value ?? []) {
+    if (request.client_id && !map.has(request.client_id)) {
+      map.set(request.client_id, {
+        id: request.client_id,
+        name: formatIdLabel(request.client_id, 'Client'),
+        email: '',
+        folderName: request.folder_id ? formatIdLabel(request.folder_id, 'Folder') : 'Assigned Folder',
+      })
+    }
+  }
+
+  for (const assignment of assignmentsPayload.value ?? []) {
+    if (assignment.client_id && !map.has(assignment.client_id)) {
+      map.set(assignment.client_id, {
+        id: assignment.client_id,
+        name: formatIdLabel(assignment.client_id, 'Client'),
+        email: '',
+        folderName: 'Assigned Folder',
+      })
+    }
   }
 
   return map
@@ -49,7 +142,7 @@ const queueRows = computed(() =>
     const clientName = folder?.client?.name ?? folder?.folder_name ?? `Client ${index + 1}`
     const folderName = folder?.folder_name ?? folder?.name ?? request.folder_id ?? 'Unassigned folder'
     const requestTypeLabel = request.request_type === 'new_asset' ? 'New asset' : 'Update asset'
-    const isUnassigned = !folder
+    const isUnassigned = !assignmentsPayload.value.some((assignment) => assignment.client_id === request.client_id)
     const isMissingDueDate = !request.due_date
     const needsAttention = isUnassigned || isMissingDueDate || request.status === 'pending'
     const dueLabel = request.due_date
@@ -98,7 +191,7 @@ const folderCards = computed(() =>
 const stats = computed(() => {
   const openRequests = requestsPayload.value.filter((request) => request.status !== 'done')
   const awaitingDueDate = openRequests.filter((request) => !request.due_date)
-  const unassignedRequests = openRequests.filter((request) => !folderLookup.value.get(request.folder_id))
+  const unassignedRequests = openRequests.filter((request) => !assignmentsPayload.value.some((assignment) => assignment.client_id === request.client_id))
   const requestingClients = new Set(openRequests.map((request) => request.client_id).filter(Boolean))
 
   return [
@@ -129,7 +222,7 @@ const stats = computed(() => {
 const attentionItems = computed(() => {
   const openRequests = requestsPayload.value.filter((request) => request.status !== 'done')
   const awaitingDueDate = openRequests.filter((request) => !request.due_date)
-  const unassignedRequests = openRequests.filter((request) => !folderLookup.value.get(request.folder_id))
+  const unassignedRequests = openRequests.filter((request) => !assignmentsPayload.value.some((assignment) => assignment.client_id === request.client_id))
   const pendingReview = openRequests.filter((request) => request.status === 'pending')
 
   return [
@@ -181,22 +274,91 @@ const governanceInsights = computed(() => {
 })
 
 const usersTabRows = computed(() => adminDashboardFallbacks.users)
-const assignmentsTabRows = computed(() => adminDashboardFallbacks.assignments)
+
+const productionOptions = computed(() =>
+  Array.from(productionUserLookup.value.values()).sort((left, right) => left.name.localeCompare(right.name))
+)
+
+const clientOptions = computed(() =>
+  Array.from(clientLookup.value.values()).sort((left, right) => left.name.localeCompare(right.name))
+)
+
+const assignmentsTabRows = computed(() =>
+  (assignmentsPayload.value ?? []).map((assignment) => {
+    const client = clientLookup.value.get(assignment.client_id)
+    const production = productionUserLookup.value.get(assignment.production_id)
+    const relatedRequests = requestsPayload.value.filter((request) => request.client_id === assignment.client_id)
+    const openRequests = relatedRequests.filter((request) => request.status !== 'done').length
+
+    return {
+      id: assignment.id,
+      clientId: assignment.client_id,
+      productionId: assignment.production_id,
+      clientName: client?.name ?? formatIdLabel(assignment.client_id, 'Client'),
+      clientEmail: client?.email ?? '',
+      folderName: client?.folderName ?? 'Assigned Folder',
+      productionName: production?.name ?? formatIdLabel(assignment.production_id, 'Production'),
+      productionEmail: production?.email ?? '',
+      status: assignment.status ?? 'pending',
+      workload: openRequests ? `${openRequests} active ${openRequests === 1 ? 'request' : 'requests'}` : 'No open requests',
+      note: relatedRequests.length
+        ? `Governance currently tracks ${relatedRequests.length} total ${relatedRequests.length === 1 ? 'request' : 'requests'} for this client.`
+        : 'Assignment is active, but no request records are currently visible in the admin queue.',
+    }
+  })
+)
+
+const loadAssignments = async () => {
+  const response = await fetchAdminAssignments()
+  assignmentsPayload.value = response.data.data.assignments ?? []
+}
+
+const handleAssignmentSave = async (payload) => {
+  assignmentsSaving.value = true
+  error.value = ''
+
+  try {
+    await saveAdminAssignment(payload)
+    await loadAssignments()
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to save the client assignment.'
+    throw err
+  } finally {
+    assignmentsSaving.value = false
+  }
+}
+
+const handleAssignmentRemove = async (assignmentId) => {
+  assignmentDeletingId.value = assignmentId
+  error.value = ''
+
+  try {
+    await removeAdminAssignment(assignmentId)
+    await loadAssignments()
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to remove the client assignment.'
+    throw err
+  } finally {
+    assignmentDeletingId.value = ''
+  }
+}
 
 const loadAdminDashboard = async () => {
   loading.value = true
   error.value = ''
 
   try {
-    const [dashboardResponse, requestsResponse, logsResponse] = await Promise.all([
+    const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse] = await Promise.all([
       fetchDashboard(),
       fetchAdminRequests(),
       fetchAdminActivityLogs(),
+      fetchAdminAssignments(),
     ])
 
     dashboardPayload.value = dashboardResponse.data.data
     requestsPayload.value = requestsResponse.data.data.requests ?? []
     activityLogs.value = logsResponse.data.data.logs ?? []
+    assignmentsPayload.value = assignmentsResponse.data.data.assignments ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the admin dashboard.'
   } finally {
@@ -242,7 +404,16 @@ onMounted(() => {
 
             <AdminDashboardRequestsTab v-else-if="activeItem === 'requests'" :rows="queueRows" />
             <AdminDashboardUsersTab v-else-if="activeItem === 'users'" :users="usersTabRows" />
-            <AdminDashboardAssignmentsTab v-else-if="activeItem === 'assignments'" :assignments="assignmentsTabRows" />
+            <AdminDashboardAssignmentsTab
+              v-else-if="activeItem === 'assignments'"
+              :assignments="assignmentsTabRows"
+              :client-options="clientOptions"
+              :production-options="productionOptions"
+              :saving="assignmentsSaving"
+              :deleting-id="assignmentDeletingId"
+              :save-assignment-action="handleAssignmentSave"
+              :remove-assignment-action="handleAssignmentRemove"
+            />
           </template>
         </div>
       </main>
