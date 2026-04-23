@@ -17,7 +17,10 @@ class RecycleBinController extends Controller
     {
         abort_unless(request()->user()->isProduction(), 403);
 
-        $files = MediaFile::onlyTrashed()->with('folder:folder_id,folder_name', 'uploader:user_id,name')->latest('deleted_at')->get();
+        $files = FileController::accessibleFilesQuery(request()->user(), onlyTrashed: true)
+            ->with('folder:folder_id,folder_name', 'uploader:user_id,name')
+            ->latest('deleted_at')
+            ->get();
 
         return response()->json([
             'message' => 'Recycle bin fetched.',
@@ -29,7 +32,11 @@ class RecycleBinController extends Controller
     {
         abort_unless(request()->user()->isProduction(), 403);
 
-        $file = MediaFile::onlyTrashed()->findOrFail($id);
+        $file = FileController::accessibleFilesQuery(request()->user(), onlyTrashed: true)
+            ->whereKey($id)
+            ->first();
+
+        abort_if(! $file, 403, 'You cannot access this file.');
         $file->restore();
 
         $this->activityLogService->log(

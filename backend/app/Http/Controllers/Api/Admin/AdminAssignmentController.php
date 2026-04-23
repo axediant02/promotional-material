@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminAssignmentRequest;
 use App\Models\AssignedClient;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class AdminAssignmentController extends Controller
@@ -18,10 +19,17 @@ class AdminAssignmentController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $productionUsers = User::query()
+            ->where('role', User::ROLE_PRODUCTION)
+            ->orderBy('name')
+            ->orderBy('email')
+            ->get(['user_id', 'name', 'email']);
+
         return response()->json([
             'message' => 'Assignments fetched.',
             'data' => [
                 'assignments' => $assignments,
+                'production_users' => $productionUsers,
             ],
         ]);
     }
