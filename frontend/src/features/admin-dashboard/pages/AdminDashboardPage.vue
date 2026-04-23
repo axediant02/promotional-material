@@ -36,6 +36,7 @@ const dashboardPayload = ref({
 const requestsPayload = ref([])
 const activityLogs = ref([])
 const assignmentsPayload = ref([])
+const productionUsersPayload = ref([])
 const assignmentsSaving = ref(false)
 const assignmentDeletingId = ref('')
 
@@ -61,6 +62,16 @@ const folderLookup = computed(() => {
 
 const productionUserLookup = computed(() => {
   const map = new Map()
+
+  for (const user of productionUsersPayload.value ?? []) {
+    if (user?.user_id) {
+      map.set(user.user_id, {
+        id: user.user_id,
+        name: user.name ?? formatIdLabel(user.user_id, 'Production'),
+        email: user.email ?? '',
+      })
+    }
+  }
 
   for (const log of activityLogs.value ?? []) {
     const user = log.user
@@ -311,6 +322,7 @@ const assignmentsTabRows = computed(() =>
 const loadAssignments = async () => {
   const response = await fetchAdminAssignments()
   assignmentsPayload.value = response.data.data.assignments ?? []
+  productionUsersPayload.value = response.data.data.production_users ?? []
 }
 
 const handleAssignmentSave = async (payload) => {
@@ -359,6 +371,7 @@ const loadAdminDashboard = async () => {
     requestsPayload.value = requestsResponse.data.data.requests ?? []
     activityLogs.value = logsResponse.data.data.logs ?? []
     assignmentsPayload.value = assignmentsResponse.data.data.assignments ?? []
+    productionUsersPayload.value = assignmentsResponse.data.data.production_users ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the admin dashboard.'
   } finally {
