@@ -12,17 +12,17 @@ defineProps({
     <article
       v-for="stat in summaryStats"
       :key="stat.label"
-      class="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.05)]"
+    class="rounded-3xl border border-border/80 bg-surface p-6 shadow-[0_18px_40px_rgba(75,61,116,0.05)]"
     >
       <div class="flex items-center gap-4">
         <div
           :class="[
             'flex h-12 w-12 items-center justify-center rounded-2xl',
             {
-              'bg-blue-50 text-blue-600': stat.tone === 'blue',
-              'bg-indigo-50 text-indigo-600': stat.tone === 'indigo',
-              'bg-amber-50 text-amber-600': stat.tone === 'amber',
-              'bg-sky-50 text-sky-600': stat.tone === 'sky',
+              'bg-brand-50 text-brand-600': stat.tone === 'blue',
+              'bg-brand-100 text-brand-700': stat.tone === 'indigo',
+              'bg-brand-50 text-brand-500': stat.tone === 'amber',
+              'bg-brand-100 text-brand-500': stat.tone === 'sky',
             },
           ]"
         >
@@ -40,8 +40,8 @@ defineProps({
           </svg>
         </div>
         <div>
-          <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">{{ stat.label }}</p>
-          <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
+          <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-muted">{{ stat.label }}</p>
+          <p class="text-2xl font-bold text-ink">{{ stat.value }}</p>
         </div>
       </div>
     </article>

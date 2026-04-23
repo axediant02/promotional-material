@@ -1,0 +1,82 @@
+export const adminDashboardFallbacks = {
+  governanceInsights: [
+    {
+      id: 'role-changes',
+      label: 'Role Changes Today',
+      value: '2',
+      detail: 'Temporary fallback until role-change snapshots are exposed by the backend.',
+    },
+    {
+      id: 'production-load',
+      label: 'Production Teams',
+      value: '3 active',
+      detail: 'Fallback load summary used to keep the admin overview operational while team-balancing APIs are incomplete.',
+    },
+    {
+      id: 'audit-trail',
+      label: 'Recent Admin Actions',
+      value: '7 entries',
+      detail: 'Fallback governance signal until a dedicated admin activity widget is available.',
+    },
+  ],
+  users: [
+    {
+      id: 'usr-001',
+      name: 'Arthur Kendrick',
+      email: 'arthur@proweaver.com',
+      role: 'admin',
+      status: 'active',
+      note: 'Governance owner for role updates and due date review.',
+    },
+    {
+      id: 'usr-002',
+      name: 'Mika Santos',
+      email: 'mika@proweaver.com',
+      role: 'production',
+      status: 'active',
+      note: 'Leads file delivery execution for assigned clients.',
+    },
+    {
+      id: 'usr-003',
+      name: 'Jules Navarro',
+      email: 'jules@proweaver.com',
+      role: 'agent',
+      status: 'active',
+      note: 'Download-only operational access for cross-folder retrieval.',
+    },
+    {
+      id: 'usr-004',
+      name: 'Client One',
+      email: 'client1@example.com',
+      role: 'client',
+      status: 'active',
+      note: 'Active client account with request and download access.',
+    },
+  ],
+  assignments: [
+    {
+      id: 'asg-001',
+      clientName: 'Client One',
+      productionName: 'Mika Santos',
+      status: 'active',
+      workload: '4 active requests',
+      note: 'Primary assignment for product launch materials.',
+    },
+    {
+      id: 'asg-002',
+      clientName: 'Client Two',
+      productionName: 'Raul De Mesa',
+      status: 'active',
+      workload: '2 active requests',
+      note: 'Balanced assignment with room for new queue intake.',
+    },
+    {
+      id: 'asg-003',
+      clientName: 'Pending Client',
+      productionName: 'Unassigned',
+      status: 'needs_review',
+      workload: 'Awaiting admin action',
+      note: 'No production owner confirmed yet.',
+    },
+  ],
+}
