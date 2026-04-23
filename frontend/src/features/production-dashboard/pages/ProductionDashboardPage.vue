@@ -144,7 +144,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.08),_transparent_26%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)] text-slate-800">
+  <div class="pm-page text-ink">
     <div class="min-h-screen xl:grid xl:grid-cols-[18rem_minmax(0,1fr)]">
       <ProductionSidebar :current-user="currentUser" @legacy-workspace="goToLegacyWorkspace" @sign-out="signOut" />
 
@@ -153,15 +153,15 @@ onMounted(() => {
 
         <section class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Production Pulse</h1>
-            <p class="mt-2 text-sm text-slate-500">{{ statsDescription }}</p>
+            <h1 class="text-3xl font-bold tracking-tight text-ink">Production Pulse</h1>
+            <p class="mt-2 text-sm text-muted">{{ statsDescription }}</p>
           </div>
 
-          <div class="flex w-full rounded-xl border border-slate-200 bg-white p-1 shadow-sm sm:w-auto">
+          <div class="flex w-full rounded-xl border border-border/80 bg-surface p-1 shadow-sm sm:w-auto">
             <button
               :class="[
                 'flex-1 rounded-lg px-4 py-2 text-xs font-semibold transition sm:flex-none',
-                activeView === 'live' ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-800',
+                activeView === 'live' ? 'bg-brand-50 text-brand-700' : 'text-muted hover:text-ink',
               ]"
               @click="activeView = 'live'"
             >
@@ -170,7 +170,7 @@ onMounted(() => {
             <button
               :class="[
                 'flex-1 rounded-lg px-4 py-2 text-xs font-semibold transition sm:flex-none',
-                activeView === 'history' ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-800',
+                activeView === 'history' ? 'bg-brand-50 text-brand-700' : 'text-muted hover:text-ink',
               ]"
               @click="activeView = 'history'"
             >
@@ -188,12 +188,12 @@ onMounted(() => {
         <ProductionFoldersSection :client-folders="clientFolders" @view-directory="goToLegacyWorkspace" />
         <ProductionStatusSection :system-status="systemStatus" />
 
-        <footer class="mt-12 flex flex-col gap-3 border-t border-slate-200 pt-6 text-[10px] font-medium text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <footer class="mt-12 flex flex-col gap-3 border-t border-border/80 pt-6 text-[10px] font-medium text-muted sm:flex-row sm:items-center sm:justify-between">
           <div>Production operations workspace for secure file delivery and client oversight.</div>
           <div class="flex gap-6">
-            <a href="#" class="transition hover:text-slate-600">Privacy</a>
-            <a href="#" class="transition hover:text-slate-600">Compliance</a>
-            <a href="#" class="transition hover:text-slate-600">Support</a>
+            <a href="#" class="transition hover:text-brand-700">Privacy</a>
+            <a href="#" class="transition hover:text-brand-700">Compliance</a>
+            <a href="#" class="transition hover:text-brand-700">Support</a>
           </div>
         </footer>
       </main>

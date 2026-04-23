@@ -210,19 +210,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f6f1e7] text-zinc-900 transition-colors dark:bg-[#131313] dark:text-zinc-100">
+  <div class="pm-page text-ink transition-colors dark:text-zinc-100">
     <div class="min-h-screen xl:grid xl:grid-cols-[17.75rem_minmax(0,1fr)]">
       <AdminDashboardSidebar :current-user="currentUser" :active-item="activeItem" @navigate="activeItem = $event" />
 
-      <main class="min-w-0 bg-[linear-gradient(to_right,rgba(24,24,27,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(24,24,27,0.05)_1px,transparent_1px)] bg-[size:8px_8px] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)]">
+      <main class="min-w-0 bg-[linear-gradient(to_right,rgba(109,80,162,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(109,80,162,0.08)_1px,transparent_1px)] bg-[size:8px_8px] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)]">
         <AdminDashboardHeader :active-item="activeItem" />
 
         <div class="px-6 py-8 sm:px-8 lg:px-10">
-          <p v-if="error" class="mb-6 border border-[#dfb3ab] bg-[#fff3f1] px-4 py-3 text-sm text-[#d73931] dark:border-[#57231f] dark:bg-[#261716] dark:text-[#f06753]">
+          <p v-if="error" class="mb-6 border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700 dark:border-[#57231f] dark:bg-[#261716] dark:text-[#f06753]">
             {{ error }}
           </p>
 
-          <div v-if="loading" class="flex min-h-[18rem] items-center justify-center border border-black/10 bg-white/60 text-sm uppercase tracking-[0.3em] text-zinc-500 dark:border-white/10 dark:bg-[#1a1a1a]">
+          <div v-if="loading" class="flex min-h-[18rem] items-center justify-center border border-border/80 bg-surface/60 text-sm uppercase tracking-[0.3em] text-muted dark:border-white/10 dark:bg-[#1a1a1a]">
             Loading admin overview
           </div>
 

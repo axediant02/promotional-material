@@ -161,7 +161,7 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[linear-gradient(180deg,#0f172a_0%,#16233f_26%,#eef3fb_26%,#f4f7fb_100%)] text-slate-900">
+  <div class="pm-page text-ink">
     <ClientDashboardTopbar
       v-model:search-query="searchQuery"
       :folder-label="folderLabel"
@@ -192,7 +192,7 @@ function formatBytes(bytes) {
         />
       </section>
 
-      <aside class="w-full border-t border-slate-200/60 bg-slate-50/70 p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px]">
+      <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(248,244,255,0.88),rgba(241,236,251,0.72))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px]">
         <div class="flex h-full flex-col gap-6">
           <ClientRequestSidebar
             :folder="assignedFolder"

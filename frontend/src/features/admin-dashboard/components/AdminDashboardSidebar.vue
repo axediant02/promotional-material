@@ -28,15 +28,15 @@ const initials = (props.currentUser?.name ?? 'Admin User')
 </script>
 
 <template>
-  <aside class="border-r border-black/10 bg-[#f3ede3] text-zinc-800 dark:border-white/10 dark:bg-[#181818] dark:text-zinc-200">
+  <aside class="border-r border-border/80 bg-brand-50 text-ink dark:border-white/10 dark:bg-[#181818] dark:text-zinc-200">
     <div class="flex min-h-full flex-col">
-      <div class="border-b border-black/10 px-8 py-6 dark:border-white/10">
-        <p class="text-[11px] uppercase tracking-[0.42em] text-zinc-500">Work &amp; Flow</p>
-        <h1 class="mt-3 text-[2.4rem] font-semibold tracking-[-0.05em] text-[#f06753] [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+      <div class="border-b border-border/80 px-8 py-6 dark:border-white/10">
+        <p class="text-[11px] uppercase tracking-[0.42em] text-muted">Work &amp; Flow</p>
+        <h1 class="mt-3 text-[2.4rem] font-semibold tracking-[-0.05em] text-brand-600 [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           Studio.
         </h1>
-        <div class="mt-6 inline-flex items-center gap-2 border border-black/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-zinc-950 dark:border-white/10 dark:text-white">
-          <span class="text-[#f03b34]">&bull;</span>
+        <div class="mt-6 inline-flex items-center gap-2 border border-border/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-ink dark:border-white/10 dark:text-white">
+          <span class="text-brand-500">&bull;</span>
           Admin
         </div>
       </div>
@@ -49,8 +49,8 @@ const initials = (props.currentUser?.name ?? 'Admin User')
           :class="[
             'mb-2 flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition',
             activeItem === item.id
-              ? 'border-l-2 border-[#f03b34] bg-black/[0.04] text-zinc-950 dark:bg-white/[0.04] dark:text-white'
-              : 'border-l-2 border-transparent text-zinc-600 hover:bg-black/[0.03] hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.03] dark:hover:text-white',
+              ? 'border-l-2 border-brand-500 bg-brand-100 text-ink dark:bg-white/[0.04] dark:text-white'
+              : 'border-l-2 border-transparent text-muted hover:bg-brand-100 hover:text-ink dark:text-zinc-400 dark:hover:bg-white/[0.03] dark:hover:text-white',
           ]"
           @click="emit('navigate', item.id)"
         >
@@ -86,14 +86,14 @@ const initials = (props.currentUser?.name ?? 'Admin User')
 
       <div class="border-t border-black/10 px-6 py-5 dark:border-white/10">
         <div class="flex items-center gap-4">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-sm font-semibold text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-brand-100 text-sm font-semibold text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
             {{ initials }}
           </div>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-lg font-medium text-zinc-950 dark:text-white">{{ currentUser?.name ?? 'Admin User' }}</p>
-            <p class="text-[11px] uppercase tracking-[0.28em] text-zinc-500">{{ currentUser?.role ?? 'admin' }}</p>
+            <p class="truncate text-lg font-medium text-ink dark:text-white">{{ currentUser?.name ?? 'Admin User' }}</p>
+            <p class="text-[11px] uppercase tracking-[0.28em] text-muted">{{ currentUser?.role ?? 'admin' }}</p>
           </div>
-          <span class="text-zinc-500">
+          <span class="text-muted">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M13 5h6v6" />
               <path d="m19 5-8 8" />

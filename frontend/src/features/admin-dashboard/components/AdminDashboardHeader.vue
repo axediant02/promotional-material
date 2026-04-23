@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
 
 const props = defineProps({
@@ -10,6 +12,8 @@ const props = defineProps({
 })
 
 const themeStore = useThemeStore()
+const authStore = useAuthStore()
+const router = useRouter()
 
 const copyByTab = {
   overview: {
@@ -39,28 +43,40 @@ const copyByTab = {
 }
 
 const activeCopy = computed(() => copyByTab[props.activeItem] ?? copyByTab.overview)
+
+const handleLogout = async () => {
+  await authStore.performLogout()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
-  <header class="border-b border-black/10 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
+  <header class="border-b border-border/80 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <p class="text-[11px] uppercase tracking-[0.38em] text-zinc-500">{{ activeCopy.eyebrow }}</p>
-        <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-zinc-950 dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <p class="text-[11px] uppercase tracking-[0.38em] text-brand-500">{{ activeCopy.eyebrow }}</p>
+        <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           {{ activeCopy.title }}
         </h1>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-500">
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-500">
           {{ activeCopy.description }}
         </p>
       </div>
 
       <div class="flex items-center gap-3 self-start">
-        <button class="inline-flex items-center gap-3 border border-black/10 px-4 py-2.5 text-sm font-medium text-zinc-950 transition hover:border-black/20 hover:bg-black/[0.03] dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/[0.03]">
+        <button class="pm-button-secondary inline-flex items-center gap-3 px-4 py-2.5 text-sm font-medium dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/[0.03]">
           <span>{{ activeCopy.action }}</span>
           <span aria-hidden="true">&rarr;</span>
         </button>
         <button
-          class="flex h-11 w-11 items-center justify-center border border-black/10 text-zinc-500 transition hover:border-black/20 hover:text-zinc-950 dark:border-white/10 dark:hover:border-white/20 dark:hover:text-white"
+          class="pm-button-secondary inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium dark:border-white/10 dark:text-zinc-300 dark:hover:border-[#a58bd0] dark:hover:bg-white/[0.04] dark:hover:text-white"
+          type="button"
+          @click="handleLogout"
+        >
+          <span>Logout</span>
+        </button>
+        <button
+          class="flex h-11 w-11 items-center justify-center border border-border/80 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:hover:border-white/20 dark:hover:text-white"
           type="button"
           @click="themeStore.toggleTheme()"
         >

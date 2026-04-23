@@ -38,31 +38,31 @@ onMounted(async () => {
       <FileTable :files="payload.recentFiles" />
 
       <section class="grid gap-6 xl:grid-cols-3">
-        <article class="rounded-[1.75rem] border border-slate-200/70 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <h2 class="text-xl font-semibold text-slate-950">Assigned client folders</h2>
-          <ul class="mt-4 space-y-3 text-sm text-slate-600">
-            <li v-for="folder in payload.folders.slice(0, 8)" :key="folder.folder_id" class="rounded-2xl bg-slate-50 px-4 py-3">
-              <p class="font-semibold text-slate-900">{{ folder.client?.name ?? folder.folder_name }}</p>
+        <article class="pm-surface rounded-[1.75rem] p-6">
+          <h2 class="text-xl font-semibold text-ink">Assigned client folders</h2>
+          <ul class="mt-4 space-y-3 text-sm text-muted">
+            <li v-for="folder in payload.folders.slice(0, 8)" :key="folder.folder_id" class="rounded-2xl bg-brand-50 px-4 py-3">
+              <p class="font-semibold text-ink">{{ folder.client?.name ?? folder.folder_name }}</p>
               <p>{{ folder.folder_name }}</p>
             </li>
           </ul>
         </article>
 
-        <article class="rounded-[1.75rem] border border-slate-200/70 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <h2 class="text-xl font-semibold text-slate-950">Recycle bin</h2>
-          <ul class="mt-4 space-y-3 text-sm text-slate-600">
-            <li v-for="file in recycleBin" :key="file.file_id ?? file.id" class="rounded-2xl bg-slate-50 px-4 py-3">
-              <p class="font-semibold text-slate-900">{{ file.file_name ?? file.original_name }}</p>
+        <article class="pm-surface rounded-[1.75rem] p-6">
+          <h2 class="text-xl font-semibold text-ink">Recycle bin</h2>
+          <ul class="mt-4 space-y-3 text-sm text-muted">
+            <li v-for="file in recycleBin" :key="file.file_id ?? file.id" class="rounded-2xl bg-brand-50 px-4 py-3">
+              <p class="font-semibold text-ink">{{ file.file_name ?? file.original_name }}</p>
               <p>{{ file.folder?.folder_name ?? file.folder?.name ?? 'Unknown folder' }}</p>
             </li>
           </ul>
         </article>
 
-        <article class="rounded-[1.75rem] border border-slate-200/70 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <h2 class="text-xl font-semibold text-slate-950">Recent log entries</h2>
-          <ul class="mt-4 space-y-3 text-sm text-slate-600">
-            <li v-for="log in logs.slice(0, 8)" :key="log.log_id ?? log.id" class="rounded-2xl bg-slate-50 px-4 py-3">
-              <p class="font-semibold capitalize text-slate-900">{{ log.action.replaceAll('_', ' ') }}</p>
+        <article class="pm-surface rounded-[1.75rem] p-6">
+          <h2 class="text-xl font-semibold text-ink">Recent log entries</h2>
+          <ul class="mt-4 space-y-3 text-sm text-muted">
+            <li v-for="log in logs.slice(0, 8)" :key="log.log_id ?? log.id" class="rounded-2xl bg-brand-50 px-4 py-3">
+              <p class="font-semibold capitalize text-ink">{{ log.action.replaceAll('_', ' ') }}</p>
               <p>{{ log.description }}</p>
             </li>
           </ul>
