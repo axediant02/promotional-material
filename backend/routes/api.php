@@ -45,7 +45,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::prefix('admin')->group(function (): void {
         Route::post('agents', [AgentController::class, 'store']);
+        Route::get('assignments', [AdminAssignmentController::class, 'index']);
         Route::post('assignments', [AdminAssignmentController::class, 'store']);
+        Route::delete('assignments/{assignment}', [AdminAssignmentController::class, 'destroy']);
         Route::get('activity-logs', [ActivityLogController::class, 'index']);
         Route::get('requests', [AdminRequestController::class, 'index']);
         Route::patch('requests/{clientRequest}', [AdminRequestController::class, 'update']);

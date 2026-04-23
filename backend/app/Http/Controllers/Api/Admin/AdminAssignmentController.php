@@ -9,6 +9,23 @@ use Illuminate\Http\JsonResponse;
 
 class AdminAssignmentController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        abort_unless(request()->user()?->isAdmin(), 403);
+
+        $assignments = AssignedClient::query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json([
+            'message' => 'Assignments fetched.',
+            'data' => [
+                'assignments' => $assignments,
+            ],
+        ]);
+    }
+
     public function store(StoreAdminAssignmentRequest $request): JsonResponse
     {
         abort_unless($request->user()?->isAdmin(), 403);
@@ -31,5 +48,17 @@ class AdminAssignmentController extends Controller
                 'assignment' => $assignment->fresh(),
             ],
         ], $isNew ? 201 : 200);
+    }
+
+    public function destroy(AssignedClient $assignment): JsonResponse
+    {
+        abort_unless(request()->user()?->isAdmin(), 403);
+
+        $assignment->delete();
+
+        return response()->json([
+            'message' => 'Client assignment removed.',
+            'data' => [],
+        ]);
     }
 }

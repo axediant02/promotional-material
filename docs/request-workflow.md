@@ -85,6 +85,11 @@ Client ownership is intended to live at the client level, not through per-reques
 - Agents can download allowed files for operational use.
 - Clients can download files in their assigned folder only.
 
+## TDD Rule
+- New backend request-workflow changes should be written test-first.
+- Once the expected behavior test is written and accepted, treat it as fixed acceptance criteria.
+- If the test fails, adjust the implementation or fixtures instead of weakening the test to manufacture a pass.
+
 ## Implementation Note
 - Backend schema and models for requests and assignments already exist.
 - The backend route surface now covers client history, admin due-date management, and production status handling.

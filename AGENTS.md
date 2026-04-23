@@ -44,6 +44,8 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - Backend authorization is the source of truth.
 - Frontend guards and hidden UI are UX only.
 - Keep terminology aligned across backend, frontend, tests, and docs.
+- When working test-first, treat approved tests as fixed acceptance criteria.
+- If a newly added test fails, fix the implementation or supporting setup instead of rewriting the test just to make it pass.
 - Distinguish clearly between:
   - implemented behavior
   - backend/schema foundations
@@ -71,6 +73,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - Clarify only when access rules, contracts, or docs conflict in a risky way.
 - For cross-stack changes, keep backend and frontend behavior aligned.
 - Preserve one-client-one-folder access unless requirements change.
+- For TDD work, write or approve the test first, then keep the test stable while adapting the code to satisfy it.
 - Verify:
   - backend changes: `cd backend && php artisan test`
   - frontend changes: `cd frontend && npm run build`
@@ -82,6 +85,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-20: Backend naming is actively migrating toward `user_id` / `folder_id` / `file_id` / `folder_name` / `file_name` / `category`.
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
 - 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
+- 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
 
 ## Success Criteria
 - Secure file delivery
