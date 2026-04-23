@@ -1,7 +1,6 @@
 <script setup>
-const props = defineProps({
+defineProps({
   folder: { type: Object, default: null },
-  stats: { type: Array, default: () => [] },
   user: { type: Object, default: null },
   eyebrow: { type: String, default: 'Assigned folder active' },
   title: { type: String, default: 'Files ready for review' },
@@ -38,25 +37,7 @@ const emit = defineEmits(['action-click'])
           >
             {{ actionLabel }}
           </button>
-          <span class="text-sm text-muted dark:text-zinc-300">
-            {{ stats[0]?.value ?? '0' }} {{ stats[0]?.help ?? 'Approved files' }}
-          </span>
         </div>
-      </div>
-
-      <div :class="[
-        'grid gap-4',
-        props.stats.length > 1 ? 'sm:grid-cols-3 xl:min-w-[34rem]' : 'sm:grid-cols-1 xl:min-w-[14rem]'
-      ]">
-        <article
-          v-for="stat in props.stats"
-          :key="stat.label"
-          class="rounded-[1.5rem] border border-border/80 bg-white/80 p-5 shadow-[0_14px_35px_rgba(75,61,116,0.08)] dark:border-white/10 dark:bg-white/5"
-        >
-          <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-          <p class="mt-3 text-2xl font-semibold text-ink dark:text-white">{{ stat.value }}</p>
-          <p class="mt-1 text-sm text-muted dark:text-zinc-300">{{ stat.help }}</p>
-        </article>
       </div>
     </div>
   </section>

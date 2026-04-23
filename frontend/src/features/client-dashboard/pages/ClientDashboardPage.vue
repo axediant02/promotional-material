@@ -7,10 +7,8 @@ import { fetchRequests } from '../../../services/requestService'
 import ClientAssetCatalog from '../components/ClientAssetCatalog.vue'
 import ClientDashboardTopbar from '../components/ClientDashboardTopbar.vue'
 import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
-import ClientPortalFooter from '../components/ClientPortalFooter.vue'
 import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.vue'
 import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
-import ClientSupportCard from '../components/ClientSupportCard.vue'
 
 const authStore = useAuthStore()
 
@@ -23,6 +21,7 @@ const searchQuery = ref('')
 const viewMode = ref('grid')
 const selectedFile = ref(null)
 const isRequestDrawerOpen = ref(false)
+const requestMode = ref('new_asset')
 
 const assignedFolder = computed(() => payload.value.folders?.[0] ?? null)
 
@@ -73,10 +72,10 @@ const folderLabel = computed(() => assignedFolder.value?.folder_name ?? 'Assigne
 const heroContent = computed(() => {
   if (!assignedFolder.value?.folder_id) {
     return {
-      eyebrow: 'Secure review workspace',
-      title: 'Request your first asset',
-      accent: 'Folder created after submission',
-      subtitle: 'Your folder will be created automatically when you send your first request. Use the request panel to tell production what you need.',
+      eyebrow: 'Your client space',
+      title: 'Request your first file',
+      accent: 'We will set up your folder for you',
+      subtitle: 'Send your first request to get started.',
       actionLabel: 'Start a request',
       actionTarget: 'request',
     }
@@ -84,20 +83,20 @@ const heroContent = computed(() => {
 
   if (!files.value.length) {
     return {
-      eyebrow: 'Assigned folder active',
-      title: 'Your workspace is ready',
-      accent: 'Waiting for approved files',
-      subtitle: 'You already have a secured folder. Submit a request if you need new materials or changes while production prepares delivery.',
+      eyebrow: 'Your files area',
+      title: 'You are all set',
+      accent: 'Files will appear here soon',
+      subtitle: 'You can send a request anytime if you need a new file or want something updated.',
       actionLabel: 'Open request panel',
       actionTarget: 'request',
     }
   }
 
   return {
-    eyebrow: 'Assigned folder active',
-    title: 'Files ready for review',
-    accent: 'Select an asset or download directly',
-    subtitle: `Review approved materials in ${folderLabel.value} and submit focused change requests with clear context.`,
+    eyebrow: 'Your files are ready',
+    title: 'Review your delivered files',
+    accent: 'Download files or ask for an update',
+    subtitle: `You can review the files in Asset Catalog section, download what you need, or send a request if something needs to be changed.`,
     actionLabel: 'Browse assets',
     actionTarget: '#asset-catalog',
   }
@@ -115,23 +114,18 @@ const catalogSummary = computed(() => ({
     : 'No files yet',
 }))
 
-const heroStats = computed(() => [
-  {
-    label: 'Total Assets',
-    value: `${files.value.length}`,
-    help: files.value.length === 1 ? 'Approved file' : 'Approved files',
-  },
-])
-
 const supportSummary = computed(() => ({
-  label: 'Need a revision?',
-  description: selectedFile.value
-    ? `Feedback will be attached to ${selectedFile.value.file_name}.`
-    : 'Select a file from the catalog to prefill your request context, or submit a folder-level note.',
+  label: requestMode.value === 'update_asset' ? 'Update an existing asset' : 'Request a new asset',
+  description: requestMode.value === 'update_asset'
+    ? (selectedFile.value
+      ? `Your request will be linked to ${selectedFile.value.file_name}.`
+      : 'Choose the file you want updated so we know exactly which one to work on.')
+    : 'Tell us what you need and we will prepare it for you.',
 }))
 
 const selectFileForRequest = (file) => {
   selectedFile.value = file
+  requestMode.value = 'update_asset'
   isRequestDrawerOpen.value = true
 }
 
@@ -139,8 +133,20 @@ const clearSelectedFile = () => {
   selectedFile.value = null
 }
 
-const openRequestDrawer = () => {
+const openRequestDrawer = (mode = 'new_asset') => {
+  requestMode.value = mode
+  if (mode === 'new_asset') {
+    selectedFile.value = null
+  }
   isRequestDrawerOpen.value = true
+}
+
+const handleRequestModeChange = (mode) => {
+  requestMode.value = mode
+
+  if (mode === 'new_asset') {
+    selectedFile.value = null
+  }
 }
 
 const closeRequestDrawer = () => {
@@ -149,7 +155,7 @@ const closeRequestDrawer = () => {
 
 const handleHeroAction = () => {
   if (heroContent.value.actionTarget === 'request') {
-    openRequestDrawer()
+    openRequestDrawer('new_asset')
     return
   }
 
@@ -215,14 +221,13 @@ function formatBytes(bytes) {
       v-model:search-query="searchQuery"
       :folder-label="folderLabel"
       :user="authStore.user"
-      @open-request="openRequestDrawer"
+      @open-request="openRequestDrawer('new_asset')"
     />
 
     <main class="flex flex-col xl:flex-row">
       <section class="min-w-0 flex-1 p-6 sm:p-8 xl:p-10">
         <ClientDeliveryHero
           :folder="assignedFolder"
-          :stats="heroStats"
           :user="authStore.user"
           :eyebrow="heroContent.eyebrow"
           :title="heroContent.title"
@@ -244,7 +249,7 @@ function formatBytes(bytes) {
           :selected-file-id="selectedFile?.file_id ?? null"
           @request-change="selectFileForRequest"
           @clear-search="searchQuery = ''"
-          @open-request="openRequestDrawer"
+          @open-request="openRequestDrawer('new_asset')"
         />
       </section>
 
@@ -264,62 +269,38 @@ function formatBytes(bytes) {
               </div>
             </div>
 
-            <div class="mt-5 rounded-2xl bg-white/70 p-4 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
-              <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Assigned Folder</p>
-              <p class="mt-2 text-sm font-semibold text-ink dark:text-white">{{ assignedFolder?.folder_name ?? 'Created after first request' }}</p>
-
-              <div v-if="selectedFile" class="mt-4 rounded-xl border border-brand-200 bg-brand-50/80 p-3 dark:border-white/10 dark:bg-white/10">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-100">Ready To Update</p>
-                    <p class="mt-1 truncate text-sm font-semibold text-ink dark:text-white">{{ selectedFile.file_name }}</p>
-                  </div>
-                  <button
-                    class="rounded-full border border-brand-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700 transition hover:border-brand-300 dark:border-white/10 dark:text-white"
-                    @click="clearSelectedFile"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <div class="mt-5 grid gap-3">
               <div class="rounded-2xl border border-border/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
                 <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">How it works</p>
-                <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Open the request drawer when you are ready</p>
-                <p class="mt-1 text-sm text-muted dark:text-zinc-300">Choose a file for a precise update request, or start a folder-level request if you need something new.</p>
+                <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Ask for a new file or request an update.</p>
+                <p class="mt-1 text-sm text-muted dark:text-zinc-300">Choose an existing file if you want changes, or start a new request if you need something new.</p>
               </div>
             </div>
 
             <button
               class="pm-gradient-primary mt-5 w-full rounded-2xl px-4 py-3 text-sm font-semibold transition hover:brightness-110"
-              @click="openRequestDrawer"
+              @click="openRequestDrawer(selectedFile ? 'update_asset' : 'new_asset')"
             >
-              {{ selectedFile ? 'Update selected asset' : 'Start a request' }}
+              {{ selectedFile ? 'Update selected asset' : 'Submit a request' }}
             </button>
           </section>
           <ClientRequestHistoryPanel
             :requests="requests"
             :loading="requestsLoading"
           />
-          <ClientSupportCard />
         </div>
       </aside>
     </main>
-
-    <ClientPortalFooter
-      :file-count="files.length"
-      :folder-label="folderLabel"
-      :total-size-label="totalBytes > 0 ? formatBytes(totalBytes) : null"
-    />
-
     <ClientRequestSidebar
       :open="isRequestDrawerOpen"
       :folder="assignedFolder"
+      :files="files"
+      :mode="requestMode"
       :selected-file="selectedFile"
       :support-summary="supportSummary"
       @close="closeRequestDrawer"
+      @update:mode="handleRequestModeChange"
+      @select-file="selectedFile = $event"
       @clear-selected-file="clearSelectedFile"
       @request-created="handleRequestCreated"
     />

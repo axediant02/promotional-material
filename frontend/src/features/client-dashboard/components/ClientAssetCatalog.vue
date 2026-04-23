@@ -21,28 +21,11 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
       <div class="max-w-2xl">
         <h3 class="text-2xl font-semibold tracking-tight text-ink dark:text-white">Asset Catalog</h3>
         <p class="mt-1 text-sm text-muted dark:text-zinc-300">
-          Browse approved files, switch views, and select an asset when you need a precise revision request.
+          Browse your requested assets and files, preview files to double check, and select an asset when you need a new asset or update an existing asset.
         </p>
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="rounded-[1.35rem] border border-border/80 bg-white/80 px-4 py-3 shadow-[0_12px_28px_rgba(75,61,116,0.08)] dark:border-white/10 dark:bg-white/5">
-          <div class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-white">
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M4 19h16" />
-                <path d="M7 16V8" />
-                <path d="M12 16V5" />
-                <path d="M17 16v-4" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Total Assets</p>
-              <p class="mt-1 text-lg font-semibold text-ink dark:text-white">{{ files.length }}</p>
-            </div>
-          </div>
-        </div>
-
         <div class="rounded-[1.35rem] border border-border/80 bg-white/80 p-1.5 shadow-[0_12px_28px_rgba(75,61,116,0.08)] dark:border-white/10 dark:bg-white/5">
           <div class="mb-2 px-2 pt-1">
             <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">View Mode</p>
@@ -91,7 +74,7 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
 
     <div class="mb-6 grid gap-3 md:grid-cols-3">
       <div class="rounded-[1.35rem] border border-border/80 bg-white/70 px-4 py-3 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Visible Now</p>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Total Assets</p>
         <p class="mt-2 text-base font-semibold text-ink dark:text-white">{{ files.length }} asset{{ files.length === 1 ? '' : 's' }}</p>
       </div>
       <div class="rounded-[1.35rem] border border-border/80 bg-white/70 px-4 py-3 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5">

@@ -1,16 +1,26 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import RequestForm from './RequestForm.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   folder: { type: Object, default: null },
+  files: { type: Array, default: () => [] },
+  mode: { type: String, default: 'new_asset' },
   selectedFile: { type: Object, default: null },
   supportSummary: { type: Object, default: () => ({ label: '', description: '' }) },
 })
 
-const emit = defineEmits(['close', 'clear-selected-file', 'request-created'])
+const emit = defineEmits(['close', 'update:mode', 'select-file', 'clear-selected-file', 'request-created'])
 const successMessage = ref('')
+
+const syncBodyScroll = (isOpen) => {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.body.style.overflow = isOpen ? 'hidden' : ''
+}
 
 watch(
   () => props.open,
@@ -18,8 +28,14 @@ watch(
     if (value) {
       successMessage.value = ''
     }
+
+    syncBodyScroll(value)
   },
 )
+
+onBeforeUnmount(() => {
+  syncBodyScroll(false)
+})
 
 const handleRequestSuccess = (payload) => {
   successMessage.value = payload?.message || 'Request created.'
@@ -29,6 +45,7 @@ const handleRequestSuccess = (payload) => {
 const handleClose = () => {
   emit('close')
 }
+
 </script>
 
 <template>
@@ -43,7 +60,7 @@ const handleClose = () => {
     >
       <div
         v-if="open"
-        class="fixed inset-0 z-50 bg-[rgba(19,12,36,0.5)] backdrop-blur-sm"
+        class="fixed inset-0 z-50 overflow-hidden bg-[rgba(19,12,36,0.5)] backdrop-blur-sm"
         @click.self="handleClose"
       >
         <Transition
@@ -56,7 +73,7 @@ const handleClose = () => {
         >
           <aside
             v-if="open"
-            class="absolute right-0 top-0 flex h-full w-full max-w-[42rem] flex-col border-l border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]"
+            class="absolute right-0 top-0 flex h-full w-full max-w-[42rem] flex-col overflow-hidden border-l border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]"
           >
             <div class="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5 dark:border-white/10">
               <div>
@@ -95,32 +112,6 @@ const handleClose = () => {
                 </div>
               </div>
 
-              <div class="rounded-[1.6rem] border border-border/80 bg-white/75 p-5 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div class="min-w-0">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Assigned Folder</p>
-                    <p class="mt-2 text-sm font-semibold text-ink dark:text-white">{{ folder?.folder_name ?? 'Created after first request' }}</p>
-                  </div>
-                  <button
-                    v-if="selectedFile"
-                    type="button"
-                    class="rounded-full border border-brand-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-300 dark:border-white/10 dark:text-white"
-                    @click="emit('clear-selected-file')"
-                  >
-                    Clear file
-                  </button>
-                </div>
-
-                <div
-                  v-if="selectedFile"
-                  class="mt-4 rounded-2xl border border-brand-200 bg-brand-50/80 p-4 dark:border-white/10 dark:bg-white/10"
-                >
-                  <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-600 dark:text-brand-100">Selected Asset</p>
-                  <p class="mt-2 text-sm font-semibold text-ink dark:text-white">{{ selectedFile.file_name }}</p>
-                  <p class="mt-1 text-sm text-muted dark:text-zinc-300">This request will be submitted as an update for the selected file.</p>
-                </div>
-              </div>
-
               <div
                 v-if="successMessage"
                 class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/90 px-4 py-4 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
@@ -132,8 +123,12 @@ const handleClose = () => {
 
               <div class="rounded-[1.6rem] border border-border/80 bg-white/75 p-5 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5">
                 <RequestForm
-                  :file="selectedFile"
+                  :file="mode === 'update_asset' ? selectedFile : null"
+                  :files="files"
                   :folder="folder"
+                  :default-request-type="mode"
+                  @update:type="emit('update:mode', $event)"
+                  @select-file="emit('select-file', $event)"
                   @close="emit('clear-selected-file')"
                   @success="handleRequestSuccess"
                 />
