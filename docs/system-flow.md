@@ -34,14 +34,16 @@ This document describes the agreed system flow for onboarding, governance, file 
 
 ## 5. Production execution
 1. Production reviews assigned-client requests only.
-2. Production works requests through operational status updates.
-3. Production uploads files to the assigned client folder.
-4. Upload activity is logged.
+2. Frontend opens the production shell at `/production`, which routes the folder workspace into `/production/folders`.
+3. Production opens an assigned folder and the workspace route updates to `/production/folders/:folderId` without replacing the surrounding shell.
+4. Production works requests through operational status updates.
+5. Production uploads files to the assigned client folder.
+6. Upload activity is logged.
 
 ## 6. File access and delivery
 1. Client can view, preview, and download files from the assigned folder only.
 2. Agent can browse and download allowed files only.
-3. Production can access files needed for assigned-client execution.
+3. Production can access files needed for assigned-client execution through the nested folder workspace and selected-folder file view.
 4. Admin does not use the file portal directly by default.
 
 ## 7. Recycle bin
