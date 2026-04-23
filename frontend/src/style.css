@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --pm-text: 36 29 56;
-  --pm-text-muted: 93 83 119;
-  --pm-text-soft: 101 91 130;
-  --pm-surface: 255 255 255;
-  --pm-surface-soft: 247 241 255;
-  --pm-surface-strong: 243 238 252;
-  --pm-border: 221 212 241;
-  --pm-brand-50: 244 239 251;
-  --pm-brand-100: 235 226 247;
-  --pm-brand-200: 216 207 240;
-  --pm-brand-300: 187 162 224;
-  --pm-brand-400: 156 122 203;
-  --pm-brand-500: 109 80 162;
-  --pm-brand-600: 95 80 155;
+  --pm-text: 17 17 17;
+  --pm-text-muted: 73 73 73;
+  --pm-text-soft: 107 107 107;
+  --pm-surface: 253 249 255;
+  --pm-surface-soft: 246 237 252;
+  --pm-surface-strong: 239 227 249;
+  --pm-border: 226 205 244;
+  --pm-brand-50: 245 239 251;
+  --pm-brand-100: 232 220 246;
+  --pm-brand-200: 214 191 239;
+  --pm-brand-300: 186 155 224;
+  --pm-brand-400: 133 107 187;
+  --pm-brand-500: 95 80 155;
+  --pm-brand-600: 109 80 162;
   --pm-brand-700: 75 61 116;
   --pm-brand-800: 101 76 129;
   --pm-page-bg:
-    radial-gradient(circle at top left, rgba(109, 80, 162, 0.28), transparent 34%),
-    radial-gradient(circle at top right, rgba(101, 76, 129, 0.22), transparent 28%),
-    linear-gradient(180deg, #f8f4ff 0%, #f1ecfb 45%, #f8f6fc 100%);
+    radial-gradient(circle at top left, rgba(109, 80, 162, 0.2), transparent 28%),
+    radial-gradient(circle at 90% 8%, rgba(95, 80, 155, 0.16), transparent 22%),
+    linear-gradient(180deg, #f7f0fd 0%, #f4edfb 46%, #fbf8ff 100%);
   --pm-page-bg-dark:
     radial-gradient(circle at top left, rgba(109, 80, 162, 0.22), transparent 30%),
     radial-gradient(circle at 85% 15%, rgba(95, 80, 155, 0.22), transparent 25%),
     linear-gradient(180deg, #191427 0%, #231d35 45%, #120f1c 100%);
   color: rgb(var(--pm-text));
   background: var(--pm-page-bg);
-  background-color: rgb(248 244 255);
-  font-family: "Segoe UI", sans-serif;
+  background-color: rgb(247 240 253);
+  font-family: Aptos, "Trebuchet MS", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
@@ -42,7 +42,7 @@
 html {
   min-height: 100%;
   background: var(--pm-page-bg);
-  background-color: rgb(248 244 255);
+  background-color: rgb(247 240 253);
   color-scheme: light;
 }
 
@@ -94,28 +94,28 @@ select {
 
   .pm-surface {
     border: 1px solid rgb(var(--pm-border) / 0.8);
-    background: linear-gradient(180deg, rgb(var(--pm-surface) / 0.94), rgb(var(--pm-surface-soft) / 0.88));
-    box-shadow: 0 24px 70px rgba(75, 61, 116, 0.14);
-    backdrop-filter: blur(20px);
+    background: linear-gradient(180deg, rgb(var(--pm-surface) / 0.96), rgb(var(--pm-surface-soft) / 0.92));
+    box-shadow: 0 26px 70px rgba(75, 61, 116, 0.12);
+    backdrop-filter: blur(18px);
   }
 
   .pm-surface-strong {
     border: 1px solid rgb(var(--pm-border) / 0.9);
-    background: linear-gradient(180deg, rgb(var(--pm-surface) / 0.98), rgb(var(--pm-surface-strong) / 0.92));
-    box-shadow: 0 28px 90px rgba(75, 61, 116, 0.18);
-    backdrop-filter: blur(20px);
+    background: linear-gradient(180deg, rgb(var(--pm-surface) / 0.98), rgb(var(--pm-surface-strong) / 0.95));
+    box-shadow: 0 30px 90px rgba(75, 61, 116, 0.16);
+    backdrop-filter: blur(18px);
   }
 
   .pm-gradient-primary {
     background: linear-gradient(135deg, rgb(var(--pm-brand-500)), rgb(var(--pm-brand-700)));
     color: white;
-    box-shadow: 0 18px 34px rgba(75, 61, 116, 0.28);
+    box-shadow: 0 16px 32px rgba(75, 61, 116, 0.24);
   }
 
   .pm-gradient-hero {
     background: linear-gradient(145deg, rgb(var(--pm-brand-700)) 0%, rgb(var(--pm-brand-600)) 45%, rgb(var(--pm-brand-500)) 100%);
     color: white;
-    box-shadow: 0 28px 90px rgba(75, 61, 116, 0.34);
+    box-shadow: 0 24px 72px rgba(75, 61, 116, 0.28);
   }
 
   .pm-chip {
@@ -139,7 +139,7 @@ select {
 
   .pm-input {
     border: 1px solid rgb(var(--pm-border));
-    background: rgb(var(--pm-surface) / 0.8);
+    background: rgb(255 255 255 / 0.8);
     color: rgb(var(--pm-text));
     outline: none;
     transition: border-color 150ms ease, box-shadow 150ms ease;
