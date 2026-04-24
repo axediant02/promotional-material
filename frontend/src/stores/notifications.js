@@ -19,7 +19,7 @@ const DEFAULT_REVERB_SCHEME = 'http'
 
 const resolveBroadcastAuthEndpoint = () => {
   const apiUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api'
-  return apiUrl.replace(/\/api\/?$/, '') + '/broadcasting/auth'
+  return apiUrl.replace(/\/$/, '') + '/broadcasting/auth'
 }
 
 const normalizeNotification = (notification) => {
