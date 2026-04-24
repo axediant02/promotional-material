@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import AdminDashboardAssignmentsTab from '../components/AdminDashboardAssignmentsTab.vue'
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
 import AdminDashboardHeader from '../components/AdminDashboardHeader.vue'
@@ -502,9 +503,7 @@ onMounted(() => {
             {{ error }}
           </p>
 
-          <div v-if="loading" class="pm-surface flex min-h-[18rem] items-center justify-center rounded-[2rem] text-sm uppercase tracking-[0.3em] text-muted">
-            Loading admin overview
-          </div>
+          <DashboardOverviewSkeleton v-if="loading" />
 
           <template v-else>
             <template v-if="activeItem === 'overview'">
