@@ -15,6 +15,7 @@ import {
   fetchAdminActivityLogs,
   fetchAdminAssignments,
   fetchAdminRequests,
+  fetchAdminUsers,
   removeAdminAssignment,
   saveAdminAssignment,
   updateAdminRequestDueDate,
@@ -40,6 +41,7 @@ const requestsPayload = ref([])
 const activityLogs = ref([])
 const assignmentsPayload = ref([])
 const productionUsersPayload = ref([])
+const usersPayload = ref([])
 const assignmentsSaving = ref(false)
 const assignmentDeletingId = ref('')
 const editingRequestId = ref('')
@@ -48,7 +50,6 @@ const requestDueDateSavingId = ref('')
 const requestDueDateErrors = ref({})
 const requestDueDateFeedback = ref({})
 const userRoleSavingId = ref('')
-const userRoleOverrides = ref({})
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -296,69 +297,18 @@ const governanceInsights = computed(() => {
   })
 })
 
-const usersTabRows = computed(() => {
-  const users = new Map()
-
-  const upsertUser = (candidate, overrides = {}) => {
-    const id = candidate?.user_id ?? candidate?.id
-
-    if (!id) {
-      return
-    }
-
-    const previous = users.get(id) ?? {}
-    const role = userRoleOverrides.value[id] ?? overrides.role ?? candidate?.role ?? previous.role ?? 'client'
-    const name = overrides.name ?? candidate?.name ?? previous.name ?? formatIdLabel(id, 'User')
-    const email = overrides.email ?? candidate?.email ?? previous.email ?? ''
-    const status = overrides.status ?? previous.status ?? 'active'
-    const note = overrides.note ?? previous.note ?? 'Visible in the current admin governance data.'
-
-    users.set(id, {
-      id,
-      name,
-      email,
-      role,
-      status,
-      note,
-      isCurrentUser: id === currentUser.value?.user_id,
-    })
-  }
-
-  upsertUser(currentUser.value, {
-    role: currentUser.value?.role ?? 'admin',
-    note: 'Signed-in admin account. Self role changes stay disabled.',
-  })
-
-  for (const log of activityLogs.value ?? []) {
-    upsertUser(log.user, {
-      note: log.description ?? 'Recent visible activity in the admin audit stream.',
-    })
-  }
-
-  for (const option of productionOptions.value) {
-    upsertUser(
-      { user_id: option.id, name: option.name, email: option.email, role: 'production' },
-      { note: 'Production owner visible through assignment governance data.' }
-    )
-  }
-
-  for (const option of clientOptions.value) {
-    upsertUser(
-      { user_id: option.id, name: option.name, email: option.email, role: 'client' },
-      { note: `Client account linked to ${option.folderName ?? 'an assigned folder'}.` }
-    )
-  }
-
-  if (!users.size) {
-    for (const fallbackUser of adminDashboardFallbacks.users) {
-      users.set(fallbackUser.id, {
-        ...fallbackUser,
-        isCurrentUser: false,
-      })
-    }
-  }
-
-  return Array.from(users.values()).sort((left, right) => {
+const usersTabRows = computed(() =>
+  (usersPayload.value ?? []).map((user) => ({
+    id: user.user_id,
+    name: user.name ?? formatIdLabel(user.user_id, 'User'),
+    email: user.email ?? '',
+    role: user.role ?? 'client',
+    status: user.status ?? '',
+    note: user.user_id === currentUser.value?.user_id
+      ? 'Signed-in admin account. Self role changes stay disabled.'
+      : 'Live backend-driven account record for admin governance.',
+    isCurrentUser: user.user_id === currentUser.value?.user_id,
+  })).sort((left, right) => {
     if (left.isCurrentUser && !right.isCurrentUser) {
       return -1
     }
@@ -369,7 +319,7 @@ const usersTabRows = computed(() => {
 
     return left.name.localeCompare(right.name)
   })
-})
+)
 
 const productionOptions = computed(() =>
   Array.from(productionUserLookup.value.values()).sort((left, right) => left.name.localeCompare(right.name))
@@ -447,10 +397,10 @@ const handleUserRoleUpdate = async (userId, role) => {
   try {
     const response = await updateAdminUserRole(userId, { role })
     const updatedUser = response.data.data.user
-    userRoleOverrides.value = {
-      ...userRoleOverrides.value,
-      [userId]: updatedUser.role,
-    }
+
+    usersPayload.value = usersPayload.value.map((user) =>
+      user.user_id === userId ? { ...user, ...updatedUser } : user
+    )
 
     if (currentUser.value?.user_id === userId) {
       authStore.user = {
@@ -458,18 +408,6 @@ const handleUserRoleUpdate = async (userId, role) => {
         ...updatedUser,
       }
     }
-
-    activityLogs.value = activityLogs.value.map((log) =>
-      log.user?.user_id === userId
-        ? {
-            ...log,
-            user: {
-              ...log.user,
-              ...updatedUser,
-            },
-          }
-        : log
-    )
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to update the user role.'
     throw err
@@ -580,11 +518,12 @@ const loadAdminDashboard = async () => {
   error.value = ''
 
   try {
-    const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse] = await Promise.all([
+    const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse, usersResponse] = await Promise.all([
       fetchDashboard(),
       fetchAdminRequests(),
       fetchAdminActivityLogs(),
       fetchAdminAssignments(),
+      fetchAdminUsers(),
     ])
 
     dashboardPayload.value = dashboardResponse.data.data
@@ -592,6 +531,7 @@ const loadAdminDashboard = async () => {
     activityLogs.value = logsResponse.data.data.logs ?? []
     assignmentsPayload.value = assignmentsResponse.data.data.assignments ?? []
     productionUsersPayload.value = assignmentsResponse.data.data.production_users ?? []
+    usersPayload.value = usersResponse.data.data.users ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the admin dashboard.'
   } finally {

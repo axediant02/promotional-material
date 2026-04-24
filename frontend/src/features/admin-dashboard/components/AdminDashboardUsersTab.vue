@@ -31,7 +31,7 @@ watch(
   () => props.users,
   (users) => {
     for (const user of users) {
-      if (user?.id && !(user.id in roleDrafts)) {
+      if (user?.id) {
         roleDrafts[user.id] = user.role
       }
     }
@@ -90,6 +90,7 @@ const saveRole = async (user) => {
         <div>
           <p class="text-lg font-semibold text-zinc-950 dark:text-white">{{ user.name }}</p>
           <p class="mt-1 text-sm text-zinc-500">{{ user.email }}</p>
+          <p class="mt-2 text-[10px] uppercase tracking-[0.22em] text-zinc-500">{{ user.id }}</p>
         </div>
 
         <div class="mt-4 lg:mt-0">
@@ -114,7 +115,7 @@ const saveRole = async (user) => {
 
         <div class="mt-4 lg:mt-0">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-500 lg:hidden">Status</p>
-          <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ user.status }}</p>
+          <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ user.status || 'Not exposed' }}</p>
         </div>
 
         <div class="mt-4 lg:mt-0">

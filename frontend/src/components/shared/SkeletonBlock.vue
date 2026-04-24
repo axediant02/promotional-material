@@ -1,5 +1,5 @@
 <script setup>
-defineProps({
+const props = defineProps({
   width: {
     type: String,
     default: 'w-full',

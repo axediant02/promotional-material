@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::delete('assignments/{assignment}', [AdminAssignmentController::class, 'destroy']);
         Route::get('activity-logs', [ActivityLogController::class, 'index']);
         Route::get('requests', [AdminRequestController::class, 'index']);
+        Route::get('users', [AdminUserController::class, 'index']);
         Route::patch('requests/{clientRequest}', [AdminRequestController::class, 'update']);
         Route::patch('users/{user}', [AdminUserController::class, 'update']);
     });
