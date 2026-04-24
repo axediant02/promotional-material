@@ -306,6 +306,59 @@ class AdminManagementRoutesTest extends TestCase
         }
     }
 
+    public function test_admin_can_fetch_a_complete_backend_driven_user_list(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $agent = $this->createUser('Agent User', 'agent@example.com', User::ROLE_AGENT);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $hiddenClient = $this->createUser('Hidden Client', 'hidden-client@example.com', User::ROLE_CLIENT);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/users');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Users fetched.')
+            ->assertJsonCount(5, 'data.users');
+
+        $response->assertJsonFragment([
+            'user_id' => $admin->user_id,
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $production->user_id,
+            'name' => $production->name,
+            'email' => $production->email,
+            'role' => User::ROLE_PRODUCTION,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $agent->user_id,
+            'name' => $agent->name,
+            'email' => $agent->email,
+            'role' => User::ROLE_AGENT,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $client->user_id,
+            'name' => $client->name,
+            'email' => $client->email,
+            'role' => User::ROLE_CLIENT,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $hiddenClient->user_id,
+            'name' => $hiddenClient->name,
+            'email' => $hiddenClient->email,
+            'role' => User::ROLE_CLIENT,
+        ]);
+    }
+
     public function test_admin_can_update_another_users_role(): void
     {
         $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
