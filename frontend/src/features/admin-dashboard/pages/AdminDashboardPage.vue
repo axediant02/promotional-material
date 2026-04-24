@@ -18,6 +18,7 @@ import {
   removeAdminAssignment,
   saveAdminAssignment,
   updateAdminRequestDueDate,
+  updateAdminUserRole,
 } from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
@@ -46,6 +47,8 @@ const dueDateDrafts = ref({})
 const requestDueDateSavingId = ref('')
 const requestDueDateErrors = ref({})
 const requestDueDateFeedback = ref({})
+const userRoleSavingId = ref('')
+const userRoleOverrides = ref({})
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -293,7 +296,80 @@ const governanceInsights = computed(() => {
   })
 })
 
-const usersTabRows = computed(() => adminDashboardFallbacks.users)
+const usersTabRows = computed(() => {
+  const users = new Map()
+
+  const upsertUser = (candidate, overrides = {}) => {
+    const id = candidate?.user_id ?? candidate?.id
+
+    if (!id) {
+      return
+    }
+
+    const previous = users.get(id) ?? {}
+    const role = userRoleOverrides.value[id] ?? overrides.role ?? candidate?.role ?? previous.role ?? 'client'
+    const name = overrides.name ?? candidate?.name ?? previous.name ?? formatIdLabel(id, 'User')
+    const email = overrides.email ?? candidate?.email ?? previous.email ?? ''
+    const status = overrides.status ?? previous.status ?? 'active'
+    const note = overrides.note ?? previous.note ?? 'Visible in the current admin governance data.'
+
+    users.set(id, {
+      id,
+      name,
+      email,
+      role,
+      status,
+      note,
+      isCurrentUser: id === currentUser.value?.user_id,
+    })
+  }
+
+  upsertUser(currentUser.value, {
+    role: currentUser.value?.role ?? 'admin',
+    note: 'Signed-in admin account. Self role changes stay disabled.',
+  })
+
+  for (const log of activityLogs.value ?? []) {
+    upsertUser(log.user, {
+      note: log.description ?? 'Recent visible activity in the admin audit stream.',
+    })
+  }
+
+  for (const option of productionOptions.value) {
+    upsertUser(
+      { user_id: option.id, name: option.name, email: option.email, role: 'production' },
+      { note: 'Production owner visible through assignment governance data.' }
+    )
+  }
+
+  for (const option of clientOptions.value) {
+    upsertUser(
+      { user_id: option.id, name: option.name, email: option.email, role: 'client' },
+      { note: `Client account linked to ${option.folderName ?? 'an assigned folder'}.` }
+    )
+  }
+
+  if (!users.size) {
+    for (const fallbackUser of adminDashboardFallbacks.users) {
+      users.set(fallbackUser.id, {
+        ...fallbackUser,
+        isCurrentUser: false,
+      })
+    }
+  }
+
+  return Array.from(users.values()).sort((left, right) => {
+    if (left.isCurrentUser && !right.isCurrentUser) {
+      return -1
+    }
+
+    if (!left.isCurrentUser && right.isCurrentUser) {
+      return 1
+    }
+
+    return left.name.localeCompare(right.name)
+  })
+})
 
 const productionOptions = computed(() =>
   Array.from(productionUserLookup.value.values()).sort((left, right) => left.name.localeCompare(right.name))
@@ -361,6 +437,44 @@ const handleAssignmentRemove = async (assignmentId) => {
     throw err
   } finally {
     assignmentDeletingId.value = ''
+  }
+}
+
+const handleUserRoleUpdate = async (userId, role) => {
+  userRoleSavingId.value = userId
+  error.value = ''
+
+  try {
+    const response = await updateAdminUserRole(userId, { role })
+    const updatedUser = response.data.data.user
+    userRoleOverrides.value = {
+      ...userRoleOverrides.value,
+      [userId]: updatedUser.role,
+    }
+
+    if (currentUser.value?.user_id === userId) {
+      authStore.user = {
+        ...authStore.user,
+        ...updatedUser,
+      }
+    }
+
+    activityLogs.value = activityLogs.value.map((log) =>
+      log.user?.user_id === userId
+        ? {
+            ...log,
+            user: {
+              ...log.user,
+              ...updatedUser,
+            },
+          }
+        : log
+    )
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to update the user role.'
+    throw err
+  } finally {
+    userRoleSavingId.value = ''
   }
 }
 
@@ -543,7 +657,12 @@ onMounted(() => {
               :update-draft-action="updateRequestDueDateDraft"
               :save-due-date-action="saveRequestDueDate"
             />
-            <AdminDashboardUsersTab v-else-if="activeItem === 'users'" :users="usersTabRows" />
+            <AdminDashboardUsersTab
+              v-else-if="activeItem === 'users'"
+              :users="usersTabRows"
+              :saving-user-id="userRoleSavingId"
+              :update-role-action="handleUserRoleUpdate"
+            />
             <AdminDashboardAssignmentsTab
               v-else-if="activeItem === 'assignments'"
               :assignments="assignmentsTabRows"

@@ -1,8 +1,18 @@
 <script setup>
-defineProps({
+import { reactive, watch } from 'vue'
+
+const props = defineProps({
   users: {
     type: Array,
     default: () => [],
+  },
+  savingUserId: {
+    type: String,
+    default: '',
+  },
+  updateRoleAction: {
+    type: Function,
+    required: true,
   },
 })
 
@@ -11,6 +21,46 @@ const roleStyles = {
   production: 'bg-[#e7eef9] text-[#2d5b9d] dark:bg-[#162235] dark:text-[#91b7ff]',
   agent: 'bg-[#e8f4eb] text-[#2f7a45] dark:bg-[#15281d] dark:text-[#77d18f]',
   client: 'bg-black/[0.04] text-zinc-700 dark:bg-white/[0.04] dark:text-zinc-300',
+}
+
+const roleDrafts = reactive({})
+const rowErrors = reactive({})
+const rowFeedback = reactive({})
+
+watch(
+  () => props.users,
+  (users) => {
+    for (const user of users) {
+      if (user?.id && !(user.id in roleDrafts)) {
+        roleDrafts[user.id] = user.role
+      }
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+const updateDraft = (userId, role) => {
+  roleDrafts[userId] = role
+  rowErrors[userId] = ''
+  rowFeedback[userId] = ''
+}
+
+const saveRole = async (user) => {
+  if (!user?.id) {
+    return
+  }
+
+  rowErrors[user.id] = ''
+  rowFeedback[user.id] = ''
+
+  try {
+    await props.updateRoleAction(user.id, roleDrafts[user.id])
+    rowFeedback[user.id] = 'Role updated.'
+  } catch (error) {
+    rowErrors[user.id] = error.response?.data?.errors?.role?.[0]
+      ?? error.response?.data?.message
+      ?? 'Unable to update the user role.'
+  }
 }
 </script>
 
@@ -24,17 +74,18 @@ const roleStyles = {
     </header>
 
     <section class="overflow-hidden border border-black/10 bg-white/65 dark:border-white/10 dark:bg-[#181818]">
-      <header class="hidden grid-cols-[minmax(0,1.4fr)_minmax(7rem,0.6fr)_minmax(7rem,0.6fr)_minmax(0,1fr)] gap-4 border-b border-black/10 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:border-white/10 lg:grid">
+      <header class="hidden grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.8fr)_minmax(7rem,0.6fr)_minmax(0,1fr)_auto] gap-4 border-b border-black/10 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:border-white/10 lg:grid">
         <span>User</span>
         <span>Role</span>
         <span>Status</span>
         <span>Notes</span>
+        <span class="text-right">Action</span>
       </header>
 
       <article
         v-for="user in users"
         :key="user.id"
-        class="border-b border-black/10 px-5 py-5 last:border-b-0 dark:border-white/10 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(7rem,0.6fr)_minmax(7rem,0.6fr)_minmax(0,1fr)] lg:gap-4"
+        class="border-b border-black/10 px-5 py-5 last:border-b-0 dark:border-white/10 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.8fr)_minmax(7rem,0.6fr)_minmax(0,1fr)_auto] lg:gap-4"
       >
         <div>
           <p class="text-lg font-semibold text-zinc-950 dark:text-white">{{ user.name }}</p>
@@ -43,9 +94,22 @@ const roleStyles = {
 
         <div class="mt-4 lg:mt-0">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-500 lg:hidden">Role</p>
-          <span :class="['inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]', roleStyles[user.role] ?? roleStyles.client]">
-            {{ user.role }}
-          </span>
+          <div class="space-y-2">
+            <span :class="['inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]', roleStyles[user.role] ?? roleStyles.client]">
+              {{ user.role }}
+            </span>
+            <select
+              class="pm-input w-full rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em]"
+              :value="roleDrafts[user.id] ?? user.role"
+              :disabled="user.isCurrentUser || savingUserId === user.id"
+              @change="updateDraft(user.id, $event.target.value)"
+            >
+              <option value="admin">Admin</option>
+              <option value="production">Production</option>
+              <option value="agent">Agent</option>
+              <option value="client">Client</option>
+            </select>
+          </div>
         </div>
 
         <div class="mt-4 lg:mt-0">
@@ -56,6 +120,25 @@ const roleStyles = {
         <div class="mt-4 lg:mt-0">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-500 lg:hidden">Notes</p>
           <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">{{ user.note }}</p>
+          <p v-if="rowErrors[user.id]" class="mt-2 text-xs text-red-600 dark:text-red-300">{{ rowErrors[user.id] }}</p>
+          <p v-else-if="rowFeedback[user.id]" class="mt-2 text-xs text-emerald-700 dark:text-emerald-300">{{ rowFeedback[user.id] }}</p>
+        </div>
+
+        <div class="mt-4 flex items-start lg:mt-0 lg:justify-end">
+          <button
+            type="button"
+            class="inline-flex rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+            :disabled="user.isCurrentUser || savingUserId === user.id || (roleDrafts[user.id] ?? user.role) === user.role"
+            @click="saveRole(user)"
+          >
+            {{
+              user.isCurrentUser
+                ? 'Current admin'
+                : savingUserId === user.id
+                  ? 'Saving...'
+                  : 'Save role'
+            }}
+          </button>
         </div>
       </article>
     </section>
