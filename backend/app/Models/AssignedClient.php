@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssignedClient extends Model
 {
@@ -35,5 +36,10 @@ class AssignedClient extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id', 'user_id');
+    }
+
+    public function chatThreads(): HasMany
+    {
+        return $this->hasMany(AssignmentChatThread::class, 'assignment_id', 'id');
     }
 }

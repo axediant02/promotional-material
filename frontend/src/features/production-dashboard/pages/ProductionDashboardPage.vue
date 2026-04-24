@@ -271,6 +271,7 @@ const folderWorkspaceRows = computed(() =>
 
     return {
       id: folder.folder_id,
+      clientId: folder.client?.user_id ?? folder.client_id ?? '',
       clientName: folder.client?.name ?? 'Assigned client',
       email: folder.client?.email ?? '',
       workspace: folder.folder_name ?? 'Assigned workspace',
@@ -632,6 +633,7 @@ const loadData = async () => {
 
 provideProductionWorkspace({
   loading,
+  currentUser,
   visibleFolderRows,
   folderBrowserMode,
   folderBrowserFilter,

@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminAssignmentRequest;
 use App\Models\AssignedClient;
 use App\Models\User;
+use App\Services\AssignmentChatService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class AdminAssignmentController extends Controller
 {
-    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
-    {
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly AssignmentChatService $assignmentChatService,
+    ) {
     }
 
     public function index(): JsonResponse
@@ -49,6 +52,7 @@ class AdminAssignmentController extends Controller
 
         $isNew = ! $assignment->exists;
         $previousProductionId = $assignment->production_id;
+        $previousStatus = $assignment->status;
         $productionId = $request->string('production_id')->toString();
 
         $assignment->fill([
@@ -56,6 +60,8 @@ class AdminAssignmentController extends Controller
             'status' => $request->string('status')->toString(),
         ]);
         $assignment->save();
+
+        $this->assignmentChatService->syncForAssignment($assignment, $previousProductionId, $previousStatus);
 
         if ($isNew || $previousProductionId !== $productionId) {
             $productionUser = User::query()->find($productionId);
@@ -83,6 +89,7 @@ class AdminAssignmentController extends Controller
     {
         abort_unless(request()->user()?->isAdmin(), 403);
 
+        $this->assignmentChatService->archiveForAssignmentDeletion($assignment);
         $assignment->delete();
 
         return response()->json([

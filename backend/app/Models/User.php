@@ -100,6 +100,21 @@ class User extends Authenticatable
         return $this->hasOne(AssignedClient::class, 'client_id', 'user_id');
     }
 
+    public function clientChatThreads(): HasMany
+    {
+        return $this->hasMany(AssignmentChatThread::class, 'client_id', 'user_id');
+    }
+
+    public function productionChatThreads(): HasMany
+    {
+        return $this->hasMany(AssignmentChatThread::class, 'production_id', 'user_id');
+    }
+
+    public function sentChatMessages(): HasMany
+    {
+        return $this->hasMany(AssignmentChatMessage::class, 'sender_user_id', 'user_id');
+    }
+
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class, 'user_id', 'user_id');
