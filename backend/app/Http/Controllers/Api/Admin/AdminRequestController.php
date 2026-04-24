@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAdminRequestDueDateRequest;
 use App\Models\ClientRequest;
+use App\Notifications\WorkflowNotification;
 use Illuminate\Http\JsonResponse;
 
 class AdminRequestController extends Controller
@@ -32,6 +33,18 @@ class AdminRequestController extends Controller
         $clientRequest->forceFill([
             'due_date' => $request->date('due_date'),
         ])->save();
+
+        $clientRequest->client?->notify(new WorkflowNotification([
+            'kind' => 'due_date_updated',
+            'title' => 'Request due date updated',
+            'body' => sprintf(
+                'Your request "%s" is now due on %s.',
+                $clientRequest->title,
+                optional($clientRequest->due_date)->format('M j, Y') ?? 'a new schedule'
+            ),
+            'target' => 'request-history',
+            'request_id' => $clientRequest->request_id,
+        ]));
 
         return response()->json([
             'message' => 'Request updated.',

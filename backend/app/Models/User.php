@@ -105,6 +105,11 @@ class User extends Authenticatable
         return $this->hasMany(ActivityLog::class, 'user_id', 'user_id');
     }
 
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'users.'.$this->user_id.'.notifications';
+    }
+
     public function isProduction(): bool
     {
         return $this->role === self::ROLE_PRODUCTION;

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ClientRequest\StoreClientRequestRequest;
 use App\Models\ClientRequest;
 use App\Models\Folder;
+use App\Models\User;
+use App\Notifications\WorkflowNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -46,6 +48,25 @@ class ClientRequestController extends Controller
                 'due_date' => null,
             ]);
         });
+
+        $adminUsers = User::query()
+            ->where('role', User::ROLE_ADMIN)
+            ->get();
+
+        foreach ($adminUsers as $adminUser) {
+            $adminUser->notify(new WorkflowNotification([
+                'kind' => 'client_request_created',
+                'title' => 'New client request',
+                'body' => sprintf(
+                    '%s submitted a %s request: %s.',
+                    $user->name,
+                    $clientRequest->request_type === ClientRequest::TYPE_UPDATE_ASSET ? 'request update' : 'new asset',
+                    $clientRequest->title
+                ),
+                'target' => 'requests',
+                'request_id' => $clientRequest->request_id,
+            ]));
+        }
 
         return response()->json([
             'message' => 'Request created.',

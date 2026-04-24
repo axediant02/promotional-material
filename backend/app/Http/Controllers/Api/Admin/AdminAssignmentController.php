@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminAssignmentRequest;
 use App\Models\AssignedClient;
 use App\Models\User;
+use App\Notifications\WorkflowNotification;
 use Illuminate\Http\JsonResponse;
 
 class AdminAssignmentController extends Controller
@@ -43,12 +44,28 @@ class AdminAssignmentController extends Controller
         ]);
 
         $isNew = ! $assignment->exists;
+        $previousProductionId = $assignment->production_id;
+        $productionId = $request->string('production_id')->toString();
 
         $assignment->fill([
-            'production_id' => $request->string('production_id')->toString(),
+            'production_id' => $productionId,
             'status' => $request->string('status')->toString(),
         ]);
         $assignment->save();
+
+        if ($isNew || $previousProductionId !== $productionId) {
+            $productionUser = User::query()->find($productionId);
+            $clientUser = User::query()->find($assignment->client_id);
+
+            if ($productionUser && $clientUser) {
+                $productionUser->notify(new WorkflowNotification([
+                    'kind' => 'client_assigned',
+                    'title' => 'New client assignment',
+                    'body' => sprintf('%s was assigned to you for production work.', $clientUser->name),
+                    'target' => 'queue',
+                ]));
+            }
+        }
 
         return response()->json([
             'message' => 'Client assignment saved.',
