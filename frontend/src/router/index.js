@@ -4,8 +4,6 @@ import LandingPage from '../features/landing-page/pages/LandingPage.vue'
 import LoginPage from '../features/auth/pages/LoginPage.vue'
 import RegisterPage from '../features/auth/pages/RegisterPage.vue'
 import ClientDashboardPage from '../features/client-dashboard/pages/ClientDashboardPage.vue'
-import AgentWorkspacePage from '../features/agent-workspace/pages/AgentWorkspacePage.vue'
-import AdminOverviewPage from '../features/admin/pages/AdminOverviewPage.vue'
 import ProductionDashboardPage from '../features/production-dashboard/pages/ProductionDashboardPage.vue'
 import ProductionFolderFilesPage from '../features/production-dashboard/pages/ProductionFolderFilesPage.vue'
 import ProductionFolderIndexPage from '../features/production-dashboard/pages/ProductionFolderIndexPage.vue'
@@ -17,8 +15,10 @@ const routes = [
   { path: '/login', name: 'login', component: LoginPage, meta: { guestOnly: true } },
   { path: '/register', name: 'register', component: RegisterPage, meta: { guestOnly: true } },
   { path: '/client', name: 'client-dashboard', component: ClientDashboardPage, meta: { requiresAuth: true, role: 'client' } },
-  { path: '/agent', name: 'agent-workspace', component: AgentWorkspacePage, meta: { requiresAuth: true, role: 'agent' } },
-  { path: '/admin', name: 'admin-overview', component: AdminOverviewPage, meta: { requiresAuth: true, role: 'production' } },
+  { path: '/agent', name: 'agent-dashboard', component: AgentDashboardPage, meta: { requiresAuth: true, role: 'agent' } },
+  { path: '/agent-new', redirect: { name: 'agent-dashboard' } },
+  { path: '/admin', name: 'admin-dashboard', component: AdminDashboardPage, meta: { requiresAuth: true, role: 'admin' } },
+  { path: '/admin-new', redirect: { name: 'admin-dashboard' } },
   {
     path: '/production',
     name: 'production-dashboard',
@@ -30,8 +30,6 @@ const routes = [
       { path: 'folders/:folderId', name: 'production-folder-detail', component: ProductionFolderFilesPage },
     ],
   },
-  { path: '/agent-new', name: 'agent-dashboard', component: AgentDashboardPage, meta: { requiresAuth: true, role: 'agent' } },
-  { path: '/admin-new', name: 'admin-dashboard', component: AdminDashboardPage, meta: { requiresAuth: true, role: 'admin' } },
 ]
 
 const router = createRouter({

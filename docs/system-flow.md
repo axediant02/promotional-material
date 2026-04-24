@@ -15,8 +15,8 @@ This document describes the current onboarding, governance, request, and file-de
 3. The frontend stores the token in local storage as `pm_token`.
 4. The frontend routes the user by role:
    - `production` -> `/production/folders`
-   - `agent` -> `/agent-new`
-   - `admin` -> `/admin-new`
+   - `agent` -> `/agent`
+   - `admin` -> `/admin`
    - `client` -> `/client`
 5. Guests opening `/` land on the public landing page.
 
@@ -28,7 +28,7 @@ This document describes the current onboarding, governance, request, and file-de
 5. New requests begin with `pending` status.
 
 ## 4. Admin governance
-1. Admin opens `/admin-new`.
+1. Admin opens `/admin`.
 2. The dashboard loads governance data from:
    - `GET /dashboard`
    - `GET /admin/requests`

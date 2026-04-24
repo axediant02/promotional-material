@@ -10,13 +10,13 @@ This document describes the current Vue router configuration in `frontend/src/ro
 | `/login` | `login` | guest only | `LoginPage.vue` | Login form |
 | `/register` | `register` | guest only | `RegisterPage.vue` | Client registration form |
 | `/client` | `client-dashboard` | `client` only | `ClientDashboardPage.vue` | Client dashboard |
-| `/agent` | `agent-workspace` | `agent` only | `AgentWorkspacePage.vue` | Agent workspace |
-| `/admin` | `admin-overview` | `production` only | `AdminOverviewPage.vue` | Legacy production-facing page kept in the router |
+| `/agent` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Canonical agent dashboard route |
 | `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Production shell parent route |
 | `/production/folders` | `production-folder-index` | `production` only | `ProductionFolderIndexPage.vue` | Assigned-folder browser inside the production shell |
 | `/production/folders/:folderId` | `production-folder-detail` | `production` only | `ProductionFolderFilesPage.vue` | Selected-folder file view inside the production shell |
-| `/agent-new` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Current agent dashboard route |
-| `/admin-new` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Current admin governance dashboard |
+| `/admin` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Canonical admin governance dashboard route |
+| `/agent-new` | redirect | `agent` only | n/a | Legacy redirect to `/agent` |
+| `/admin-new` | redirect | `admin` only | n/a | Legacy redirect to `/admin` |
 
 ## Guard behavior
 - Auth-required routes redirect guests to `login`.
@@ -25,8 +25,8 @@ This document describes the current Vue router configuration in `frontend/src/ro
 
 ## Default route logic
 - `production` -> `production-folder-index` (`/production/folders`)
-- `agent` -> `agent-dashboard` (`/agent-new`)
-- `admin` -> `admin-dashboard` (`/admin-new`)
+- `agent` -> `agent-dashboard` (`/agent`)
+- `admin` -> `admin-dashboard` (`/admin`)
 - any other authenticated user -> `client-dashboard` (`/client`)
 
 ## Production workspace routing
@@ -50,13 +50,11 @@ This document describes the current Vue router configuration in `frontend/src/ro
 
 ### Authenticated pages
 - `ClientDashboardPage.vue`
-- `AgentWorkspacePage.vue`
 - `ProductionDashboardPage.vue`
 - `ProductionFolderIndexPage.vue`
 - `ProductionFolderFilesPage.vue`
 - `AgentDashboardPage.vue`
 - `AdminDashboardPage.vue`
-- `AdminOverviewPage.vue`
 
 ## Current route-linked data usage
 
@@ -77,7 +75,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - submits requests through `POST /requests`
 - shows request history through the client request routes
 
-### Agent workspace
+### Agent dashboard
 - calls `GET /dashboard`
 - supports browse/download file access only
 
@@ -96,8 +94,8 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - calls `GET /admin/activity-logs`
 
 ## Notes
-- `/admin-new` is the active admin route in the current frontend.
-- `/admin` remains in the router, but it is configured for the `production` role and should be treated as a legacy compatibility page.
+- `/admin` and `/agent` are the canonical role entry routes.
+- `/admin-new` and `/agent-new` remain as compatibility redirects.
 - The agreed role model in the frontend is:
   - `admin` for governance
   - `production` for execution
