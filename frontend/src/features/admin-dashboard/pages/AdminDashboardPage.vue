@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import AdminDashboardAssignmentsTab from '../components/AdminDashboardAssignmentsTab.vue'
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
@@ -52,6 +52,8 @@ const requestDueDateSavingId = ref('')
 const requestDueDateErrors = ref({})
 const requestDueDateFeedback = ref({})
 const userRoleSavingId = ref('')
+const liveRefreshQueued = ref(false)
+const liveRefreshInFlight = ref(false)
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -362,6 +364,34 @@ const loadAssignments = async () => {
   productionUsersPayload.value = response.data.data.production_users ?? []
 }
 
+const refreshAdminRealtimeData = async () => {
+  if (liveRefreshInFlight.value) {
+    liveRefreshQueued.value = true
+    return
+  }
+
+  liveRefreshInFlight.value = true
+
+  try {
+    const [dashboardResponse, requestsResponse] = await Promise.all([
+      fetchDashboard(),
+      fetchAdminRequests(),
+    ])
+
+    dashboardPayload.value = dashboardResponse.data.data
+    requestsPayload.value = requestsResponse.data.data.requests ?? []
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to refresh the admin dashboard.'
+  } finally {
+    liveRefreshInFlight.value = false
+
+    if (liveRefreshQueued.value) {
+      liveRefreshQueued.value = false
+      await refreshAdminRealtimeData()
+    }
+  }
+}
+
 const handleAssignmentSave = async (payload) => {
   assignmentsSaving.value = true
   error.value = ''
@@ -544,6 +574,25 @@ const loadAdminDashboard = async () => {
 onMounted(() => {
   loadAdminDashboard()
 })
+
+watch(
+  () => notificationStore.lastRealtimeNotification,
+  (notification) => {
+    if (!notification?.kind) {
+      return
+    }
+
+    if (authStore.user?.role !== 'admin') {
+      return
+    }
+
+    if (notification.kind !== 'client_request_created') {
+      return
+    }
+
+    void refreshAdminRealtimeData()
+  }
+)
 </script>
 
 <template>

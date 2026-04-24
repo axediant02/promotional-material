@@ -9,6 +9,7 @@ import {
 } from '../services/notificationService'
 
 let echo = null
+let activeChannel = null
 
 const MAX_NOTIFICATIONS = 20
 const DEFAULT_REVERB_APP_KEY = 'promotional-materials-key'
@@ -36,6 +37,11 @@ const normalizeNotification = (notification) => {
   }
 }
 
+const buildRealtimeNotification = (notification) => ({
+  ...normalizeNotification(notification),
+  receivedAt: new Date().toISOString(),
+})
+
 const upsertNotification = (notifications, incoming) => {
   const normalized = normalizeNotification(incoming)
   const next = [normalized, ...notifications.filter((item) => item.id !== normalized.id)]
@@ -46,8 +52,23 @@ export const useNotificationStore = defineStore('notifications', () => {
   const notifications = ref([])
   const loading = ref(false)
   const activeUserId = ref('')
+  const lastRealtimeNotification = ref(null)
+  const isLiveConnected = ref(false)
+  const syncInFlight = ref(null)
 
   const unreadCount = computed(() => notifications.value.filter((notification) => !notification.readAt).length)
+
+  const syncNotifications = async () => {
+    if (syncInFlight.value) {
+      return syncInFlight.value
+    }
+
+    syncInFlight.value = load().finally(() => {
+      syncInFlight.value = null
+    })
+
+    return syncInFlight.value
+  }
 
   const connectForUser = (userId) => {
     const token = localStorage.getItem('pm_token')
@@ -64,6 +85,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       echo.leave(`users.${activeUserId.value}.notifications`)
       echo.disconnect()
       echo = null
+      activeChannel = null
     }
 
     window.Pusher = Pusher
@@ -89,8 +111,38 @@ export const useNotificationStore = defineStore('notifications', () => {
       },
     })
 
-    echo.private(`users.${userId}.notifications`).notification((notification) => {
+    activeChannel = echo.private(`users.${userId}.notifications`)
+
+    activeChannel.subscribed(() => {
+      isLiveConnected.value = true
+      void syncNotifications()
+    })
+
+    const pusherConnection = echo.connector?.pusher?.connection
+
+    pusherConnection?.bind('connected', () => {
+      isLiveConnected.value = true
+      void syncNotifications()
+    })
+
+    pusherConnection?.bind('disconnected', () => {
+      isLiveConnected.value = false
+    })
+
+    pusherConnection?.bind('unavailable', () => {
+      isLiveConnected.value = false
+    })
+
+    activeChannel.listen('.workflow.notification', (payload) => {
+      const normalizedNotification = buildRealtimeNotification(payload)
+      lastRealtimeNotification.value = normalizedNotification
+      void syncNotifications()
+    })
+
+    activeChannel.notification((notification) => {
+      const normalizedNotification = buildRealtimeNotification(notification)
       notifications.value = upsertNotification(notifications.value, notification)
+      lastRealtimeNotification.value = normalizedNotification
     })
 
     activeUserId.value = userId
@@ -101,9 +153,11 @@ export const useNotificationStore = defineStore('notifications', () => {
       echo.leave(`users.${activeUserId.value}.notifications`)
       echo.disconnect()
       echo = null
+      activeChannel = null
     }
 
     activeUserId.value = ''
+    isLiveConnected.value = false
   }
 
   const load = async () => {
@@ -149,15 +203,19 @@ export const useNotificationStore = defineStore('notifications', () => {
     disconnect()
     notifications.value = []
     loading.value = false
+    lastRealtimeNotification.value = null
   }
 
   return {
     notifications,
     loading,
     unreadCount,
+    lastRealtimeNotification,
+    isLiveConnected,
     initializeForUser,
     markAsRead,
     markAllAsRead,
+    syncNotifications,
     reset,
   }
 })
