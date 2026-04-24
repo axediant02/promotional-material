@@ -4,6 +4,42 @@ defineProps({
     type: Array,
     default: () => [],
   },
+  editingRequestId: {
+    type: String,
+    default: '',
+  },
+  dueDateDrafts: {
+    type: Object,
+    default: () => ({}),
+  },
+  savingRequestId: {
+    type: String,
+    default: '',
+  },
+  requestErrors: {
+    type: Object,
+    default: () => ({}),
+  },
+  requestFeedback: {
+    type: Object,
+    default: () => ({}),
+  },
+  startEditAction: {
+    type: Function,
+    required: true,
+  },
+  cancelEditAction: {
+    type: Function,
+    required: true,
+  },
+  updateDraftAction: {
+    type: Function,
+    required: true,
+  },
+  saveDueDateAction: {
+    type: Function,
+    required: true,
+  },
 })
 
 const statusStyles = {
@@ -67,7 +103,30 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
 
         <div class="lg:block">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted dark:text-zinc-400 lg:hidden">Due Date</p>
-          <p :class="[row.isMissingDueDate ? 'text-brand-700 dark:text-white' : 'text-muted dark:text-zinc-300']">{{ row.dueLabel }}</p>
+          <template v-if="editingRequestId === row.requestId">
+            <label class="block">
+              <span class="sr-only">Due date</span>
+              <input
+                :value="dueDateDrafts[row.requestId] ?? ''"
+                type="date"
+                class="pm-input w-full rounded-xl px-3 py-2 text-sm"
+                :disabled="savingRequestId === row.requestId"
+                @input="updateDraftAction(row.requestId, $event.target.value)"
+              />
+            </label>
+            <p v-if="requestErrors[row.requestId]" class="mt-2 text-xs text-red-600 dark:text-red-300">
+              {{ requestErrors[row.requestId] }}
+            </p>
+            <p v-else-if="requestFeedback[row.requestId]" class="mt-2 text-xs text-emerald-700 dark:text-emerald-300">
+              {{ requestFeedback[row.requestId] }}
+            </p>
+          </template>
+          <template v-else>
+            <p :class="[row.isMissingDueDate ? 'text-brand-700 dark:text-white' : 'text-muted dark:text-zinc-300']">{{ row.dueLabel }}</p>
+            <p v-if="requestFeedback[row.requestId]" class="mt-2 text-xs text-emerald-700 dark:text-emerald-300">
+              {{ requestFeedback[row.requestId] }}
+            </p>
+          </template>
         </div>
 
         <div class="lg:block">
@@ -78,9 +137,33 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
         </div>
 
         <div class="pt-1 lg:flex lg:justify-end lg:pt-0">
+          <div v-if="editingRequestId === row.requestId" class="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:bg-white/10 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/15"
+              :disabled="savingRequestId === row.requestId"
+              @click="cancelEditAction(row.requestId)"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+              :disabled="savingRequestId === row.requestId"
+              @click="saveDueDateAction(row.requestId)"
+            >
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M5 12.5 9.5 17 19 7.5" />
+              </svg>
+              {{ savingRequestId === row.requestId ? 'Saving...' : 'Save due' }}
+            </button>
+          </div>
           <button
+            v-else
             type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+            class="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+            :disabled="Boolean(savingRequestId)"
+            @click="startEditAction(row)"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="4" y="5" width="16" height="15" rx="1.5" />
@@ -88,7 +171,7 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
               <path d="M16 3v4" />
               <path d="M4 10h16" />
             </svg>
-            Set due
+            {{ row.isMissingDueDate ? 'Set due' : 'Update due' }}
           </button>
         </div>
       </div>

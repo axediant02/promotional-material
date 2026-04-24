@@ -16,6 +16,7 @@ import {
   fetchAdminRequests,
   removeAdminAssignment,
   saveAdminAssignment,
+  updateAdminRequestDueDate,
 } from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
@@ -39,6 +40,11 @@ const assignmentsPayload = ref([])
 const productionUsersPayload = ref([])
 const assignmentsSaving = ref(false)
 const assignmentDeletingId = ref('')
+const editingRequestId = ref('')
+const dueDateDrafts = ref({})
+const requestDueDateSavingId = ref('')
+const requestDueDateErrors = ref({})
+const requestDueDateFeedback = ref({})
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -162,12 +168,14 @@ const queueRows = computed(() =>
 
     return {
       id: request.request_id ?? index,
+      requestId: request.request_id ?? '',
       reference,
       title: request.title ?? 'Untitled request',
       clientName,
       folderName,
       requestTypeLabel,
       status: request.status ?? 'pending',
+      dueDate: request.due_date ?? '',
       dueLabel,
       isUnassigned,
       isMissingDueDate,
@@ -355,6 +363,103 @@ const handleAssignmentRemove = async (assignmentId) => {
   }
 }
 
+const beginRequestDueDateEdit = (row) => {
+  if (!row?.requestId || requestDueDateSavingId.value) {
+    return
+  }
+
+  editingRequestId.value = row.requestId
+  dueDateDrafts.value = {
+    ...dueDateDrafts.value,
+    [row.requestId]: row.dueDate ? String(row.dueDate).slice(0, 10) : '',
+  }
+  requestDueDateErrors.value = {
+    ...requestDueDateErrors.value,
+    [row.requestId]: '',
+  }
+  requestDueDateFeedback.value = {
+    ...requestDueDateFeedback.value,
+    [row.requestId]: '',
+  }
+}
+
+const cancelRequestDueDateEdit = (requestId) => {
+  if (!requestId || requestDueDateSavingId.value === requestId) {
+    return
+  }
+
+  if (editingRequestId.value === requestId) {
+    editingRequestId.value = ''
+  }
+
+  dueDateDrafts.value = {
+    ...dueDateDrafts.value,
+    [requestId]: '',
+  }
+  requestDueDateErrors.value = {
+    ...requestDueDateErrors.value,
+    [requestId]: '',
+  }
+}
+
+const updateRequestDueDateDraft = (requestId, dueDate) => {
+  dueDateDrafts.value = {
+    ...dueDateDrafts.value,
+    [requestId]: dueDate,
+  }
+  requestDueDateErrors.value = {
+    ...requestDueDateErrors.value,
+    [requestId]: '',
+  }
+  requestDueDateFeedback.value = {
+    ...requestDueDateFeedback.value,
+    [requestId]: '',
+  }
+}
+
+const saveRequestDueDate = async (requestId) => {
+  const dueDate = dueDateDrafts.value[requestId]?.trim?.() ?? dueDateDrafts.value[requestId] ?? ''
+
+  if (!dueDate) {
+    requestDueDateErrors.value = {
+      ...requestDueDateErrors.value,
+      [requestId]: 'Select a due date before saving.',
+    }
+    return
+  }
+
+  requestDueDateSavingId.value = requestId
+  requestDueDateErrors.value = {
+    ...requestDueDateErrors.value,
+    [requestId]: '',
+  }
+
+  try {
+    const response = await updateAdminRequestDueDate(requestId, { due_date: dueDate })
+    const updatedRequest = response.data.data.request
+
+    requestsPayload.value = requestsPayload.value.map((request) =>
+      request.request_id === requestId ? { ...request, ...updatedRequest } : request
+    )
+
+    editingRequestId.value = ''
+    requestDueDateFeedback.value = {
+      ...requestDueDateFeedback.value,
+      [requestId]: 'Due date saved.',
+    }
+  } catch (err) {
+    requestDueDateErrors.value = {
+      ...requestDueDateErrors.value,
+      [requestId]:
+        err.response?.data?.errors?.due_date?.[0]
+        ?? err.response?.data?.message
+        ?? 'Unable to update the due date.',
+    }
+  } finally {
+    requestDueDateSavingId.value = ''
+  }
+}
+
 const loadAdminDashboard = async () => {
   loading.value = true
   error.value = ''
@@ -410,12 +515,35 @@ onMounted(() => {
               </div>
 
               <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(20rem,0.92fr)]">
-                <AdminDashboardRequestsSection :requests="queueRows.slice(0, 6)" />
+                <AdminDashboardRequestsSection
+                  :requests="queueRows.slice(0, 6)"
+                  :editing-request-id="editingRequestId"
+                  :due-date-drafts="dueDateDrafts"
+                  :saving-request-id="requestDueDateSavingId"
+                  :request-errors="requestDueDateErrors"
+                  :request-feedback="requestDueDateFeedback"
+                  :start-edit-action="beginRequestDueDateEdit"
+                  :cancel-edit-action="cancelRequestDueDateEdit"
+                  :update-draft-action="updateRequestDueDateDraft"
+                  :save-due-date-action="saveRequestDueDate"
+                />
                 <AdminDashboardSecondaryPanels :folders="folderCards" :insights="governanceInsights" />
               </div>
             </template>
 
-            <AdminDashboardRequestsTab v-else-if="activeItem === 'requests'" :rows="queueRows" />
+            <AdminDashboardRequestsTab
+              v-else-if="activeItem === 'requests'"
+              :rows="queueRows"
+              :editing-request-id="editingRequestId"
+              :due-date-drafts="dueDateDrafts"
+              :saving-request-id="requestDueDateSavingId"
+              :request-errors="requestDueDateErrors"
+              :request-feedback="requestDueDateFeedback"
+              :start-edit-action="beginRequestDueDateEdit"
+              :cancel-edit-action="cancelRequestDueDateEdit"
+              :update-draft-action="updateRequestDueDateDraft"
+              :save-due-date-action="saveRequestDueDate"
+            />
             <AdminDashboardUsersTab v-else-if="activeItem === 'users'" :users="usersTabRows" />
             <AdminDashboardAssignmentsTab
               v-else-if="activeItem === 'assignments'"
