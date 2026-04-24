@@ -186,6 +186,16 @@ Most endpoints return:
 - Returns:
   - `requests`
 
+### `GET /admin/users`
+- Purpose: fetch the complete backend-driven user list for admin governance
+- Access:
+  - admin only
+- Returns:
+  - `users`
+- Notes:
+  - each user record includes stable identifiers such as `user_id`
+  - the admin users tab uses this route instead of deriving users from requests, assignments, or activity logs
+
 ### `PATCH /admin/requests/{clientRequest}`
 - Purpose: set or update a request due date
 - Access:

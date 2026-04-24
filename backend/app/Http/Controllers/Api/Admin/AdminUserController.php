@@ -9,6 +9,23 @@ use Illuminate\Http\JsonResponse;
 
 class AdminUserController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        abort_unless(request()->user()?->isAdmin(), 403);
+
+        $users = User::query()
+            ->orderBy('name')
+            ->orderBy('email')
+            ->get();
+
+        return response()->json([
+            'message' => 'Users fetched.',
+            'data' => [
+                'users' => $users,
+            ],
+        ]);
+    }
+
     public function update(UpdateUserRoleRequest $request, User $user): JsonResponse
     {
         abort_unless($request->user()?->isAdmin(), 403);

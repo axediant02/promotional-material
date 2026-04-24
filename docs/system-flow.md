@@ -34,11 +34,13 @@ This document describes the current onboarding, governance, request, and file-de
    - `GET /admin/requests`
    - `GET /admin/activity-logs`
    - `GET /admin/assignments`
+   - `GET /admin/users`
 3. Admin reviews the request queue and identifies missing due dates or missing assignment coverage.
 4. Admin sets or updates request due dates inline in the request queue through `PATCH /admin/requests/{clientRequest}`.
 5. Admin creates or updates client-to-production assignments through `POST /admin/assignments`.
 6. Admin can remove an assignment through `DELETE /admin/assignments/{assignment}`.
-7. Admin can update user roles through `PATCH /admin/users/{user}`.
+7. Admin reviews the full platform account list through the live users endpoint instead of inferred dashboard data.
+8. Admin can update user roles through `PATCH /admin/users/{user}`.
 
 ## 5. Production execution
 1. Production opens `/production`.
