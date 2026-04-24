@@ -154,8 +154,9 @@ const clientLookup = computed(() => {
 
 const queueRows = computed(() =>
   requestsPayload.value.slice(0, 12).map((request, index) => {
+    const requestId = request.request_id ?? ''
     const folder = folderLookup.value.get(request.folder_id)
-    const reference = request.request_id?.slice(0, 8)?.toUpperCase() ?? `REQ-${index + 1000}`
+    const reference = requestId ? requestId.slice(0, 8).toUpperCase() : `REQ-${index + 1000}`
     const clientName = folder?.client?.name ?? folder?.folder_name ?? `Client ${index + 1}`
     const folderName = folder?.folder_name ?? folder?.name ?? request.folder_id ?? 'Unassigned folder'
     const requestTypeLabel = request.request_type === 'new_asset' ? 'New asset' : 'Update asset'
@@ -167,8 +168,7 @@ const queueRows = computed(() =>
       : 'Awaiting due date'
 
     return {
-      id: request.request_id ?? index,
-      requestId: request.request_id ?? '',
+      id: requestId,
       reference,
       title: request.title ?? 'Untitled request',
       clientName,
@@ -364,22 +364,22 @@ const handleAssignmentRemove = async (assignmentId) => {
 }
 
 const beginRequestDueDateEdit = (row) => {
-  if (!row?.requestId || requestDueDateSavingId.value) {
+  if (!row?.id || requestDueDateSavingId.value) {
     return
   }
 
-  editingRequestId.value = row.requestId
+  editingRequestId.value = row.id
   dueDateDrafts.value = {
     ...dueDateDrafts.value,
-    [row.requestId]: row.dueDate ? String(row.dueDate).slice(0, 10) : '',
+    [row.id]: row.dueDate ? String(row.dueDate).slice(0, 10) : '',
   }
   requestDueDateErrors.value = {
     ...requestDueDateErrors.value,
-    [row.requestId]: '',
+    [row.id]: '',
   }
   requestDueDateFeedback.value = {
     ...requestDueDateFeedback.value,
-    [row.requestId]: '',
+    [row.id]: '',
   }
 }
 
