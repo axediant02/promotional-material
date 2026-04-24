@@ -23,8 +23,10 @@ import {
 } from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
+import { useNotificationStore } from '../../../stores/notifications'
 
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const loading = ref(true)
 const error = ref('')
@@ -550,7 +552,14 @@ onMounted(() => {
       <AdminDashboardSidebar :current-user="currentUser" :active-item="activeItem" @navigate="activeItem = $event" />
 
       <main class="min-w-0">
-        <AdminDashboardHeader :active-item="activeItem" />
+        <AdminDashboardHeader
+          :active-item="activeItem"
+          :notifications="notificationStore.notifications"
+          :notifications-loading="notificationStore.loading"
+          :unread-count="notificationStore.unreadCount"
+          :mark-read-action="notificationStore.markAsRead"
+          :mark-all-read-action="notificationStore.markAllAsRead"
+        />
 
         <div class="px-6 py-8 sm:px-8 lg:px-10">
           <p v-if="error" class="mb-6 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">

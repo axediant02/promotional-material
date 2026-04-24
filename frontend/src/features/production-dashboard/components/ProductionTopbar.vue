@@ -1,4 +1,5 @@
 <script setup>
+import NotificationInboxPopover from '../../../components/shared/NotificationInboxPopover.vue'
 import { useThemeStore } from '../../../stores/theme'
 
 defineProps({
@@ -21,6 +22,26 @@ defineProps({
   description: {
     type: String,
     default: '',
+  },
+  unreadCount: {
+    type: Number,
+    default: 0,
+  },
+  notifications: {
+    type: Array,
+    default: () => [],
+  },
+  notificationsLoading: {
+    type: Boolean,
+    default: false,
+  },
+  markReadAction: {
+    type: Function,
+    required: true,
+  },
+  markAllReadAction: {
+    type: Function,
+    required: true,
   },
 })
 
@@ -58,6 +79,16 @@ const themeStore = useThemeStore()
           >
         </div>
 
+        <NotificationInboxPopover
+          title="Notifications"
+          description="New client assignments and workflow updates will appear here in real time."
+          :notifications="notifications"
+          :loading="notificationsLoading"
+          :unread-count="unreadCount"
+          empty-message="Assignment notifications will appear here when admin routes new client work to you."
+          :mark-read-action="markReadAction"
+          :mark-all-read-action="markAllReadAction"
+        />
         <button
           class="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-white/60 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20 dark:hover:text-white"
           type="button"

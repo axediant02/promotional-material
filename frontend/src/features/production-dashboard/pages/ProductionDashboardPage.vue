@@ -11,6 +11,7 @@ import { downloadFile, fetchFiles, restoreFile } from '../../../services/fileSer
 import { fetchFolders } from '../../../services/folderService'
 import { fetchProductionRequests, updateProductionRequestStatus } from '../../../services/requestService'
 import { useAuthStore } from '../../../stores/auth'
+import { useNotificationStore } from '../../../stores/notifications'
 
 const FILE_BROWSER_STORAGE_KEY = 'production_folder_view_mode'
 const DUE_SOON_DAYS = 3
@@ -20,6 +21,7 @@ const FOLDER_SORTS = ['recent', 'client_name', 'due_date', 'request_volume']
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const getSavedBrowserMode = () => {
   if (typeof window === 'undefined') {
@@ -672,6 +674,11 @@ onMounted(() => {
           :title="currentSectionMeta.title"
           :eyebrow="currentSectionMeta.eyebrow"
           :description="currentSectionMeta.description"
+          :notifications="notificationStore.notifications"
+          :notifications-loading="notificationStore.loading"
+          :unread-count="notificationStore.unreadCount"
+          :mark-read-action="notificationStore.markAsRead"
+          :mark-all-read-action="notificationStore.markAllAsRead"
         />
 
         <div class="px-6 py-8 sm:px-8 lg:px-10">

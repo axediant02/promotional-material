@@ -4,6 +4,7 @@ import { useAuthStore } from '../../../stores/auth'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { fetchFiles } from '../../../services/fileService'
 import { fetchRequests } from '../../../services/requestService'
+import { useNotificationStore } from '../../../stores/notifications'
 import ClientAssetCatalog from '../components/ClientAssetCatalog.vue'
 import ClientDashboardTopbar from '../components/ClientDashboardTopbar.vue'
 import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
@@ -11,6 +12,7 @@ import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.v
 import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
 
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const payload = ref({ user: null, stats: {}, folders: [], recentFiles: [] })
 const files = ref([])
@@ -221,6 +223,11 @@ function formatBytes(bytes) {
       v-model:search-query="searchQuery"
       :folder-label="folderLabel"
       :user="authStore.user"
+      :notifications="notificationStore.notifications"
+      :notifications-loading="notificationStore.loading"
+      :unread-count="notificationStore.unreadCount"
+      :mark-read-action="notificationStore.markAsRead"
+      :mark-all-read-action="notificationStore.markAllAsRead"
       @open-request="openRequestDrawer('new_asset')"
     />
 

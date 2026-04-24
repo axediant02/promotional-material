@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import NotificationInboxPopover from '../../../components/shared/NotificationInboxPopover.vue'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
 
@@ -8,6 +9,11 @@ const props = defineProps({
   searchQuery: { type: String, default: '' },
   folderLabel: { type: String, default: 'Assigned Folder' },
   user: { type: Object, default: null },
+  notifications: { type: Array, default: () => [] },
+  notificationsLoading: { type: Boolean, default: false },
+  unreadCount: { type: Number, default: 0 },
+  markReadAction: { type: Function, required: true },
+  markAllReadAction: { type: Function, required: true },
 })
 
 const emit = defineEmits(['update:searchQuery', 'open-request'])
@@ -76,11 +82,16 @@ const handleLogout = async () => {
         </label>
 
         <div class="flex items-center gap-3 self-end lg:self-auto">
-          <button class="rounded-full border border-border bg-white/60 p-3 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0m6 0H9" />
-            </svg>
-          </button>
+          <NotificationInboxPopover
+            title="Notifications"
+            description="Track due dates and live status updates for your submitted requests."
+            :notifications="notifications"
+            :loading="notificationsLoading"
+            :unread-count="unreadCount"
+            empty-message="Due-date and request-status notifications will appear here."
+            :mark-read-action="markReadAction"
+            :mark-all-read-action="markAllReadAction"
+          />
           <button
             class="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-border bg-white/60 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
             type="button"
