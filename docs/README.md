@@ -1,23 +1,27 @@
 # Docs Index
 
-This folder contains the current working docs for the portal.
+This folder contains the maintained implementation references for the portal.
 
-## Current docs
+## Documents
+- [system-flow.md](./system-flow.md)
+- [request-workflow.md](./request-workflow.md)
 - [api-reference.md](./api-reference.md)
 - [frontend-routes.md](./frontend-routes.md)
-- [request-workflow.md](./request-workflow.md)
 - [schemas-relationship.md](./schemas-relationship.md)
-- [system-flow.md](./system-flow.md)
 
 ## Reading order
-1. Read `system-flow.md` for the implemented onboarding and delivery flow.
-2. Read `request-workflow.md` for request ownership and lifecycle.
-3. Use `api-reference.md`, `frontend-routes.md`, and `schemas-relationship.md` while implementing or debugging.
+1. Read `system-flow.md` for the current end-to-end flow.
+2. Read `request-workflow.md` for request lifecycle and role ownership.
+3. Use `api-reference.md` and `frontend-routes.md` when implementing or debugging route behavior.
+4. Use `schemas-relationship.md` when checking table relationships and identifiers.
 
-## Current routing note
-- The production UI now uses a nested folder workspace under `/production`, with `/production/folders` for the folder browser and `/production/folders/:folderId` for the selected-folder file view.
+## Current implementation notes
+- Guests land on `/`.
+- The first client request creates the assigned folder.
+- Admin governance runs through `/admin-new` and the `/admin/*` request, assignment, role, and activity endpoints.
+- Production execution runs through the nested `/production` workspace.
 
 ## Testing rule
 - The project uses TDD for new backend functionality.
-- After a test is written and approved as the target behavior, do not rewrite that test only to force a pass.
-- Fix the implementation, supporting setup, or incorrect assumptions instead unless the requirement itself is intentionally changed.
+- Once an approval test is accepted, keep it fixed as the acceptance target.
+- If it fails, fix the implementation or setup instead of rewriting the test to force a pass.
