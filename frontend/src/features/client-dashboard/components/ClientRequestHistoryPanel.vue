@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import SkeletonBlock from '../../../components/shared/SkeletonBlock.vue'
 
 const props = defineProps({
   requests: { type: Array, default: () => [] },
@@ -85,9 +86,9 @@ onBeforeUnmount(() => {
 
     <div v-if="loading" class="mt-6">
       <div class="rounded-2xl border border-border bg-white/60 p-4 dark:border-white/10 dark:bg-white/5">
-        <div class="h-3 w-24 animate-pulse rounded bg-brand-50 dark:bg-white/10"></div>
-        <div class="mt-3 h-5 w-1/2 animate-pulse rounded bg-brand-50 dark:bg-white/10"></div>
-        <div class="mt-3 h-4 w-full animate-pulse rounded bg-brand-50 dark:bg-white/10"></div>
+        <SkeletonBlock width="w-24" height="h-3" />
+        <SkeletonBlock width="w-1/2" height="h-5" rounded="rounded-md" class-name="mt-3" />
+        <SkeletonBlock width="w-full" height="h-4" class-name="mt-3" />
       </div>
     </div>
 

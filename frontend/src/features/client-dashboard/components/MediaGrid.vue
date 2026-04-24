@@ -1,4 +1,5 @@
 <script setup>
+import SkeletonBlock from '../../../components/shared/SkeletonBlock.vue'
 import MediaCard from './MediaCard.vue'
 
 defineProps({
@@ -28,13 +29,13 @@ const categoryFilters = [
       <div
         v-for="i in 8"
         :key="i"
-        class="animate-pulse rounded-2xl border border-slate-200 bg-slate-50 p-4"
+        class="rounded-2xl border border-slate-200 bg-slate-50 p-4"
       >
-        <div class="mb-4 h-32 rounded-xl bg-slate-200"></div>
+        <SkeletonBlock width="w-full" height="h-32" rounded="rounded-xl" tone="bg-slate-200" class-name="mb-4" />
         <div class="space-y-2">
-          <div class="h-4 w-3/4 rounded bg-slate-200"></div>
-          <div class="h-3 w-1/2 rounded bg-slate-200"></div>
-          <div class="h-3 w-1/4 rounded bg-slate-200"></div>
+          <SkeletonBlock width="w-3/4" height="h-4" tone="bg-slate-200" />
+          <SkeletonBlock width="w-1/2" height="h-3" tone="bg-slate-200" />
+          <SkeletonBlock width="w-1/4" height="h-3" tone="bg-slate-200" />
         </div>
       </div>
     </div>
