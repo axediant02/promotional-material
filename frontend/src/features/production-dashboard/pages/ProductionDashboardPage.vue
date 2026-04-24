@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
+import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import ProductionSidebar from '../components/ProductionSidebar.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
 import { provideProductionWorkspace } from '../productionWorkspace'
@@ -678,12 +679,7 @@ onMounted(() => {
             {{ error }}
           </p>
 
-          <div
-            v-if="loading"
-            class="pm-surface flex min-h-[18rem] items-center justify-center rounded-[2rem] text-sm uppercase tracking-[0.3em] text-muted dark:text-zinc-400"
-          >
-            Loading production workspace
-          </div>
+          <DashboardOverviewSkeleton v-if="loading" />
 
           <template v-else>
             <section v-if="activeSection === 'files'" class="space-y-8">

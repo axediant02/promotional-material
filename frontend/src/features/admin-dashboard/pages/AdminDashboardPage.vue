@@ -308,7 +308,17 @@ const usersTabRows = computed(() =>
       ? 'Signed-in admin account. Self role changes stay disabled.'
       : 'Live backend-driven account record for admin governance.',
     isCurrentUser: user.user_id === currentUser.value?.user_id,
-  }))
+  })).sort((left, right) => {
+    if (left.isCurrentUser && !right.isCurrentUser) {
+      return -1
+    }
+
+    if (!left.isCurrentUser && right.isCurrentUser) {
+      return 1
+    }
+
+    return left.name.localeCompare(right.name)
+  })
 )
 
 const productionOptions = computed(() =>

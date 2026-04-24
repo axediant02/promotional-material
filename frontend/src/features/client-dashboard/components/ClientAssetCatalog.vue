@@ -1,4 +1,5 @@
 <script setup>
+import SkeletonBlock from '../../../components/shared/SkeletonBlock.vue'
 import ClientAssetCard from './ClientAssetCard.vue'
 import ClientAssetRow from './ClientAssetRow.vue'
 
@@ -96,11 +97,11 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
         :key="item"
         class="overflow-hidden rounded-[1.4rem] border border-border bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/5"
       >
-        <div class="aspect-[16/8.5] animate-pulse rounded-2xl bg-brand-50 dark:bg-white/10"></div>
+        <SkeletonBlock width="w-full" height="aspect-[16/8.5]" rounded="rounded-2xl" />
         <div class="mt-4 space-y-3">
-          <div class="h-4 w-1/2 animate-pulse rounded bg-brand-50 dark:bg-white/10"></div>
-          <div class="h-3 w-2/3 animate-pulse rounded bg-brand-50 dark:bg-white/10"></div>
-          <div class="h-9 w-full animate-pulse rounded-xl bg-brand-50 dark:bg-white/10"></div>
+          <SkeletonBlock width="w-1/2" height="h-4" />
+          <SkeletonBlock width="w-2/3" height="h-3" />
+          <SkeletonBlock width="w-full" height="h-9" rounded="rounded-xl" />
         </div>
       </div>
     </div>
