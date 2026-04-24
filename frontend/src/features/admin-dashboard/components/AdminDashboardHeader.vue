@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import NotificationInboxPopover from '../../../components/shared/NotificationInboxPopover.vue'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
 
@@ -8,6 +9,26 @@ const props = defineProps({
   activeItem: {
     type: String,
     default: 'overview',
+  },
+  unreadCount: {
+    type: Number,
+    default: 0,
+  },
+  notifications: {
+    type: Array,
+    default: () => [],
+  },
+  notificationsLoading: {
+    type: Boolean,
+    default: false,
+  },
+  markReadAction: {
+    type: Function,
+    required: true,
+  },
+  markAllReadAction: {
+    type: Function,
+    required: true,
   },
 })
 
@@ -77,6 +98,16 @@ const handleLogout = async () => {
           <span>{{ activeCopy.action }}</span>
           <span aria-hidden="true">&rarr;</span>
         </button>
+        <NotificationInboxPopover
+          title="Notifications"
+          description="Live workflow updates for incoming client requests and governance changes."
+          :notifications="notifications"
+          :loading="notificationsLoading"
+          :unread-count="unreadCount"
+          empty-message="New request and workflow notifications will appear here."
+          :mark-read-action="markReadAction"
+          :mark-all-read-action="markAllReadAction"
+        />
         <button
           class="pm-button-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium dark:text-white"
           type="button"

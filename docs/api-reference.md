@@ -71,6 +71,36 @@ Most endpoints return:
   - production sees operational workspace data
   - admin uses the dashboard payload alongside dedicated admin governance endpoints
 
+## Notification routes
+
+### `GET /notifications`
+- Purpose: fetch recent notifications for the authenticated user
+- Access:
+  - authenticated users only
+- Returns:
+  - `notifications`
+  - `unread_count`
+- Notes:
+  - each notification includes read state, type metadata, and optional workflow target fields
+  - results are scoped strictly to the current authenticated user
+
+### `PATCH /notifications/{notification}`
+- Purpose: mark one notification as read
+- Access:
+  - authenticated users only
+- Returns:
+  - `notification`
+  - `unread_count`
+- Notes:
+  - users may mark only their own notifications
+
+### `POST /notifications/read-all`
+- Purpose: mark all of the authenticated user's unread notifications as read
+- Access:
+  - authenticated users only
+- Returns:
+  - `unread_count`
+
 ## Folder routes
 
 ### `GET /folders`
@@ -157,6 +187,7 @@ Most endpoints return:
 - Behavior:
   - creates and assigns the client folder if one does not exist yet
   - stores the request with `pending` status
+  - notifies admin users in-app about the new request
 
 ### `GET /production/requests`
 - Purpose: fetch requests for clients assigned to the authenticated production user
@@ -178,6 +209,7 @@ Most endpoints return:
 - Notes:
   - `due_date` is prohibited on this route
   - production can update only requests for assigned clients
+  - changing status to `in_progress` or `done` creates a client notification
 
 ### `GET /admin/requests`
 - Purpose: fetch all requests for admin governance
@@ -205,6 +237,7 @@ Most endpoints return:
 - Notes:
   - `status` is prohibited on this route
   - the admin dashboard uses this route for inline due-date editing
+  - due-date saves notify the target client
 
 ## Admin governance routes
 
@@ -227,6 +260,7 @@ Most endpoints return:
 - Notes:
   - the selected client must already have at least one request
   - returns `201` for a new assignment and `200` for an update
+  - new or changed assignments notify the selected production user
 
 ### `DELETE /admin/assignments/{assignment}`
 - Purpose: remove a client assignment
@@ -288,3 +322,7 @@ Most endpoints return:
   - request creation
   - request history
   - own-folder downloads
+
+## Realtime delivery
+- In-app notifications are stored in the database and broadcast over Laravel Reverb private channels.
+- Frontend subscriptions use Echo on user-scoped channels in the form `users.{user_id}.notifications`.

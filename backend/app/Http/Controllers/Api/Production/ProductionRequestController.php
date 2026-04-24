@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Production\UpdateProductionRequestStatusRequest;
 use App\Models\AssignedClient;
 use App\Models\ClientRequest;
+use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class ProductionRequestController extends Controller
 {
+    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
+    {
+    }
+
     public function index(): JsonResponse
     {
         $user = request()->user();
@@ -39,10 +44,30 @@ class ProductionRequestController extends Controller
 
         abort_unless($user?->isProduction(), 403);
         abort_unless($this->isAssignedToProduction($clientRequest, $user->user_id), 403);
+        $newStatus = $request->string('status')->toString();
+        $previousStatus = $clientRequest->status;
 
         $clientRequest->forceFill([
-            'status' => $request->string('status')->toString(),
+            'status' => $newStatus,
         ])->save();
+
+        if (
+            $previousStatus !== $newStatus
+            && in_array($newStatus, [ClientRequest::STATUS_IN_PROGRESS, ClientRequest::STATUS_DONE], true)
+            && $clientRequest->client
+        ) {
+            $this->workflowNotificationService->sendToUser($clientRequest->client, [
+                'kind' => 'request_status_updated',
+                'title' => 'Request status updated',
+                'body' => sprintf(
+                    'Your request "%s" is now %s.',
+                    $clientRequest->title,
+                    str_replace('_', ' ', $newStatus)
+                ),
+                'target' => 'request-history',
+                'request_id' => $clientRequest->request_id,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Request updated.',

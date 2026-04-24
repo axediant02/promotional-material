@@ -1,8 +1,10 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { currentUser, login, logout, register } from '../services/authService'
+import { useNotificationStore } from './notifications'
 
 export const useAuthStore = defineStore('auth', () => {
+  const notificationStore = useNotificationStore()
   const token = ref(localStorage.getItem('pm_token'))
   const user = ref(null)
   const isReady = ref(false)
@@ -29,6 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const bootstrap = async () => {
     if (!token.value) {
+      notificationStore.reset()
       isReady.value = true
       return
     }
@@ -36,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await currentUser()
       user.value = response.data.data.user
+      await notificationStore.initializeForUser(user.value)
     } catch {
       clearSession()
     } finally {
@@ -48,6 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = response.data.data.token
     user.value = response.data.data.user
     localStorage.setItem('pm_token', token.value)
+    await notificationStore.initializeForUser(user.value)
     isReady.value = true
   }
 
@@ -62,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const clearSession = () => {
+    notificationStore.reset()
     token.value = null
     user.value = null
     isReady.value = true

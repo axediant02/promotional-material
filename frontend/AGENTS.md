@@ -11,6 +11,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - Vue Router
   - Pinia
   - Axios
+  - Laravel Echo
   - Tailwind CSS
   - Vite
 - Codebase is JavaScript-first, not TypeScript-first.
@@ -36,6 +37,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `client` -> `/client`
 - Public entry at `/` shows the landing page for guests.
 - Current client request UI targets the live `POST /requests` endpoint.
+- In-app notifications are shown inside the admin, production, and client dashboards.
 - Registration creates the client account immediately, and the first submitted request creates the assigned folder.
 - Role ownership for ongoing UI work:
   - `admin` manages assignments, due dates, and user-role administration
@@ -66,6 +68,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Use `src/services/api.js` as the shared Axios entry point.
 - Keep bearer-token handling aligned with `pm_token` unless refactoring intentionally.
 - Keep route metadata aligned with auth-store redirects.
+- Keep Echo subscription lifecycle aligned with auth bootstrap, logout, and user switching.
 - When contracts change, update UI, services, and docs together.
 
 ## Current Feature Areas
@@ -76,6 +79,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Admin governance dashboard
 - Production dashboard shell with nested folder browser/detail workspace
 - Request submission UI for clients
+- Realtime notification panels for admin, production, and client dashboards
 
 ## Live Route Notes
 - Public:
@@ -118,6 +122,11 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - client request submission
   - role visibility
   - agent exclusion
+- If notification UI changes, verify:
+  - dashboard panel rendering
+  - unread count updates
+  - mark-as-read flows
+  - realtime subscription teardown on logout
 
 ## Compounding Knowledge
 - 2026-04-17: Frontend is JavaScript-first.
@@ -130,6 +139,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-22: Agreed UI role model is now admin governance, production execution, agent download-only operational access, and client own-folder request and download access.
 - 2026-04-23: The production shell now keeps sidebar/topbar stable while nested folder routes swap only the folder workspace section.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend entry routes reflected in the live router and auth-store defaults.
+- 2026-04-24: Admin, production, and client dashboards now include realtime in-app notification panels powered by Echo subscriptions to private user channels.
 
 ## Success Criteria
 - Clear navigation

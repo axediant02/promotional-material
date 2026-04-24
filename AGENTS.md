@@ -16,7 +16,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - `client`
 
 ## Current Truth
-- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, and client requests.
+- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, client requests, and in-app notifications.
 - Backend foundations now exist for:
   - `client_requests`
   - `assigned_clients`
@@ -28,12 +28,15 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - client-to-production assignment
   - due dates
   - user-role changes
+  - notification visibility for new client requests
 - Production owns execution:
   - file uploads
   - assigned-client folders
   - assigned-client requests
+  - notification-triggering status updates for client-facing request progress
 - Agents can browse and download allowed files but do not participate in request management.
 - Clients can create requests and download files from their own assigned folder.
+- Realtime in-app notifications use Laravel Reverb on the backend and Echo on the frontend for `admin`, `production`, and `client`.
 
 ## Target Direction
 - Complete backend and frontend implementation so the code fully matches the role model above.
@@ -92,6 +95,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
+- 2026-04-24: In-app notifications are now persisted in the database and delivered in realtime through Reverb/Echo for admin request intake, production assignments, and client due-date or status changes.
 
 ## Success Criteria
 - Secure file delivery
