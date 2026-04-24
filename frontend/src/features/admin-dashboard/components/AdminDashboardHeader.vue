@@ -109,13 +109,6 @@ const handleLogout = async () => {
           :mark-all-read-action="markAllReadAction"
         />
         <button
-          class="pm-button-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium dark:text-white"
-          type="button"
-          @click="handleLogout"
-        >
-          <span>Logout</span>
-        </button>
-        <button
           class="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-white/60 text-muted transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20 dark:hover:text-white"
           type="button"
           @click="themeStore.toggleTheme()"
@@ -134,6 +127,13 @@ const handleLogout = async () => {
           <svg v-else class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M21 12.8A9 9 0 1 1 11.2 3a7.1 7.1 0 0 0 9.8 9.8Z" />
           </svg>
+        </button>
+        <button
+          class="pm-button-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium dark:text-white"
+          type="button"
+          @click="handleLogout"
+        >
+          <span>Logout</span>
         </button>
       </div>
     </div>
