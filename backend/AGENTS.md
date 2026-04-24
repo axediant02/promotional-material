@@ -10,6 +10,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - Laravel 12
   - PHP 8.2+
   - Laravel Sanctum
+  - Laravel Reverb
   - MySQL or MariaDB
   - PHPUnit
 - Working roles:
@@ -76,6 +77,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Recycle bin and purge command
 - Agent creation
 - Activity log listing
+- Notification listing and read actions
 - Client request creation and request history
 - Production request listing for assigned clients
 - Production request status updates
@@ -92,6 +94,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Use `docs/system-flow.md`, `docs/request-workflow.md`, and `docs/api-reference.md` as the current docs baseline.
 - If docs and code disagree, code against the live backend unless the task is an intentional migration.
 - Preserve role boundaries for uploads, downloads, request visibility, due-date ownership, and assignment ownership.
+- Keep notification writes scoped to the directly affected users; do not broadcast broadly by role.
 - When writing tests first, treat the initial approved test as the acceptance target and adapt implementation to satisfy it unless the requirement itself is corrected explicitly.
 
 ## Verification
@@ -116,6 +119,11 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - client download scoping
   - agent download access
   - assignment linkage
+- For notification changes, verify:
+  - database notification creation
+  - user-scoped notification read endpoints
+  - broadcast channel authorization
+  - Reverb config alignment with frontend Echo settings
 
 ## Compounding Knowledge
 - 2026-04-17: Core models use UUIDs, so auth and token schema compatibility need extra care.
@@ -128,6 +136,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-22: Admin owns assignment, due dates, and role changes. Production owns uploads and assigned-client execution. Agents and clients can download files, but agents stay outside the request workflow.
 - 2026-04-23: Backend TDD work keeps newly written failing tests fixed as acceptance criteria; implementation must move to the test, not the other way around.
 - 2026-04-24: Admin user listing and role update routes are part of the live backend surface; remaining incompleteness is centered on broader assignment workflow fit-and-finish rather than missing admin role-management endpoints.
+- 2026-04-24: In-app notifications now use Laravel database notifications plus Reverb-backed private user channels for admin request intake, production assignment alerts, and client due-date or status alerts.
 
 ## Success Criteria
 - Correct authorization
