@@ -42,6 +42,8 @@ const buildRealtimeNotification = (notification) => ({
   receivedAt: new Date().toISOString(),
 })
 
+const buildUserChannelName = (userId) => `App.Models.User.${userId}`
+
 const upsertNotification = (notifications, incoming) => {
   const normalized = normalizeNotification(incoming)
   const next = [normalized, ...notifications.filter((item) => item.id !== normalized.id)]
@@ -82,7 +84,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     if (echo) {
-      echo.leave(`users.${activeUserId.value}.notifications`)
+      echo.leave(buildUserChannelName(activeUserId.value))
       echo.disconnect()
       echo = null
       activeChannel = null
@@ -111,7 +113,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       },
     })
 
-    activeChannel = echo.private(`users.${userId}.notifications`)
+    activeChannel = echo.private(buildUserChannelName(userId))
 
     activeChannel.subscribed(() => {
       isLiveConnected.value = true
@@ -150,7 +152,7 @@ export const useNotificationStore = defineStore('notifications', () => {
 
   const disconnect = () => {
     if (echo && activeUserId.value) {
-      echo.leave(`users.${activeUserId.value}.notifications`)
+      echo.leave(buildUserChannelName(activeUserId.value))
       echo.disconnect()
       echo = null
       activeChannel = null

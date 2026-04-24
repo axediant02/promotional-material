@@ -23,7 +23,7 @@ class WorkflowNotificationBroadcasted implements ShouldBroadcastNow
 
     public function broadcastOn(): PrivateChannel
     {
-        return new PrivateChannel('users.'.$this->userId.'.notifications');
+        return new PrivateChannel('App.Models.User.'.$this->userId);
     }
 
     public function broadcastAs(): string

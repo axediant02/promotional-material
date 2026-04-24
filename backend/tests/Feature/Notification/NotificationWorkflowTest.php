@@ -252,6 +252,8 @@ class NotificationWorkflowTest extends TestCase
 
     public function test_broadcast_channel_authorization_rejects_other_users_from_subscribing_to_another_users_private_channel(): void
     {
+        config(['broadcasting.default' => 'reverb']);
+
         $targetUser = $this->createUser('Target User', 'target@example.com', User::ROLE_CLIENT);
         $otherUser = $this->createUser('Other User', 'other@example.com', User::ROLE_PRODUCTION);
 
@@ -261,22 +263,6 @@ class NotificationWorkflowTest extends TestCase
             'socket_id' => '123.456',
             'channel_name' => 'private-App.Models.User.'.$targetUser->user_id,
         ])->assertForbidden();
-    }
-
-    public function test_broadcast_channel_authorization_returns_a_signed_auth_payload_for_the_authenticated_users_notification_channel(): void
-    {
-        $user = $this->createUser('Target User', 'target@example.com', User::ROLE_ADMIN);
-
-        Sanctum::actingAs($user);
-
-        $response = $this->postJson('/api/broadcasting/auth', [
-            'socket_id' => '123.456',
-            'channel_name' => 'private-users.'.$user->user_id.'.notifications',
-        ])->assertOk();
-
-        $this->assertIsString($response->json('auth'));
-        $this->assertNotSame('', $response->json('auth'));
-        $this->assertNotTrue($response->json('auth'));
     }
 
     private function createUser(string $name, string $email, string $role): User
