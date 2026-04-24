@@ -6,8 +6,10 @@ use App\Models\AssignedClient;
 use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\User;
+use App\Events\WorkflowNotificationBroadcasted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -22,6 +24,7 @@ class NotificationWorkflowTest extends TestCase
         $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
         $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
         $this->assignFolderToClient($client, $production);
+        Event::fake([WorkflowNotificationBroadcasted::class]);
 
         Sanctum::actingAs($client);
 
@@ -42,6 +45,11 @@ class NotificationWorkflowTest extends TestCase
         $this->assertDatabaseMissing('notifications', [
             'notifiable_id' => $production->user_id,
         ]);
+        Event::assertDispatched(WorkflowNotificationBroadcasted::class, function (WorkflowNotificationBroadcasted $event) use ($admin) {
+            return $event->userId === $admin->user_id
+                && $event->payload['kind'] === 'client_request_created'
+                && ! empty($event->payload['request_id']);
+        });
     }
 
     public function test_assignment_creation_notifies_the_assigned_production_user_only(): void
@@ -220,6 +228,26 @@ class NotificationWorkflowTest extends TestCase
         $this->assertNotNull(DB::table('notifications')->where('id', $firstNotificationId)->value('read_at'));
         $this->assertNotNull(DB::table('notifications')->where('id', $secondNotificationId)->value('read_at'));
         $this->assertNull(DB::table('notifications')->where('id', $otherNotificationId)->value('read_at'));
+    }
+
+    public function test_immediate_workflow_broadcast_payload_contains_realtime_fields(): void
+    {
+        $event = new WorkflowNotificationBroadcasted('user-123', [
+            'kind' => 'client_request_created',
+            'title' => 'New client request',
+            'body' => 'Client submitted a new request.',
+            'target' => 'requests',
+            'request_id' => 'request-123',
+        ]);
+
+        $payload = $event->broadcastWith();
+
+        $this->assertSame('client_request_created', $payload['kind']);
+        $this->assertSame('New client request', $payload['title']);
+        $this->assertSame('Client submitted a new request.', $payload['body']);
+        $this->assertSame('requests', $payload['target']);
+        $this->assertSame('request-123', $payload['request_id']);
+        $this->assertArrayHasKey('created_at', $payload);
     }
 
     public function test_broadcast_channel_authorization_rejects_other_users_from_subscribing_to_another_users_private_channel(): void

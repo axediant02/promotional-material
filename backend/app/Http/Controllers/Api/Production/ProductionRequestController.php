@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Production\UpdateProductionRequestStatusRequest;
 use App\Models\AssignedClient;
 use App\Models\ClientRequest;
-use App\Notifications\WorkflowNotification;
+use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class ProductionRequestController extends Controller
 {
+    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
+    {
+    }
+
     public function index(): JsonResponse
     {
         $user = request()->user();
@@ -50,8 +54,9 @@ class ProductionRequestController extends Controller
         if (
             $previousStatus !== $newStatus
             && in_array($newStatus, [ClientRequest::STATUS_IN_PROGRESS, ClientRequest::STATUS_DONE], true)
+            && $clientRequest->client
         ) {
-            $clientRequest->client?->notify(new WorkflowNotification([
+            $this->workflowNotificationService->sendToUser($clientRequest->client, [
                 'kind' => 'request_status_updated',
                 'title' => 'Request status updated',
                 'body' => sprintf(
@@ -61,7 +66,7 @@ class ProductionRequestController extends Controller
                 ),
                 'target' => 'request-history',
                 'request_id' => $clientRequest->request_id,
-            ]));
+            ]);
         }
 
         return response()->json([
