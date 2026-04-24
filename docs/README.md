@@ -18,7 +18,8 @@ This folder contains the maintained implementation references for the portal.
 ## Current implementation notes
 - Guests land on `/`.
 - The first client request creates the assigned folder.
-- Admin governance runs through `/admin-new` and the `/admin/*` request, assignment, role, and activity endpoints.
+- Admin governance runs through `/admin` and the `/admin/*` request, assignment, role, and activity endpoints.
+- `/admin-new` and `/agent-new` remain documented only as compatibility redirects to the canonical `/admin` and `/agent` routes.
 - Production execution runs through the nested `/production` workspace.
 
 ## Testing rule

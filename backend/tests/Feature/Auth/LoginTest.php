@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
@@ -55,5 +56,24 @@ class LoginTest extends TestCase
 
         $this->assertIsString($response->json('data.token'));
         $this->assertNotEmpty($response->json('data.token'));
+    }
+
+    public function test_authenticated_user_can_fetch_the_current_user_profile(): void
+    {
+        $user = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'password123',
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/auth/currentUser')
+            ->assertOk()
+            ->assertJsonPath('message', 'Current user fetched.')
+            ->assertJsonPath('data.user.user_id', $user->user_id)
+            ->assertJsonPath('data.user.email', $user->email)
+            ->assertJsonPath('data.user.role', User::ROLE_ADMIN);
     }
 }

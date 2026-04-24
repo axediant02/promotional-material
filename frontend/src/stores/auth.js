@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { login, logout, me, register } from '../services/authService'
+import { currentUser, login, logout, register } from '../services/authService'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('pm_token'))
@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const response = await me()
+      const response = await currentUser()
       user.value = response.data.data.user
     } catch {
       clearSession()

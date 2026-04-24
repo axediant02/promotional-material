@@ -19,16 +19,22 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `production`
   - `agent`
   - `client`
-- The router also contains temporary dashboard scaffolding:
-  - `/production` shell with nested production folder workspace routes
-  - `/agent-new`
+- Canonical role routes are:
+  - `/admin`
+  - `/agent`
+  - `/production`
+  - `/client`
+- Compatibility redirects remain for:
   - `/admin-new`
+  - `/agent-new`
+- The router also contains the nested production shell:
+  - `/production` shell with nested production folder workspace routes
 - Current default redirects in the auth store:
-  - `production` -> `/production`
-  - `agent` -> `/agent-new`
-  - `admin` -> `/admin-new`
+  - `production` -> `/production/folders`
+  - `agent` -> `/agent`
+  - `admin` -> `/admin`
   - `client` -> `/client`
-- Public entry currently redirects `/` to `/login`.
+- Public entry at `/` shows the landing page for guests.
 - Current client request UI targets the live `POST /requests` endpoint.
 - Registration creates the client account immediately, and the first submitted request creates the assigned folder.
 - Role ownership for ongoing UI work:
@@ -66,10 +72,9 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Landing page
 - Login and registration
 - Client dashboard
-- Agent workspace
-- Admin dashboard scaffolding
+- Agent dashboard
+- Admin governance dashboard
 - Production dashboard shell with nested folder browser/detail workspace
-- Temporary role dashboard scaffolding
 - Request submission UI for clients
 
 ## Live Route Notes
@@ -80,13 +85,13 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Live role routes:
   - `/client`
   - `/agent`
-  - `/admin-new`
+  - `/admin`
   - `/production`
   - `/production/folders`
   - `/production/folders/:folderId`
-- Temporary scaffolding:
+- Compatibility redirects:
   - `/agent-new`
-  - legacy `/admin`
+  - `/admin-new`
 
 ## Styling Rules
 - Reuse the current visual language first: rounded panels, soft shadows, slate/orange palette, Tailwind utilities.
@@ -121,9 +126,10 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-17: Some screens still rely on compatibility payload fields during contract migration.
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
 - 2026-04-22: Registration creates the client account first, and the first submitted request creates the assigned folder.
-- 2026-04-21: Temporary `/production`, `/agent-new`, and `/admin-new` routes exist ahead of full backend role separation.
+- 2026-04-21: The production shell route remains nested at `/production`, while `/agent-new` and `/admin-new` are compatibility redirects to canonical role routes.
 - 2026-04-22: Agreed UI role model is now admin governance, production execution, agent download-only operational access, and client own-folder request and download access.
 - 2026-04-23: The production shell now keeps sidebar/topbar stable while nested folder routes swap only the folder workspace section.
+- 2026-04-24: `/admin` and `/agent` are the canonical frontend entry routes reflected in the live router and auth-store defaults.
 
 ## Success Criteria
 - Clear navigation

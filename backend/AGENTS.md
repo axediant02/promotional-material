@@ -68,7 +68,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Auth:
   - register
   - login
-  - `/auth/me`
+  - `/auth/currentUser`
   - logout
 - Dashboard aggregation
 - Folder list/create/show/update
@@ -84,8 +84,8 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 
 ## Planned Areas Still Incomplete
 - Full assignment-management workflow
-- Admin user-management and role-management route surface
-- Legacy route naming cleanup where paths still blur `admin` and `production`
+- End-to-end assignment workflow polish across governance, execution, and docs
+- Compatibility cleanup for legacy route references that previously blurred `admin` and `production`
 
 ## Workflow
 - Check `routes/api.php`, related Form Requests, controllers, models, and migrations before changing behavior.
@@ -100,7 +100,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - For auth changes, verify:
   - register
   - login
-  - `/auth/me`
+  - `/auth/currentUser`
   - logout
 - For access changes, verify:
   - production access
@@ -127,6 +127,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
 - 2026-04-22: Admin owns assignment, due dates, and role changes. Production owns uploads and assigned-client execution. Agents and clients can download files, but agents stay outside the request workflow.
 - 2026-04-23: Backend TDD work keeps newly written failing tests fixed as acceptance criteria; implementation must move to the test, not the other way around.
+- 2026-04-24: Admin user listing and role update routes are part of the live backend surface; remaining incompleteness is centered on broader assignment workflow fit-and-finish rather than missing admin role-management endpoints.
 
 ## Success Criteria
 - Correct authorization

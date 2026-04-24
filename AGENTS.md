@@ -37,7 +37,12 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 
 ## Target Direction
 - Complete backend and frontend implementation so the code fully matches the role model above.
-- Replace legacy route and UI naming that still blurs `admin` and `production`.
+- Keep route and UI naming aligned with the canonical role surfaces:
+  - `/admin`
+  - `/agent`
+  - `/production`
+  - `/client`
+- Document `/admin-new` and `/agent-new` only as compatibility redirects while any remaining legacy references are cleaned up.
 - Keep the file portal stable while the request, assignment, and role-management workflows are completed.
 
 ## Shared Rules
@@ -86,6 +91,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
 - 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
+- 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
 
 ## Success Criteria
 - Secure file delivery

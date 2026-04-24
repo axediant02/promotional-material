@@ -46,7 +46,7 @@ Most endpoints return:
 
 ## Protected auth routes
 
-### `GET /auth/me`
+### `GET /auth/currentUser`
 - Purpose: fetch the authenticated user
 - Returns:
   - `user`
