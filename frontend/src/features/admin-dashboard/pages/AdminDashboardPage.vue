@@ -15,9 +15,11 @@ import {
   fetchAdminActivityLogs,
   fetchAdminAssignments,
   fetchAdminRequests,
+  fetchAdminUsers,
   removeAdminAssignment,
   saveAdminAssignment,
   updateAdminRequestDueDate,
+  updateAdminUserRole,
 } from '../../../services/adminService'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { useAuthStore } from '../../../stores/auth'
@@ -39,6 +41,7 @@ const requestsPayload = ref([])
 const activityLogs = ref([])
 const assignmentsPayload = ref([])
 const productionUsersPayload = ref([])
+const usersPayload = ref([])
 const assignmentsSaving = ref(false)
 const assignmentDeletingId = ref('')
 const editingRequestId = ref('')
@@ -46,6 +49,7 @@ const dueDateDrafts = ref({})
 const requestDueDateSavingId = ref('')
 const requestDueDateErrors = ref({})
 const requestDueDateFeedback = ref({})
+const userRoleSavingId = ref('')
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -293,7 +297,19 @@ const governanceInsights = computed(() => {
   })
 })
 
-const usersTabRows = computed(() => adminDashboardFallbacks.users)
+const usersTabRows = computed(() =>
+  (usersPayload.value ?? []).map((user) => ({
+    id: user.user_id,
+    name: user.name ?? formatIdLabel(user.user_id, 'User'),
+    email: user.email ?? '',
+    role: user.role ?? 'client',
+    status: user.status ?? '',
+    note: user.user_id === currentUser.value?.user_id
+      ? 'Signed-in admin account. Self role changes stay disabled.'
+      : 'Live backend-driven account record for admin governance.',
+    isCurrentUser: user.user_id === currentUser.value?.user_id,
+  }))
+)
 
 const productionOptions = computed(() =>
   Array.from(productionUserLookup.value.values()).sort((left, right) => left.name.localeCompare(right.name))
@@ -361,6 +377,32 @@ const handleAssignmentRemove = async (assignmentId) => {
     throw err
   } finally {
     assignmentDeletingId.value = ''
+  }
+}
+
+const handleUserRoleUpdate = async (userId, role) => {
+  userRoleSavingId.value = userId
+  error.value = ''
+
+  try {
+    const response = await updateAdminUserRole(userId, { role })
+    const updatedUser = response.data.data.user
+
+    usersPayload.value = usersPayload.value.map((user) =>
+      user.user_id === userId ? { ...user, ...updatedUser } : user
+    )
+
+    if (currentUser.value?.user_id === userId) {
+      authStore.user = {
+        ...authStore.user,
+        ...updatedUser,
+      }
+    }
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to update the user role.'
+    throw err
+  } finally {
+    userRoleSavingId.value = ''
   }
 }
 
@@ -466,11 +508,12 @@ const loadAdminDashboard = async () => {
   error.value = ''
 
   try {
-    const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse] = await Promise.all([
+    const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse, usersResponse] = await Promise.all([
       fetchDashboard(),
       fetchAdminRequests(),
       fetchAdminActivityLogs(),
       fetchAdminAssignments(),
+      fetchAdminUsers(),
     ])
 
     dashboardPayload.value = dashboardResponse.data.data
@@ -478,6 +521,7 @@ const loadAdminDashboard = async () => {
     activityLogs.value = logsResponse.data.data.logs ?? []
     assignmentsPayload.value = assignmentsResponse.data.data.assignments ?? []
     productionUsersPayload.value = assignmentsResponse.data.data.production_users ?? []
+    usersPayload.value = usersResponse.data.data.users ?? []
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load the admin dashboard.'
   } finally {
@@ -543,7 +587,12 @@ onMounted(() => {
               :update-draft-action="updateRequestDueDateDraft"
               :save-due-date-action="saveRequestDueDate"
             />
-            <AdminDashboardUsersTab v-else-if="activeItem === 'users'" :users="usersTabRows" />
+            <AdminDashboardUsersTab
+              v-else-if="activeItem === 'users'"
+              :users="usersTabRows"
+              :saving-user-id="userRoleSavingId"
+              :update-role-action="handleUserRoleUpdate"
+            />
             <AdminDashboardAssignmentsTab
               v-else-if="activeItem === 'assignments'"
               :assignments="assignmentsTabRows"
