@@ -171,8 +171,6 @@ class AssignmentChatRoutesTest extends TestCase
 
     public function test_broadcast_channel_authorization_rejects_unrelated_users(): void
     {
-        config(['broadcasting.default' => 'reverb']);
-
         $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
         $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
         $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
@@ -187,6 +185,8 @@ class AssignmentChatRoutesTest extends TestCase
         ])->assertCreated();
 
         $thread = AssignmentChatThread::query()->firstOrFail();
+
+        config(['broadcasting.default' => 'reverb']);
 
         Sanctum::actingAs($otherClient);
         $this->postJson('/api/broadcasting/auth', [
