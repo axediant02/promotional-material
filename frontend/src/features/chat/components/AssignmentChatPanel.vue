@@ -161,13 +161,17 @@ const scrollMessagesToBottom = async () => {
 
 const upsertThread = (incomingThread) => {
   const normalized = normalizeThread(incomingThread)
+  const hasMessagePayload = Array.isArray(incomingThread?.messages)
   const nextThreads = [...threads.value]
   const existingIndex = nextThreads.findIndex((item) => item.thread_id === normalized.thread_id)
 
   if (existingIndex >= 0) {
+    const existingThread = nextThreads[existingIndex]
+
     nextThreads.splice(existingIndex, 1, {
-      ...nextThreads[existingIndex],
+      ...existingThread,
       ...normalized,
+      messages: hasMessagePayload ? normalized.messages : existingThread.messages,
     })
   } else {
     nextThreads.unshift(normalized)
@@ -181,6 +185,24 @@ const upsertThread = (incomingThread) => {
     return new Date(right.last_message_at ?? right.started_at ?? 0).getTime()
       - new Date(left.last_message_at ?? left.started_at ?? 0).getTime()
   })
+}
+
+const upsertMessageIntoThread = (thread, incomingMessage) => {
+  const existingIndex = incomingMessage.message_id
+    ? thread.messages.findIndex((message) => message.message_id === incomingMessage.message_id)
+    : -1
+
+  if (existingIndex >= 0) {
+    thread.messages = thread.messages.map((message, index) =>
+      index === existingIndex ? { ...message, ...incomingMessage } : message
+    )
+
+    return false
+  }
+
+  thread.messages = [...thread.messages, incomingMessage]
+
+  return true
 }
 
 const selectBestThread = () => {
@@ -257,13 +279,13 @@ const subscribeToThread = (threadId) => {
       return
     }
 
-    if (!currentThread.messages.some((message) => message.message_id === incomingMessage.message_id)) {
-      currentThread.messages = [...currentThread.messages, incomingMessage]
-    }
+    const messageWasAdded = upsertMessageIntoThread(currentThread, incomingMessage)
 
     currentThread.last_message_at = incomingMessage.created_at
     currentThread.last_message_preview = incomingMessage.body
-    currentThread.unread_count = incomingMessage.is_own_message ? 0 : currentThread.unread_count + 1
+    currentThread.unread_count = incomingMessage.is_own_message
+      ? 0
+      : currentThread.unread_count + (messageWasAdded ? 1 : 0)
     upsertThread(currentThread)
 
     if (!incomingMessage.is_own_message) {
@@ -318,7 +340,7 @@ const sendMessage = async () => {
     const message = normalizeMessage(response.data.data.message)
     const currentThread = selectedThread.value
 
-    currentThread.messages = [...currentThread.messages, message]
+    upsertMessageIntoThread(currentThread, message)
     currentThread.last_message_at = message.created_at
     currentThread.last_message_preview = message.body
     currentThread.unread_count = 0
