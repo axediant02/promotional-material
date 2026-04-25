@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\Admin\AdminRequestController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Chat\AssignmentChatController;
+use App\Http\Controllers\Api\Chat\AssignmentChatMessageController;
 use App\Http\Controllers\Api\Client\ClientRequestController;
 use App\Http\Controllers\Api\Client\ClientRequestHistoryController;
 use App\Http\Controllers\Api\Client\DashboardController;
@@ -49,6 +51,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::patch('notifications/read-all', [NotificationController::class, 'readAll']);
     Route::patch('notifications/{notification}/read', [NotificationController::class, 'update']);
     Route::patch('notifications/{notification}', [NotificationController::class, 'update']);
+    Route::get('chat/thread', [AssignmentChatController::class, 'active']);
+    Route::get('chat/threads', [AssignmentChatController::class, 'index']);
+    Route::get('chat/threads/{thread}', [AssignmentChatController::class, 'show']);
+    Route::post('chat/threads/{thread}/messages', [AssignmentChatMessageController::class, 'store']);
+    Route::post('chat/threads/{thread}/read', [AssignmentChatController::class, 'markRead']);
 
     Route::prefix('production')->group(function (): void {
         Route::get('requests', [ProductionRequestController::class, 'index']);

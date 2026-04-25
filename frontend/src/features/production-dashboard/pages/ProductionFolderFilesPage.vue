@@ -254,6 +254,7 @@ onMounted(() => {
         :folder-requests="workspace.selectedFolderRequests.value"
         :downloading-file-id="workspace.downloadingFileId.value"
         :updating-request-id="workspace.updatingRequestId.value"
+        :current-user-id="workspace.currentUser.value?.user_id ?? ''"
         :show-files-section="false"
         @download-file="workspace.handleDownloadFile"
         @update-request-status="workspace.updateRequestStatus"

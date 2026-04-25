@@ -10,6 +10,7 @@ import ClientDashboardTopbar from '../components/ClientDashboardTopbar.vue'
 import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
 import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.vue'
 import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
+import AssignmentChatPanel from '../../chat/components/AssignmentChatPanel.vue'
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
@@ -291,7 +292,16 @@ function formatBytes(bytes) {
               {{ selectedFile ? 'Update selected asset' : 'Submit a request' }}
             </button>
           </section>
+
+          <AssignmentChatPanel
+            :current-user-id="authStore.user?.user_id ?? ''"
+            title="Production chat"
+            description="Chat directly with your assigned production contact while the assignment is active."
+            empty-message="Chat will appear here once admin assigns your account to a production owner."
+          />
+
           <ClientRequestHistoryPanel
+            id="request-history"
             :requests="requests"
             :loading="requestsLoading"
           />
