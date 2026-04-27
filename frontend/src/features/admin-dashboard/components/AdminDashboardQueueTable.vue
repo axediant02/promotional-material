@@ -84,6 +84,18 @@ const openAssignmentModal = (row) => {
 const closeAssignmentModal = () => {
   selectedAssignmentRowId.value = ''
 }
+
+const hoveredRowId = ref('')
+
+const isHovered = (id) => hoveredRowId.value === id
+
+const setHovered = (id) => {
+  hoveredRowId.value = id
+}
+
+const clearHovered = () => {
+  hoveredRowId.value = ''
+}
 </script>
 
 <template>
@@ -184,13 +196,15 @@ const closeAssignmentModal = () => {
               v-if="!row.isUnassigned && row.assignedProductionName"
               type="button"
               :class="[
-                'group inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] transition duration-180 hover:border-brand-300 hover:text-brand-700 dark:hover:border-brand-400 dark:hover:text-white',
+                'relative inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] transition duration-180 hover:border-brand-300 hover:text-brand-700 dark:hover:border-brand-400 dark:hover:text-white',
                 assignmentStyles.assigned,
               ]"
               @click="openAssignmentModal(row)"
+              @mouseenter="setHovered(row.id)"
+              @mouseleave="clearHovered"
             >
-              <span class="group-hover:hidden">Assigned</span>
-              <span class="hidden group-hover:inline">View details</span>
+              <span :class="{ hidden: isHovered(row.id) }">Assigned</span>
+              <span :class="{ hidden: !isHovered(row.id) }">View details</span>
             </button>
             <span
               v-else
