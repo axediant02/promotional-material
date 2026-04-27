@@ -1,24 +1,36 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+const APP_TITLE = 'Promotional Materials Portal'
+
 const routes = [
-  { path: '/', name: 'landing', component: () => import('../features/landing-page/pages/LandingPage.vue'), meta: { guestOnly: true } },
-  { path: '/login', name: 'login', component: () => import('../features/auth/pages/LoginPage.vue'), meta: { guestOnly: true } },
-  { path: '/register', name: 'register', component: () => import('../features/auth/pages/RegisterPage.vue'), meta: { guestOnly: true } },
-  { path: '/client', name: 'client-dashboard', component: () => import('../features/client-dashboard/pages/ClientDashboardPage.vue'), meta: { requiresAuth: true, role: 'client' } },
-  { path: '/agent', name: 'agent-dashboard', component: () => import('../features/agent-dashboard/pages/AgentDashboardPage.vue'), meta: { requiresAuth: true, role: 'agent' } },
+  { path: '/', name: 'landing', component: () => import('../features/landing-page/pages/LandingPage.vue'), meta: { guestOnly: true, title: `Home | ${APP_TITLE}` } },
+  { path: '/login', name: 'login', component: () => import('../features/auth/pages/LoginPage.vue'), meta: { guestOnly: true, title: `Login | ${APP_TITLE}` } },
+  { path: '/register', name: 'register', component: () => import('../features/auth/pages/RegisterPage.vue'), meta: { guestOnly: true, title: `Register | ${APP_TITLE}` } },
+  { path: '/client', name: 'client-dashboard', component: () => import('../features/client-dashboard/pages/ClientDashboardPage.vue'), meta: { requiresAuth: true, role: 'client', title: `Client Dashboard | ${APP_TITLE}` } },
+  { path: '/agent', name: 'agent-dashboard', component: () => import('../features/agent-dashboard/pages/AgentDashboardPage.vue'), meta: { requiresAuth: true, role: 'agent', title: `Agent Dashboard | ${APP_TITLE}` } },
   { path: '/agent-new', redirect: { name: 'agent-dashboard' } },
-  { path: '/admin', name: 'admin-dashboard', component: () => import('../features/admin-dashboard/pages/AdminDashboardPage.vue'), meta: { requiresAuth: true, role: 'admin' } },
+  { path: '/admin', name: 'admin-dashboard', component: () => import('../features/admin-dashboard/pages/AdminDashboardPage.vue'), meta: { requiresAuth: true, role: 'admin', title: `Admin Dashboard | ${APP_TITLE}` } },
   { path: '/admin-new', redirect: { name: 'admin-dashboard' } },
   {
     path: '/production',
     name: 'production-dashboard',
     component: () => import('../features/production-dashboard/pages/ProductionDashboardPage.vue'),
-    meta: { requiresAuth: true, role: 'production' },
+    meta: { requiresAuth: true, role: 'production', title: `Production Dashboard | ${APP_TITLE}` },
     children: [
       { path: '', redirect: { name: 'production-folder-index' } },
-      { path: 'folders', name: 'production-folder-index', component: () => import('../features/production-dashboard/pages/ProductionFolderIndexPage.vue') },
-      { path: 'folders/:folderId', name: 'production-folder-detail', component: () => import('../features/production-dashboard/pages/ProductionFolderFilesPage.vue') },
+      {
+        path: 'folders',
+        name: 'production-folder-index',
+        component: () => import('../features/production-dashboard/pages/ProductionFolderIndexPage.vue'),
+        meta: { title: `Production Folders | ${APP_TITLE}` },
+      },
+      {
+        path: 'folders/:folderId',
+        name: 'production-folder-detail',
+        component: () => import('../features/production-dashboard/pages/ProductionFolderFilesPage.vue'),
+        meta: { title: `Folder Workspace | ${APP_TITLE}` },
+      },
     ],
   },
 ]
@@ -48,6 +60,11 @@ router.beforeEach(async (to) => {
   }
 
   return true
+})
+
+router.afterEach((to) => {
+  const matchedWithTitle = [...to.matched].reverse().find((record) => record.meta?.title)
+  document.title = matchedWithTitle?.meta?.title ?? APP_TITLE
 })
 
 export default router
