@@ -1,5 +1,6 @@
 <script setup>
 import AdminDashboardRequestsSection from './AdminDashboardRequestsSection.vue'
+import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 
 defineProps({
   rows: {
@@ -47,12 +48,13 @@ defineProps({
 
 <template>
   <section class="space-y-6">
-    <header class="flex flex-col gap-2">
-      <h2 class="text-2xl font-semibold text-zinc-950 dark:text-white">All requests</h2>
-      <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        Full request queue view for due-date review and admin triage.
-      </p>
-    </header>
+    <DashboardSectionHeader
+      eyebrow="Queue view"
+      title="All requests"
+      description="Full request queue view for due-date review, assignment checks, and admin triage."
+      :badge="`${rows.length} entries`"
+      compact
+    />
 
     <AdminDashboardRequestsSection
       :requests="rows"

@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, watch } from 'vue'
+import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 
 const props = defineProps({
   users: {
@@ -118,12 +119,13 @@ const createAgent = async () => {
 
 <template>
   <section class="space-y-6">
-    <header class="flex flex-col gap-2">
-      <h2 class="text-2xl font-semibold text-zinc-950 dark:text-white">Users &amp; roles</h2>
-      <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        Admin view for role ownership, account state, and user access posture.
-      </p>
-    </header>
+    <DashboardSectionHeader
+      eyebrow="Access control"
+      title="Users & roles"
+      description="Review role ownership, account posture, and the current access mix across every dashboard audience."
+      :badge="`${users.length} users`"
+      compact
+    />
 
     <form
       class="grid gap-4 border border-black/10 bg-white/65 p-5 dark:border-white/10 dark:bg-[#181818] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(12rem,0.8fr)_auto]"

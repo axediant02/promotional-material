@@ -1,15 +1,12 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
-import AdminDashboardAssignmentsTab from '../components/AdminDashboardAssignmentsTab.vue'
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
 import AdminDashboardHeader from '../components/AdminDashboardHeader.vue'
 import AdminDashboardRequestsSection from '../components/AdminDashboardRequestsSection.vue'
-import AdminDashboardRequestsTab from '../components/AdminDashboardRequestsTab.vue'
 import AdminDashboardSecondaryPanels from '../components/AdminDashboardSecondaryPanels.vue'
 import AdminDashboardSidebar from '../components/AdminDashboardSidebar.vue'
 import AdminDashboardStatGrid from '../components/AdminDashboardStatGrid.vue'
-import AdminDashboardUsersTab from '../components/AdminDashboardUsersTab.vue'
 import { useAdminAssignments } from '../composables/useAdminAssignments'
 import { useAdminDashboardData } from '../composables/useAdminDashboardData'
 import { useAdminRealtimeRefresh } from '../composables/useAdminRealtimeRefresh'
@@ -30,6 +27,10 @@ import {
 } from '../utils/adminDashboardMappers'
 import { useAuthStore } from '../../../stores/auth'
 import { useNotificationStore } from '../../../stores/notifications'
+
+const AdminDashboardRequestsTab = defineAsyncComponent(() => import('../components/AdminDashboardRequestsTab.vue'))
+const AdminDashboardUsersTab = defineAsyncComponent(() => import('../components/AdminDashboardUsersTab.vue'))
+const AdminDashboardAssignmentsTab = defineAsyncComponent(() => import('../components/AdminDashboardAssignmentsTab.vue'))
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
