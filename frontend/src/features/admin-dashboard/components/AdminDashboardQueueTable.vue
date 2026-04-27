@@ -57,15 +57,15 @@ const props = defineProps({
 })
 
 const statusStyles = {
-  pending: 'border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-white/15 dark:bg-white/[0.08] dark:text-zinc-200',
-  in_progress: 'border border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-400/70 dark:bg-brand-500/15 dark:text-brand-100',
-  done: 'border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/15 dark:text-emerald-100',
+  pending: 'border border-[#d4d0dc] bg-[#f8f6fb] text-[#6b5f7a] dark:border-white/15 dark:bg-white/[0.08] dark:text-zinc-200',
+  in_progress: 'border border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-400/60 dark:bg-brand-500/15 dark:text-brand-100',
+  done: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/50 dark:bg-emerald-500/15 dark:text-emerald-100',
 }
 
 const attentionStyle = 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-100'
 
 const assignmentStyles = {
-  assigned: 'border border-zinc-300 bg-white text-zinc-700 dark:border-white/15 dark:bg-white/[0.05] dark:text-zinc-200',
+  assigned: 'border border-[#d4d0dc] bg-white text-[#6b5f7a] dark:border-white/15 dark:bg-white/[0.05] dark:text-zinc-200',
   unassigned: 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-100',
 }
 
