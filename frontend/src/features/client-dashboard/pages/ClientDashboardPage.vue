@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { fetchFiles } from '../../../services/fileService'
@@ -9,8 +9,9 @@ import ClientAssetCatalog from '../components/ClientAssetCatalog.vue'
 import ClientDashboardTopbar from '../components/ClientDashboardTopbar.vue'
 import ClientDeliveryHero from '../components/ClientDeliveryHero.vue'
 import ClientRequestHistoryPanel from '../components/ClientRequestHistoryPanel.vue'
-import ClientRequestSidebar from '../components/ClientRequestSidebar.vue'
 import AssignmentChatPanel from '../../chat/components/AssignmentChatPanel.vue'
+
+const ClientRequestSidebar = defineAsyncComponent(() => import('../components/ClientRequestSidebar.vue'))
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()

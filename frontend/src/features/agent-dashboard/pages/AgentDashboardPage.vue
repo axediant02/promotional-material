@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
+import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { downloadFile, fetchFiles } from '../../../services/fileService'
 import { fetchFolders } from '../../../services/folderService'
@@ -614,13 +615,14 @@ const signOut = async () => {
                 <div class="border-b border-white/10 px-5 py-5">
                   <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div class="min-w-0">
-                        <p class="text-[10px] uppercase tracking-[0.36em] text-[#9cdcfe]">Agent library</p>
-                        <h2 class="mt-2 text-2xl font-semibold text-white">Client folders</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                          Click a folder to enter it and view the client's available files.
-                        </p>
-                      </div>
+                      <DashboardSectionHeader
+                        eyebrow="Agent library"
+                        title="Client folders"
+                        description="Click a folder to enter it and view the client's available files."
+                        :badge="`${visibleFolderRows.length} folders`"
+                        tone="inverse"
+                        compact
+                      />
 
                       <div class="inline-flex rounded-xl border border-white/10 bg-black/20 p-1 self-start">
                         <button
@@ -797,13 +799,14 @@ const signOut = async () => {
                 <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
                   <div class="border-b border-white/10 px-5 py-5">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div class="min-w-0">
-                        <p class="text-[10px] uppercase tracking-[0.36em] text-[#9cdcfe]">Folder contents</p>
-                        <h2 class="mt-2 truncate text-2xl font-semibold text-white">{{ selectedFolder?.workspace ?? 'Client folder' }}</h2>
-                        <p class="mt-2 text-sm text-zinc-400">
-                          {{ selectedFolder?.clientName ?? 'Client workspace' }} / {{ selectedFolderFiles.length }} downloadable files.
-                        </p>
-                      </div>
+                      <DashboardSectionHeader
+                        eyebrow="Folder contents"
+                        :title="selectedFolder?.workspace ?? 'Client folder'"
+                        :description="`${selectedFolder?.clientName ?? 'Client workspace'} / ${selectedFolderFiles.length} downloadable files.`"
+                        badge="Download only"
+                        tone="inverse"
+                        compact
+                      />
                       <div class="inline-flex rounded-xl border border-white/10 bg-black/20 p-1 self-start">
                         <button
                           :class="[
@@ -951,9 +954,14 @@ const signOut = async () => {
             <section v-else class="space-y-5">
               <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
                 <div class="border-b border-white/10 px-5 py-5">
-                  <p class="text-[10px] uppercase tracking-[0.36em] text-[#9cdcfe]">Recent file activity</p>
-                  <h2 class="mt-2 text-2xl font-semibold text-white">Latest accessible files</h2>
-                  <p class="mt-2 text-sm text-zinc-400">Open the parent folder from the folder list when you need the full client file set.</p>
+                  <DashboardSectionHeader
+                    eyebrow="Recent file activity"
+                    title="Latest accessible files"
+                    description="Open the parent folder from the folder list when you need the full client file set."
+                    :badge="`${recentFiles.length} items`"
+                    tone="inverse"
+                    compact
+                  />
                 </div>
                 <div class="px-5 py-5">
                   <div class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">

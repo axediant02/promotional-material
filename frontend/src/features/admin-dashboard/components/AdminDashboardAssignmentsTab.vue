@@ -1,5 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
+import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 
 const props = defineProps({
   assignments: {
@@ -130,17 +131,13 @@ const removeAssignment = async (assignmentId) => {
 
 <template>
   <section class="space-y-6">
-    <header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div class="space-y-2">
-        <h2 class="text-2xl font-semibold text-ink dark:text-white">Assignments</h2>
-        <p class="text-sm text-muted dark:text-zinc-400">
-          Operational view for client-to-production ownership, reassignment, and immediate access control.
-        </p>
-      </div>
-      <div class="inline-flex self-start rounded-full border border-border/80 bg-surface/70 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-brand-100">
-        {{ assignmentCountLabel }}
-      </div>
-    </header>
+    <DashboardSectionHeader
+      eyebrow="Ownership map"
+      title="Assignments"
+      description="Manage client-to-production ownership, reassignment, and operational coverage without leaving the dashboard."
+      :badge="assignmentCountLabel"
+      compact
+    />
 
     <section class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1.85fr)]">
       <article class="pm-surface rounded-[1.85rem] p-6">
