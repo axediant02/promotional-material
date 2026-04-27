@@ -5,6 +5,7 @@ export const saveAdminAssignment = (payload) => api.post('/admin/assignments', p
 export const removeAdminAssignment = (assignmentId) => api.delete(`/admin/assignments/${assignmentId}`)
 export const fetchAdminRequests = () => api.get('/admin/requests')
 export const fetchAdminUsers = () => api.get('/admin/users')
+export const createAdminAgent = (payload) => api.post('/admin/agents', payload)
 export const updateAdminRequestDueDate = (requestId, payload) => api.patch(`/admin/requests/${requestId}`, payload)
 export const updateAdminUserRole = (userId, payload) => api.patch(`/admin/users/${userId}`, payload)
 export const fetchAdminActivityLogs = () => api.get('/admin/activity-logs')

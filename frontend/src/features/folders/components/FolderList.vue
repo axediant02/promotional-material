@@ -5,22 +5,22 @@ defineProps({
 </script>
 
 <template>
-  <section class="rounded-[1.75rem] border border-slate-200/70 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-    <div class="mb-4 flex items-center justify-between">
+  <section class="pm-surface rounded-[1.8rem] p-6 lg:p-8">
+    <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-semibold text-slate-950">Folders</h2>
-        <p class="text-sm text-slate-500">Structured client spaces for downloads and organization.</p>
+        <h2 class="text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">Folders</h2>
+        <p class="mt-2 text-sm text-muted dark:text-zinc-300">Structured client spaces for downloads and organization.</p>
       </div>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <article
         v-for="folder in folders"
         :key="folder.id"
-        class="rounded-[1.25rem] border border-slate-200 bg-slate-50/80 p-4"
+        class="rounded-[1.4rem] border border-border/80 bg-white/50 p-5 dark:border-white/10 dark:bg-black/10"
       >
-        <p class="text-sm font-semibold text-slate-950">{{ folder.name }}</p>
-        <p class="mt-2 text-xs uppercase tracking-[0.3em] text-slate-500">{{ folder.client?.name || 'Shared' }}</p>
+        <p class="text-sm font-semibold text-ink dark:text-white">{{ folder.name }}</p>
+        <p class="mt-2 text-[10px] uppercase tracking-[0.3em] text-muted dark:text-zinc-400">{{ folder.client?.name || 'Shared' }}</p>
       </article>
     </div>
   </section>

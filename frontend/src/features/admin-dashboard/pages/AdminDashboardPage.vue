@@ -12,6 +12,7 @@ import AdminDashboardStatGrid from '../components/AdminDashboardStatGrid.vue'
 import AdminDashboardUsersTab from '../components/AdminDashboardUsersTab.vue'
 import { adminDashboardFallbacks } from '../data/adminDashboardFallbacks'
 import {
+  createAdminAgent,
   fetchAdminActivityLogs,
   fetchAdminAssignments,
   fetchAdminRequests,
@@ -52,6 +53,7 @@ const requestDueDateSavingId = ref('')
 const requestDueDateErrors = ref({})
 const requestDueDateFeedback = ref({})
 const userRoleSavingId = ref('')
+const creatingAgent = ref(false)
 const liveRefreshQueued = ref(false)
 const liveRefreshInFlight = ref(false)
 
@@ -448,6 +450,28 @@ const handleUserRoleUpdate = async (userId, role) => {
   }
 }
 
+const handleAgentCreate = async (payload) => {
+  creatingAgent.value = true
+  error.value = ''
+
+  try {
+    const response = await createAdminAgent(payload)
+    const createdAgent = response.data.data.agent
+
+    usersPayload.value = [
+      createdAgent,
+      ...usersPayload.value,
+    ]
+
+    return createdAgent
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to create the agent account.'
+    throw err
+  } finally {
+    creatingAgent.value = false
+  }
+}
+
 const beginRequestDueDateEdit = (row) => {
   if (!row?.id || requestDueDateSavingId.value) {
     return
@@ -659,7 +683,9 @@ watch(
               v-else-if="activeItem === 'users'"
               :users="usersTabRows"
               :saving-user-id="userRoleSavingId"
+              :creating-agent="creatingAgent"
               :update-role-action="handleUserRoleUpdate"
+              :create-agent-action="handleAgentCreate"
             />
             <AdminDashboardAssignmentsTab
               v-else-if="activeItem === 'assignments'"
