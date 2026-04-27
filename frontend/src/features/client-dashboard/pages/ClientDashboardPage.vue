@@ -1,6 +1,7 @@
 <script setup>
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { fetchFiles } from '../../../services/fileService'
 import { fetchRequests } from '../../../services/requestService'
@@ -234,37 +235,42 @@ function formatBytes(bytes) {
     />
 
     <main class="flex flex-col xl:flex-row">
-      <section class="min-w-0 flex-1 p-6 sm:p-8 xl:p-10">
-        <ClientDeliveryHero
-          :folder="assignedFolder"
-          :user="authStore.user"
-          :eyebrow="heroContent.eyebrow"
-          :title="heroContent.title"
-          :accent="heroContent.accent"
-          :subtitle="heroContent.subtitle"
-          :action-label="heroContent.actionLabel"
-          :action-target="heroContent.actionTarget"
-          @action-click="handleHeroAction"
-        />
-
-        <ClientAssetCatalog
-          id="asset-catalog"
-          v-model:view-mode="viewMode"
-          :files="filteredFiles"
-          :loading="loading"
-          :search-query="searchQuery"
-          :folder-label="catalogSummary.folderLabel"
-          :last-updated-label="catalogSummary.lastUpdatedLabel"
-          :selected-file-id="selectedFile?.file_id ?? null"
-          @request-change="selectFileForRequest"
-          @clear-search="searchQuery = ''"
-          @open-request="openRequestDrawer('new_asset')"
-        />
+      <section v-if="loading" class="min-w-0 flex-1 p-6 sm:p-8 xl:p-10">
+        <DashboardOverviewSkeleton />
       </section>
 
-      <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(250,246,255,0.92),rgba(244,238,252,0.78))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]">
-        <div class="flex h-full flex-col gap-6">
-          <section id="request-panel" class="pm-surface rounded-[1.75rem] p-6">
+      <template v-else>
+        <section class="min-w-0 flex-1 p-6 sm:p-8 xl:p-10">
+          <ClientDeliveryHero
+            :folder="assignedFolder"
+            :user="authStore.user"
+            :eyebrow="heroContent.eyebrow"
+            :title="heroContent.title"
+            :accent="heroContent.accent"
+            :subtitle="heroContent.subtitle"
+            :action-label="heroContent.actionLabel"
+            :action-target="heroContent.actionTarget"
+            @action-click="handleHeroAction"
+          />
+
+          <ClientAssetCatalog
+            id="asset-catalog"
+            v-model:view-mode="viewMode"
+            :files="filteredFiles"
+            :loading="loading"
+            :search-query="searchQuery"
+            :folder-label="catalogSummary.folderLabel"
+            :last-updated-label="catalogSummary.lastUpdatedLabel"
+            :selected-file-id="selectedFile?.file_id ?? null"
+            @request-change="selectFileForRequest"
+            @clear-search="searchQuery = ''"
+            @open-request="openRequestDrawer('new_asset')"
+          />
+        </section>
+
+        <aside class="w-full border-t border-border/80 bg-[linear-gradient(180deg,rgba(250,246,255,0.92),rgba(244,238,252,0.78))] p-6 xl:w-[440px] xl:border-l xl:border-t-0 xl:p-8 2xl:w-[480px] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]">
+          <div class="flex h-full flex-col gap-6">
+            <section id="request-panel" class="pm-surface rounded-[1.75rem] p-6">
             <div class="flex items-start gap-4">
               <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-white">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,22 +298,23 @@ function formatBytes(bytes) {
             >
               {{ selectedFile ? 'Update selected asset' : 'Submit a request' }}
             </button>
-          </section>
+            </section>
 
-          <AssignmentChatPanel
-            :current-user-id="authStore.user?.user_id ?? ''"
-            title="Production chat"
-            description="Chat directly with your assigned production contact while the assignment is active."
-            empty-message="Chat will appear here once admin assigns your account to a production owner."
-          />
+            <AssignmentChatPanel
+              :current-user-id="authStore.user?.user_id ?? ''"
+              title="Production chat"
+              description="Chat directly with your assigned production contact while the assignment is active."
+              empty-message="Chat will appear here once admin assigns your account to a production owner."
+            />
 
-          <ClientRequestHistoryPanel
-            id="request-history"
-            :requests="requests"
-            :loading="requestsLoading"
-          />
-        </div>
-      </aside>
+            <ClientRequestHistoryPanel
+              id="request-history"
+              :requests="requests"
+              :loading="requestsLoading"
+            />
+          </div>
+        </aside>
+      </template>
     </main>
     <ClientRequestSidebar
       :open="isRequestDrawerOpen"

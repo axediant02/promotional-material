@@ -31,6 +31,7 @@ import { useNotificationStore } from '../../../stores/notifications'
 const AdminDashboardRequestsTab = defineAsyncComponent(() => import('../components/AdminDashboardRequestsTab.vue'))
 const AdminDashboardUsersTab = defineAsyncComponent(() => import('../components/AdminDashboardUsersTab.vue'))
 const AdminDashboardAssignmentsTab = defineAsyncComponent(() => import('../components/AdminDashboardAssignmentsTab.vue'))
+const AdminDashboardSignalsTab = defineAsyncComponent(() => import('../components/AdminDashboardSignalsTab.vue'))
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
@@ -218,7 +219,7 @@ onMounted(() => {
                 <AdminDashboardAttentionPanel :items="attentionItems" />
               </div>
 
-              <div class="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(20rem,0.92fr)]">
+              <div class="mt-8 space-y-8">
                 <AdminDashboardRequestsSection
                   :requests="queueRows.slice(0, 6)"
                   :editing-request-id="editingRequestId"
@@ -231,7 +232,9 @@ onMounted(() => {
                   :update-draft-action="updateRequestDueDateDraft"
                   :save-due-date-action="saveRequestDueDate"
                 />
-                <AdminDashboardSecondaryPanels :folders="folderCards" :insights="adminInsights" />
+                <div class="xl:max-w-3xl">
+                  <AdminDashboardSecondaryPanels :folders="folderCards" />
+                </div>
               </div>
             </template>
 
@@ -265,6 +268,10 @@ onMounted(() => {
               :deleting-id="assignmentDeletingId"
               :save-assignment-action="handleAssignmentSave"
               :remove-assignment-action="handleAssignmentRemove"
+            />
+            <AdminDashboardSignalsTab
+              v-else-if="activeItem === 'signals'"
+              :insights="adminInsights"
             />
           </template>
         </div>

@@ -17,6 +17,7 @@ const navigationItems = [
   { id: 'requests', label: 'All Requests', icon: 'list' },
   { id: 'users', label: 'Users & Roles', icon: 'user' },
   { id: 'assignments', label: 'Assignments', icon: 'link' },
+  { id: 'signals', label: 'Admin Activity', icon: 'pulse' },
 ]
 
 const initials = (props.currentUser?.name ?? 'Admin User')
@@ -73,6 +74,9 @@ const initials = (props.currentUser?.name ?? 'Admin User')
             <svg v-else-if="item.icon === 'user'" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="12" cy="8" r="4" />
               <path d="M5 20a7 7 0 0 1 14 0" />
+            </svg>
+            <svg v-else-if="item.icon === 'pulse'" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 12h4l2-4 4 8 2-4h6" />
             </svg>
             <svg v-else class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="m10 13 4-4" />
