@@ -48,7 +48,7 @@ export const useThemeStore = defineStore('theme', () => {
     const storedTheme =
       typeof window !== 'undefined' ? window.localStorage.getItem(THEME_STORAGE_KEY) : null
 
-    mode.value = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : detectSystemTheme()
+    mode.value = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'light'
     applyTheme(mode.value)
     initialized.value = true
   }

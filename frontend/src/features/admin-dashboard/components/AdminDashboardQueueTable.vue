@@ -43,17 +43,17 @@ defineProps({
 })
 
 const statusStyles = {
-  pending: 'bg-black/[0.04] text-zinc-700 dark:bg-white/[0.04] dark:text-zinc-300',
-  in_progress: 'bg-[#fbe1de] text-[#d73931] dark:bg-[#3b1715] dark:text-[#f06753]',
-  done: 'bg-[#fff0c8] text-[#9b6a00] dark:bg-[#3f3310] dark:text-[#f0b640]',
+  pending: 'border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
+  in_progress: 'border border-rose-300 bg-rose-100 text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300',
+  done: 'border border-amber-300 bg-amber-100 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/35 dark:text-amber-300',
 }
 
 const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
 </script>
 
 <template>
-  <section class="pm-surface overflow-hidden rounded-[1.9rem]">
-    <header class="hidden gap-4 border-b border-border/70 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:border-white/10 dark:text-zinc-400 lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_auto]">
+  <section class="pm-surface overflow-hidden rounded-[1.2rem] border border-border/80 shadow-sm dark:border-white/10">
+    <header class="hidden gap-4 border-b border-border/80 bg-white/70 px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-400 lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_minmax(9.5rem,10rem)]">
       <span>Request</span>
       <span>Client</span>
       <span>Type</span>
@@ -65,14 +65,14 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
     <article
       v-for="row in rows"
       :key="row.id"
-      class="border-b border-border/70 px-5 py-5 last:border-b-0 dark:border-white/10 lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_auto] lg:gap-4"
+      class="border-b border-border/80 px-5 py-5 transition hover:bg-zinc-50/70 last:border-b-0 dark:border-white/10 dark:hover:bg-white/[0.02] lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_minmax(9.5rem,10rem)] lg:items-start lg:gap-4"
     >
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-3">
           <p class="text-[11px] uppercase tracking-[0.24em] text-muted dark:text-zinc-400">#{{ row.reference }}</p>
           <span
             :class="[
-              'inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]',
+              'inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
               statusStyles[row.status] ?? statusStyles.pending,
             ]"
           >
@@ -80,25 +80,27 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
           </span>
           <span
             v-if="row.needsAttention"
-            class="inline-flex items-center rounded-full bg-brand-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-700 dark:bg-white/10 dark:text-white"
+            class="inline-flex items-center rounded-full border border-brand-300 bg-brand-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 dark:border-white/20 dark:bg-white/10 dark:text-white"
           >
             Needs attention
           </span>
         </div>
 
-        <h3 class="mt-3 truncate text-lg font-semibold text-ink dark:text-white">{{ row.title }}</h3>
-        <p class="mt-1 truncate text-sm text-muted dark:text-zinc-300">{{ row.folderName }}</p>
+        <div class="mt-3 border-t border-border/80 dark:border-white/10"></div>
+
+        <h3 class="mt-3 line-clamp-1 text-lg font-semibold text-ink dark:text-white">{{ row.title }}</h3>
+        <p class="mt-1 line-clamp-1 text-sm text-muted dark:text-zinc-300">{{ row.folderName }}</p>
       </div>
 
       <div class="mt-4 grid gap-3 text-sm lg:mt-0 lg:contents">
         <div class="lg:block">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted dark:text-zinc-400 lg:hidden">Client</p>
-          <p class="font-medium text-ink dark:text-white">{{ row.clientName }}</p>
+          <p class="pt-1 leading-6 font-medium text-ink dark:text-white">{{ row.clientName }}</p>
         </div>
 
         <div class="lg:block">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted dark:text-zinc-400 lg:hidden">Type</p>
-          <p class="text-muted dark:text-zinc-300">{{ row.requestTypeLabel }}</p>
+          <p class="pt-1 leading-6 text-muted dark:text-zinc-300">{{ row.requestTypeLabel }}</p>
         </div>
 
         <div class="lg:block">
@@ -122,7 +124,7 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
             </p>
           </template>
           <template v-else>
-            <p :class="[row.isMissingDueDate ? 'text-brand-700 dark:text-white' : 'text-muted dark:text-zinc-300']">{{ row.dueLabel }}</p>
+            <p :class="['pt-1 leading-6', row.isMissingDueDate ? 'font-medium text-brand-700 dark:text-brand-200' : 'text-muted dark:text-zinc-300']">{{ row.dueLabel }}</p>
             <p v-if="requestFeedback[row.id]" class="mt-2 text-xs text-emerald-700 dark:text-emerald-300">
               {{ requestFeedback[row.id] }}
             </p>
@@ -131,16 +133,16 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
 
         <div class="lg:block">
           <p class="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted dark:text-zinc-400 lg:hidden">State</p>
-          <p :class="[row.isUnassigned ? 'text-brand-700 dark:text-white' : 'text-muted dark:text-zinc-300']">
+          <p :class="['pt-1 leading-6', row.isUnassigned ? 'font-medium text-brand-700 dark:text-brand-200' : 'text-muted dark:text-zinc-300']">
             {{ row.isUnassigned ? 'Unassigned' : 'Assigned' }}
           </p>
         </div>
 
-        <div class="pt-1 lg:flex lg:justify-end lg:pt-0">
+        <div class="pt-1 lg:flex lg:justify-end lg:border-l lg:border-border/80 lg:pl-4 lg:pt-0 dark:lg:border-white/10">
           <div v-if="editingRequestId === row.id" class="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              class="inline-flex items-center rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:bg-white/10 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/15"
+              class="inline-flex items-center rounded-lg border border-border-strong bg-white px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/15 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/25 dark:hover:bg-white/10"
               :disabled="savingRequestId === row.id"
               @click="cancelEditAction(row.id)"
             >
@@ -148,7 +150,7 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
             </button>
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+              class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:border-white/30 dark:hover:bg-white/15"
               :disabled="savingRequestId === row.id"
               @click="saveDueDateAction(row.id)"
             >
@@ -161,7 +163,7 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
           <button
             v-else
             type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+            class="inline-flex w-full min-w-[8.5rem] items-center justify-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:border-white/30 dark:hover:bg-white/15 lg:w-auto"
             :disabled="Boolean(savingRequestId)"
             @click="startEditAction(row)"
           >
@@ -176,5 +178,14 @@ const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
         </div>
       </div>
     </article>
+
+    <div
+      v-if="!rows.length"
+      class="px-6 py-14 text-center"
+    >
+      <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">No requests</p>
+      <h3 class="mt-3 text-xl font-semibold text-ink dark:text-white">The request queue is clear.</h3>
+      <p class="mt-2 text-sm text-muted dark:text-zinc-300">New client requests will appear here for due-date assignment and triage.</p>
+    </div>
   </section>
 </template>
