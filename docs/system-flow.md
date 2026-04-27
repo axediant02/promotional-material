@@ -1,6 +1,6 @@
 # System Flow
 
-This document describes the current onboarding, governance, request, and file-delivery flow across the portal.
+This document describes the current onboarding, admin management, request, and file-delivery flow across the portal.
 
 ## 1. Registration
 1. A guest opens `/register`.
@@ -27,9 +27,9 @@ This document describes the current onboarding, governance, request, and file-de
 4. The request is stored against the client and the assigned folder.
 5. New requests begin with `pending` status.
 
-## 4. Admin governance
+## 4. Admin management
 1. Admin opens `/admin`.
-2. The dashboard loads governance data from:
+2. The dashboard loads admin data from:
    - `GET /dashboard`
    - `GET /admin/requests`
    - `GET /admin/activity-logs`
@@ -56,7 +56,7 @@ This document describes the current onboarding, governance, request, and file-de
 1. Clients can view, preview, and download files from their assigned folder only.
 2. Agents can browse and download files allowed by backend authorization.
 3. Production can browse assigned-client folders and deliver files through the production workspace.
-4. Admin governance is centered on requests, assignments, activity, and role oversight rather than direct file-portal operation.
+4. Admin management is centered on requests, assignments, activity, and role oversight rather than direct file-portal operation.
 
 ## 7. Recycle bin
 1. Production deletes a file.

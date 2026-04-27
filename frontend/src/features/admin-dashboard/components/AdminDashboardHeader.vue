@@ -38,14 +38,14 @@ const router = useRouter()
 
 const copyByTab = {
   overview: {
-    eyebrow: 'Governance Overview',
+    eyebrow: 'Admin Overview',
     title: 'Admin desk.',
-    description: 'Review new client requests, assign due dates, and keep governance decisions visible across the delivery system.',
+    description: 'Review new client requests, assign due dates, and keep admin decisions visible across the delivery system.',
     action: 'All requests',
   },
   requests: {
     eyebrow: 'Requests Queue',
-    title: 'Request governance.',
+    title: 'Request management.',
     description: 'Scan the full request queue, prioritize pending work, and identify missing due dates or assignment gaps.',
     action: 'Queue filters',
   },
@@ -100,7 +100,7 @@ const handleLogout = async () => {
         </button>
         <NotificationInboxPopover
           title="Notifications"
-          description="Live workflow updates for incoming client requests and governance changes."
+          description="Live workflow updates for incoming client requests and admin changes."
           :notifications="notifications"
           :loading="notificationsLoading"
           :unread-count="unreadCount"

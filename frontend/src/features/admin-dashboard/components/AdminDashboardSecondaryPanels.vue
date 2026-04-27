@@ -20,7 +20,7 @@ defineProps({
     <section class="pm-surface rounded-[1.75rem]">
       <header class="border-b border-border/70 px-5 py-4">
         <div class="flex items-center justify-between gap-4">
-          <h2 class="text-lg font-semibold text-ink dark:text-white">Governance signals</h2>
+          <h2 class="text-lg font-semibold text-ink dark:text-white">Admin signals</h2>
           <p class="rounded-full bg-brand-50 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-brand-700 dark:bg-white/10 dark:text-white">Live</p>
         </div>
       </header>

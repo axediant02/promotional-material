@@ -76,7 +76,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Login and registration
 - Client dashboard
 - Agent dashboard
-- Admin governance dashboard
+- Admin management dashboard
 - Production dashboard shell with nested folder browser/detail workspace
 - Request submission UI for clients
 - Realtime notification panels for admin, production, and client dashboards
@@ -136,7 +136,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
 - 2026-04-22: Registration creates the client account first, and the first submitted request creates the assigned folder.
 - 2026-04-21: The production shell route remains nested at `/production`, while `/agent-new` and `/admin-new` are compatibility redirects to canonical role routes.
-- 2026-04-22: Agreed UI role model is now admin governance, production execution, agent download-only operational access, and client own-folder request and download access.
+- 2026-04-22: Agreed UI role model is now admin management, production execution, agent download-only operational access, and client own-folder request and download access.
 - 2026-04-23: The production shell now keeps sidebar/topbar stable while nested folder routes swap only the folder workspace section.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend entry routes reflected in the live router and auth-store defaults.
 - 2026-04-24: Admin, production, and client dashboards now include realtime in-app notification panels powered by Echo subscriptions to private user channels.

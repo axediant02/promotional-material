@@ -69,7 +69,7 @@ const saveRole = async (user) => {
     <header class="flex flex-col gap-2">
       <h2 class="text-2xl font-semibold text-zinc-950 dark:text-white">Users &amp; roles</h2>
       <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        Governance view for role ownership, account state, and user access posture.
+        Admin view for role ownership, account state, and user access posture.
       </p>
     </header>
 

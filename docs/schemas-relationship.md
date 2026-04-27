@@ -130,6 +130,6 @@ Current assignment statuses in backend schema:
 - registration creates the client account first.
 - the first client request creates and assigns the folder.
 - `assigned_clients` is the client-to-production ownership model.
-- `due_date` belongs to admin-owned request governance, not client input.
+- `due_date` belongs to admin-owned request management, not client input.
 - request linkage should stay aligned with [system-flow.md](./system-flow.md) and [request-workflow.md](./request-workflow.md).
 - Do not assume every schema relationship is already fully exposed through APIs or screens.

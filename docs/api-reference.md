@@ -69,7 +69,7 @@ Most endpoints return:
   - client sees the assigned folder context
   - agent sees browse/download workspace context allowed by backend rules
   - production sees operational workspace data
-  - admin uses the dashboard payload alongside dedicated admin governance endpoints
+- admin uses the dashboard payload alongside dedicated admin management endpoints
 
 ## Notification routes
 
@@ -212,14 +212,14 @@ Most endpoints return:
   - changing status to `in_progress` or `done` creates a client notification
 
 ### `GET /admin/requests`
-- Purpose: fetch all requests for admin governance
+- Purpose: fetch all requests for admin management
 - Access:
   - admin only
 - Returns:
   - `requests`
 
 ### `GET /admin/users`
-- Purpose: fetch the complete backend-driven user list for admin governance
+- Purpose: fetch the complete backend-driven user list for admin management
 - Access:
   - admin only
 - Returns:
@@ -239,7 +239,7 @@ Most endpoints return:
   - the admin dashboard uses this route for inline due-date editing
   - due-date saves notify the target client
 
-## Admin governance routes
+## Admin management routes
 
 ### `GET /admin/assignments`
 - Purpose: fetch current client-to-production assignments and production user options

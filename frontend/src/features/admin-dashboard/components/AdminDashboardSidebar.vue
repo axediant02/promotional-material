@@ -35,7 +35,7 @@ const initials = (props.currentUser?.name ?? 'Admin User')
         <h1 class="mt-3 text-[2.4rem] font-semibold tracking-[-0.05em] text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
           Studio.
         </h1>
-        <p class="mt-1 text-sm text-white/65">Enterprise governance</p>
+        <p class="mt-1 text-sm text-white/65">Admin management</p>
         <div class="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-white dark:border-white/10 dark:text-white">
           <span class="text-[#d8c5ff]">&bull;</span>
           Admin Command

@@ -50,7 +50,7 @@ defineProps({
     <header class="flex flex-col gap-2">
       <h2 class="text-2xl font-semibold text-zinc-950 dark:text-white">All requests</h2>
       <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        Full request queue view for due-date review and governance triage.
+        Full request queue view for due-date review and admin triage.
       </p>
     </header>
 

@@ -80,10 +80,10 @@ Assignments live at the client level, not the individual request level.
 10. Production fetches requests for assigned clients through `GET /production/requests`.
 11. Production updates operational status through `PATCH /production/requests/{clientRequest}`.
 
-## Admin governance UI
-- The admin dashboard at `/admin` shows governance stats, the request queue, assignments, activity logs, and user-role context.
+## Admin management UI
+- The admin dashboard at `/admin` shows admin stats, the request queue, assignments, activity logs, and user-role context.
 - The request queue supports inline due-date editing.
-- Saving a due date updates the request queue and governance counts from the live API response.
+- Saving a due date updates the request queue and admin counts from the live API response.
 - Assignment management uses the live admin assignment routes instead of static placeholder data.
 - `/admin-new` remains only as a compatibility redirect to `/admin`.
 

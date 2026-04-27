@@ -24,7 +24,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - One client maps to one assigned folder.
 - Registration creates a default `client` account immediately.
 - The client's folder is created and assigned when the first request is submitted.
-- Admin owns governance:
+- Admin owns admin management:
   - client-to-production assignment
   - due dates
   - user-role changes
@@ -92,7 +92,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-20: Requests and assignments now exist as backend foundations, but the full workflow is still incomplete.
 - 2026-04-20: Backend naming is actively migrating toward `user_id` / `folder_id` / `file_id` / `folder_name` / `file_name` / `category`.
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
-- 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
+- 2026-04-22: Agreed role ownership is now explicit: admin handles admin management and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
 - 2026-04-24: In-app notifications are now persisted in the database and delivered in realtime through Reverb/Echo for admin request intake, production assignments, and client due-date or status changes.

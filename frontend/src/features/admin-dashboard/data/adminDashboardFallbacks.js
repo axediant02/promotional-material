@@ -1,5 +1,5 @@
 export const adminDashboardFallbacks = {
-  governanceInsights: [
+  adminInsights: [
     {
       id: 'role-changes',
       label: 'Role Changes Today',
@@ -16,7 +16,7 @@ export const adminDashboardFallbacks = {
       id: 'audit-trail',
       label: 'Recent Admin Actions',
       value: '7 entries',
-      detail: 'Fallback governance signal until a dedicated admin activity widget is available.',
+      detail: 'Fallback admin signal until a dedicated admin activity widget is available.',
     },
   ],
   users: [
@@ -26,7 +26,7 @@ export const adminDashboardFallbacks = {
       email: 'arthur@proweaver.com',
       role: 'admin',
       status: 'active',
-      note: 'Governance owner for role updates and due date review.',
+      note: 'Admin owner for role updates and due date review.',
     },
     {
       id: 'usr-002',

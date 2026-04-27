@@ -226,7 +226,7 @@ const stats = computed(() => {
     {
       label: 'Open Requests',
       value: openRequests.length,
-      help: 'Pending governance review',
+      help: 'Pending admin review',
       emphasis: true,
     },
     {
@@ -276,17 +276,17 @@ const attentionItems = computed(() => {
       value: pendingReview.length,
       badge: 'Queue',
       tone: pendingReview.length ? 'warning' : 'default',
-      detail: 'Queue items still waiting on an admin decision, due date, or governance follow-through.',
+      detail: 'Queue items still waiting on an admin decision, due date, or admin follow-through.',
     },
   ]
 })
 
-const governanceInsights = computed(() => {
+const adminInsights = computed(() => {
   if (!activityLogs.value.length) {
-    return adminDashboardFallbacks.governanceInsights
+    return adminDashboardFallbacks.adminInsights
   }
 
-  return adminDashboardFallbacks.governanceInsights.map((item, index) => {
+  return adminDashboardFallbacks.adminInsights.map((item, index) => {
     const log = activityLogs.value[index]
 
     if (!log) {
@@ -310,7 +310,7 @@ const usersTabRows = computed(() =>
     status: user.status ?? '',
     note: user.user_id === currentUser.value?.user_id
       ? 'Signed-in admin account. Self role changes stay disabled.'
-      : 'Live backend-driven account record for admin governance.',
+      : 'Live backend-driven account record for admin management.',
     isCurrentUser: user.user_id === currentUser.value?.user_id,
   })).sort((left, right) => {
     if (left.isCurrentUser && !right.isCurrentUser) {
@@ -352,7 +352,7 @@ const assignmentsTabRows = computed(() =>
       status: assignment.status ?? 'pending',
       workload: openRequests ? `${openRequests} active ${openRequests === 1 ? 'request' : 'requests'}` : 'No open requests',
       note: relatedRequests.length
-        ? `Governance currently tracks ${relatedRequests.length} total ${relatedRequests.length === 1 ? 'request' : 'requests'} for this client.`
+        ? `Admin tracking currently includes ${relatedRequests.length} total ${relatedRequests.length === 1 ? 'request' : 'requests'} for this client.`
         : 'Assignment is active, but no request records are currently visible in the admin queue.',
     }
   })
@@ -638,7 +638,7 @@ watch(
                   :update-draft-action="updateRequestDueDateDraft"
                   :save-due-date-action="saveRequestDueDate"
                 />
-                <AdminDashboardSecondaryPanels :folders="folderCards" :insights="governanceInsights" />
+                <AdminDashboardSecondaryPanels :folders="folderCards" :insights="adminInsights" />
               </div>
             </template>
 

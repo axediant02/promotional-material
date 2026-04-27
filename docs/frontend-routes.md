@@ -14,7 +14,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 | `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Production shell parent route |
 | `/production/folders` | `production-folder-index` | `production` only | `ProductionFolderIndexPage.vue` | Assigned-folder browser inside the production shell |
 | `/production/folders/:folderId` | `production-folder-detail` | `production` only | `ProductionFolderFilesPage.vue` | Selected-folder file view inside the production shell |
-| `/admin` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Canonical admin governance dashboard route |
+| `/admin` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Canonical admin management dashboard route |
 | `/agent-new` | redirect | `agent` only | n/a | Legacy redirect to `/agent` |
 | `/admin-new` | redirect | `admin` only | n/a | Legacy redirect to `/admin` |
 
@@ -97,7 +97,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - `/admin` and `/agent` are the canonical role entry routes.
 - `/admin-new` and `/agent-new` remain as compatibility redirects.
 - The agreed role model in the frontend is:
-  - `admin` for governance
+- `admin` for admin management
   - `production` for execution
   - `agent` for browse/download access
   - `client` for requests and own-folder access

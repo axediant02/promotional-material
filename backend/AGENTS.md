@@ -86,7 +86,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 
 ## Planned Areas Still Incomplete
 - Full assignment-management workflow
-- End-to-end assignment workflow polish across governance, execution, and docs
+- End-to-end assignment workflow polish across admin management, execution, and docs
 - Compatibility cleanup for legacy route references that previously blurred `admin` and `production`
 
 ## Workflow
