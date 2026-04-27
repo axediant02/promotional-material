@@ -101,10 +101,13 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Reuse the current visual language first: rounded panels, soft shadows, slate/orange palette, Tailwind utilities.
 - Preserve responsive behavior.
 - Prefer consistent, intentional UI over one-off styling.
+- For UI/UX design, redesign, polish, or art-direction prompts, read and apply `docs/ui-ux-design-policy.md` before editing the interface.
+- Enforce that policy's anti-generic rules during implementation, especially card layering, border contrast, icon usage, color discipline, radius consistency, motion, and tokenized styling.
 
 ## Workflow
 - Check the router, auth store, and relevant service modules before changing navigation or access behavior.
 - Use `docs/frontend-routes.md`, `docs/system-flow.md`, and `docs/request-workflow.md` when route or onboarding intent is unclear.
+- Use `docs/ui-ux-design-policy.md` whenever the request is about UI design, UX design, dashboard polish, layout refreshes, visual redesigns, or component styling.
 - Preserve feature-based layout.
 - Add new pages inside the owning feature folder.
 - Add shared components only when reuse is real.
