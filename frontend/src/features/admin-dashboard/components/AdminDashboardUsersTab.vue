@@ -26,10 +26,10 @@ const props = defineProps({
 })
 
 const roleStyles = {
-  admin: 'bg-[#fbe1de] text-[#d73931] dark:bg-[#3b1715] dark:text-[#f06753]',
-  production: 'bg-[#e7eef9] text-[#2d5b9d] dark:bg-[#162235] dark:text-[#91b7ff]',
-  agent: 'bg-[#e8f4eb] text-[#2f7a45] dark:bg-[#15281d] dark:text-[#77d18f]',
-  client: 'bg-black/[0.04] text-zinc-700 dark:bg-white/[0.04] dark:text-zinc-300',
+  admin: 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/40 dark:bg-red-500/15 dark:text-red-200',
+  production: 'border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/40 dark:bg-blue-500/15 dark:text-blue-200',
+  agent: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-200',
+  client: 'border border-[#d4d0dc] bg-[#f8f6fb] text-[#6b5f7a] dark:border-white/15 dark:bg-white/[0.06] dark:text-zinc-300',
 }
 
 const roleDrafts = reactive({})

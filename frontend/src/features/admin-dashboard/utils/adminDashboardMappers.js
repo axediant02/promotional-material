@@ -108,10 +108,14 @@ export const mapClientLookup = ({ folders = [], requests = [], assignments = [] 
   return map
 }
 
-export const mapQueueRows = ({ requests = [], folderLookup, assignedClientIds }) =>
+export const mapQueueRows = ({ requests = [], folderLookup, assignedClientIds, assignments = [], productionUserLookup }) =>
   requests.slice(0, 12).map((request, index) => {
     const requestId = request.request_id ?? ''
     const folder = folderLookup.get(request.folder_id)
+    const assignment = assignments.find((item) => item.client_id === request.client_id)
+    const assignedProduction = assignment?.production_id
+      ? productionUserLookup.get(assignment.production_id)
+      : null
     const reference = requestId ? requestId.slice(0, 8).toUpperCase() : `REQ-${index + 1000}`
     const clientName = folder?.client?.name ?? folder?.folder_name ?? `Client ${index + 1}`
     const folderName = folder?.folder_name ?? folder?.name ?? request.folder_id ?? 'Unassigned folder'
@@ -131,6 +135,7 @@ export const mapQueueRows = ({ requests = [], folderLookup, assignedClientIds })
       dueDate: request.due_date ?? '',
       dueLabel: formatShortMonthDay(request.due_date),
       isUnassigned,
+      assignedProductionName: assignedProduction?.name ?? '',
       isMissingDueDate,
       needsAttention,
     }

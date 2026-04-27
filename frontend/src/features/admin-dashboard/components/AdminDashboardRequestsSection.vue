@@ -43,12 +43,28 @@ defineProps({
     type: Function,
     required: true,
   },
+  showHeader: {
+    type: Boolean,
+    default: true,
+  },
+  emptyEyebrow: {
+    type: String,
+    default: 'No requests',
+  },
+  emptyTitle: {
+    type: String,
+    default: 'The request queue is clear.',
+  },
+  emptyDescription: {
+    type: String,
+    default: 'New client requests will appear here for due-date assignment and triage.',
+  },
 })
 </script>
 
 <template>
   <section>
-    <div class="mb-4">
+    <div v-if="showHeader" class="mb-4">
       <DashboardSectionHeader
         eyebrow="Priority queue"
         title="All requests"
@@ -69,6 +85,9 @@ defineProps({
       :cancel-edit-action="cancelEditAction"
       :update-draft-action="updateDraftAction"
       :save-due-date-action="saveDueDateAction"
+      :empty-eyebrow="emptyEyebrow"
+      :empty-title="emptyTitle"
+      :empty-description="emptyDescription"
     />
   </section>
 </template>

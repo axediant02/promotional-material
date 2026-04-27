@@ -4,7 +4,6 @@ import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverv
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
 import AdminDashboardHeader from '../components/AdminDashboardHeader.vue'
 import AdminDashboardRequestsSection from '../components/AdminDashboardRequestsSection.vue'
-import AdminDashboardSecondaryPanels from '../components/AdminDashboardSecondaryPanels.vue'
 import AdminDashboardSidebar from '../components/AdminDashboardSidebar.vue'
 import AdminDashboardStatGrid from '../components/AdminDashboardStatGrid.vue'
 import { useAdminAssignments } from '../composables/useAdminAssignments'
@@ -31,6 +30,7 @@ import { useNotificationStore } from '../../../stores/notifications'
 const AdminDashboardRequestsTab = defineAsyncComponent(() => import('../components/AdminDashboardRequestsTab.vue'))
 const AdminDashboardUsersTab = defineAsyncComponent(() => import('../components/AdminDashboardUsersTab.vue'))
 const AdminDashboardAssignmentsTab = defineAsyncComponent(() => import('../components/AdminDashboardAssignmentsTab.vue'))
+const AdminDashboardClientFoldersTab = defineAsyncComponent(() => import('../components/AdminDashboardClientFoldersTab.vue'))
 const AdminDashboardSignalsTab = defineAsyncComponent(() => import('../components/AdminDashboardSignalsTab.vue'))
 
 const authStore = useAuthStore()
@@ -82,6 +82,8 @@ const queueRows = computed(() => mapQueueRows({
   requests: requestsPayload.value ?? [],
   folderLookup: folderLookup.value,
   assignedClientIds: assignedClientIds.value,
+  assignments: assignmentsPayload.value ?? [],
+  productionUserLookup: productionUserLookup.value,
 }))
 
 const folderCards = computed(() => mapFolderCards({
@@ -232,9 +234,6 @@ onMounted(() => {
                   :update-draft-action="updateRequestDueDateDraft"
                   :save-due-date-action="saveRequestDueDate"
                 />
-                <div class="xl:max-w-3xl">
-                  <AdminDashboardSecondaryPanels :folders="folderCards" />
-                </div>
               </div>
             </template>
 
@@ -268,6 +267,10 @@ onMounted(() => {
               :deleting-id="assignmentDeletingId"
               :save-assignment-action="handleAssignmentSave"
               :remove-assignment-action="handleAssignmentRemove"
+            />
+            <AdminDashboardClientFoldersTab
+              v-else-if="activeItem === 'folders'"
+              :folders="folderCards"
             />
             <AdminDashboardSignalsTab
               v-else-if="activeItem === 'signals'"
