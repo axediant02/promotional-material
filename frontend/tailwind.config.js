@@ -5,6 +5,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        system: {
+          primary: 'rgb(var(--pm-sys-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--pm-sys-secondary) / <alpha-value>)',
+          tertiary: 'rgb(var(--pm-sys-tertiary) / <alpha-value>)',
+          quaternary: 'rgb(var(--pm-sys-quaternary) / <alpha-value>)',
+        },
         brand: {
           50: 'rgb(var(--pm-brand-50) / <alpha-value>)',
           100: 'rgb(var(--pm-brand-100) / <alpha-value>)',
