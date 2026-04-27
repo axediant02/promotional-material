@@ -10,7 +10,15 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  creatingAgent: {
+    type: Boolean,
+    default: false,
+  },
   updateRoleAction: {
+    type: Function,
+    required: true,
+  },
+  createAgentAction: {
     type: Function,
     required: true,
   },
@@ -26,6 +34,15 @@ const roleStyles = {
 const roleDrafts = reactive({})
 const rowErrors = reactive({})
 const rowFeedback = reactive({})
+const agentForm = reactive({
+  name: '',
+  email: '',
+  password: '',
+})
+const agentFormErrors = reactive({})
+const agentFormFeedback = reactive({
+  message: '',
+})
 
 watch(
   () => props.users,
@@ -62,6 +79,41 @@ const saveRole = async (user) => {
       ?? 'Unable to update the user role.'
   }
 }
+
+const resetAgentFormErrors = () => {
+  agentFormErrors.name = ''
+  agentFormErrors.email = ''
+  agentFormErrors.password = ''
+  agentFormErrors.form = ''
+  agentFormFeedback.message = ''
+}
+
+const createAgent = async () => {
+  if (props.creatingAgent) {
+    return
+  }
+
+  resetAgentFormErrors()
+
+  try {
+    await props.createAgentAction({
+      name: agentForm.name.trim(),
+      email: agentForm.email.trim(),
+      password: agentForm.password,
+    })
+
+    agentForm.name = ''
+    agentForm.email = ''
+    agentForm.password = ''
+    agentFormFeedback.message = 'Agent account created.'
+  } catch (error) {
+    const errors = error.response?.data?.errors ?? {}
+    agentFormErrors.name = errors.name?.[0] ?? ''
+    agentFormErrors.email = errors.email?.[0] ?? ''
+    agentFormErrors.password = errors.password?.[0] ?? ''
+    agentFormErrors.form = error.response?.data?.message ?? 'Unable to create the agent account.'
+  }
+}
 </script>
 
 <template>
@@ -72,6 +124,65 @@ const saveRole = async (user) => {
         Admin view for role ownership, account state, and user access posture.
       </p>
     </header>
+
+    <form
+      class="grid gap-4 border border-black/10 bg-white/65 p-5 dark:border-white/10 dark:bg-[#181818] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(12rem,0.8fr)_auto]"
+      @submit.prevent="createAgent"
+    >
+      <div>
+        <label for="agent-name" class="text-[10px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Agent name</label>
+        <input
+          id="agent-name"
+          v-model="agentForm.name"
+          class="pm-input mt-2 w-full rounded-xl px-3 py-2 text-sm"
+          type="text"
+          autocomplete="name"
+          placeholder="Agent User"
+          :disabled="creatingAgent"
+        >
+        <p v-if="agentFormErrors.name" class="mt-2 text-xs text-red-600 dark:text-red-300">{{ agentFormErrors.name }}</p>
+      </div>
+
+      <div>
+        <label for="agent-email" class="text-[10px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Email</label>
+        <input
+          id="agent-email"
+          v-model="agentForm.email"
+          class="pm-input mt-2 w-full rounded-xl px-3 py-2 text-sm"
+          type="email"
+          autocomplete="email"
+          placeholder="agent@example.com"
+          :disabled="creatingAgent"
+        >
+        <p v-if="agentFormErrors.email" class="mt-2 text-xs text-red-600 dark:text-red-300">{{ agentFormErrors.email }}</p>
+      </div>
+
+      <div>
+        <label for="agent-password" class="text-[10px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Password</label>
+        <input
+          id="agent-password"
+          v-model="agentForm.password"
+          class="pm-input mt-2 w-full rounded-xl px-3 py-2 text-sm"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Minimum 8 characters"
+          :disabled="creatingAgent"
+        >
+        <p v-if="agentFormErrors.password" class="mt-2 text-xs text-red-600 dark:text-red-300">{{ agentFormErrors.password }}</p>
+      </div>
+
+      <div class="flex flex-col justify-end gap-2">
+        <button
+          type="submit"
+          class="inline-flex justify-center rounded-full border border-border bg-white/70 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-700 transition hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/15"
+          :disabled="creatingAgent"
+        >
+          {{ creatingAgent ? 'Creating...' : 'Create agent' }}
+        </button>
+        <p v-if="agentFormErrors.form" class="text-xs text-red-600 dark:text-red-300">{{ agentFormErrors.form }}</p>
+        <p v-else-if="agentFormFeedback.message" class="text-xs text-emerald-700 dark:text-emerald-300">{{ agentFormFeedback.message }}</p>
+      </div>
+    </form>
 
     <section class="overflow-hidden border border-black/10 bg-white/65 dark:border-white/10 dark:bg-[#181818]">
       <header class="hidden grid-cols-[minmax(0,1.25fr)_minmax(9rem,0.8fr)_minmax(7rem,0.6fr)_minmax(0,1fr)_auto] gap-4 border-b border-black/10 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:border-white/10 lg:grid">

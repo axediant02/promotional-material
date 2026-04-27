@@ -143,16 +143,22 @@ class FileController extends Controller
     {
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorizeFile($file, request()->user());
+        $disk = Storage::disk($file->storage_disk);
 
-        return Storage::disk($file->storage_disk)->download($file->storage_path, $file->file_name);
+        abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
+
+        return $disk->download($file->storage_path, $file->file_name);
     }
 
     public function preview(string $id)
     {
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorizeFile($file, request()->user());
+        $disk = Storage::disk($file->storage_disk);
 
-        return Storage::disk($file->storage_disk)->response($file->storage_path, $file->file_name, [
+        abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
+
+        return $disk->response($file->storage_path, $file->file_name, [
             'Content-Type' => $this->resolvePreviewMimeType($file->category),
         ]);
     }
