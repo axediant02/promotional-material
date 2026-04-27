@@ -73,14 +73,16 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 1. `AGENTS.md` at repo root
 2. `backend/AGENTS.md`
 3. `frontend/AGENTS.md`
-4. `docs/system-flow.md`
-5. `docs/request-workflow.md`
-6. remaining references in `docs/`
+4. `docs/ui-ux-design-policy.md` for UI/UX design work
+5. `docs/system-flow.md`
+6. `docs/request-workflow.md`
+7. remaining references in `docs/`
 
 ## Workflow
 - Clarify only when access rules, contracts, or docs conflict in a risky way.
 - For cross-stack changes, keep backend and frontend behavior aligned.
 - Preserve one-client-one-folder access unless requirements change.
+- For frontend UI/UX prompts, route implementation through `docs/ui-ux-design-policy.md` in addition to the frontend guide.
 - For TDD work, write or approve the test first, then keep the test stable while adapting the code to satisfy it.
 - Verify:
   - backend changes: `cd backend && php artisan test`
