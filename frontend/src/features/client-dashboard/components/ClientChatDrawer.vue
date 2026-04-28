@@ -1,13 +1,6 @@
 <script setup>
-import Echo from 'laravel-echo'
-import Pusher from 'pusher-js'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import {
-  fetchChatThread,
-  fetchChatThreads,
-  markChatThreadAsRead,
-  sendChatMessage,
-} from '../../../services/chatService'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useAssignmentChat } from '../../chat/composables/useAssignmentChat'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -17,62 +10,32 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'unread-count-change'])
 
-const threads = ref([])
-const loading = ref(false)
-const threadLoading = ref(false)
-const sendError = ref('')
-const messageDraft = ref('')
-const sending = ref(false)
-const echo = ref(null)
-const userChannel = ref(null)
-const userChannelName = ref('')
-const activeChannel = ref(null)
-const activeChannelName = ref('')
 const panelRef = ref(null)
 const threadScrollRef = ref(null)
-const selectedThreadId = ref('')
 
-const selectedThread = computed(() => threads.value.find((thread) => thread.thread_id === selectedThreadId.value) ?? null)
-const selectedThreadArchived = computed(() => selectedThread.value?.status === 'archived')
-
-const resolveBroadcastAuthEndpoint = () => {
-  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api'
-  return apiUrl.replace(/\/$/, '') + '/broadcasting/auth'
-}
-
-const normalizeMessage = (message) => ({
-  message_id: message?.message_id ?? '',
-  thread_id: message?.thread_id ?? '',
-  sender_user_id: message?.sender_user_id ?? '',
-  sender_name: message?.sender_name ?? 'User',
-  sender_role: message?.sender_role ?? '',
-  body: message?.body ?? '',
-  created_at: message?.created_at ?? new Date().toISOString(),
-  is_own_message: message?.sender_user_id === props.currentUserId,
+const chat = useAssignmentChat(props, {
+  scrollContainerRef: threadScrollRef,
 })
 
-const normalizeThread = (thread) => ({
-  thread_id: thread?.thread_id ?? '',
-  status: thread?.status ?? 'active',
-  last_message_at: thread?.last_message_at ?? null,
-  last_message_preview: thread?.last_message_preview ?? 'No messages yet.',
-  unread_count: Number(thread?.unread_count ?? 0),
-  counterpart: thread?.counterpart ?? null,
-  messages: (thread?.messages ?? []).map(normalizeMessage),
-})
+const {
+  threads,
+  selectedThreadId,
+  selectedThread,
+  selectedThreadArchived,
+  messageDraft,
+  sending,
+  loading,
+  threadLoading,
+  sendError,
+  openThread,
+  sendMessage,
+  loadThreads,
+  initialize,
+} = chat
 
-const formatTimestamp = (value) => {
-  if (!value) {
-    return 'Just now'
-  }
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(value))
-}
+const totalUnreadCount = computed(() =>
+  threads.value.reduce((total, thread) => total + Number(thread.unread_count ?? 0), 0)
+)
 
 const getAvatarLabel = (name) => {
   if (!name) {
@@ -87,66 +50,9 @@ const getAvatarLabel = (name) => {
     .join('')
 }
 
-const ensureEcho = () => {
-  const token = localStorage.getItem('pm_token')
-
-  if (!token) {
-    return null
-  }
-
-  if (echo.value) {
-    return echo.value
-  }
-
-  window.Pusher = Pusher
-
-  const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'http'
-  const host = import.meta.env.VITE_REVERB_HOST ?? '127.0.0.1'
-  const port = Number(import.meta.env.VITE_REVERB_PORT ?? 8080)
-
-  echo.value = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY ?? 'promotional-materials-key',
-    wsHost: host,
-    wsPort: port,
-    wssPort: port,
-    forceTLS: scheme === 'https',
-    enabledTransports: ['ws', 'wss'],
-    authEndpoint: resolveBroadcastAuthEndpoint(),
-    auth: {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  })
-
-  return echo.value
-}
-
-const canLeaveEchoChannel = () => echo.value?.connector?.pusher?.connection?.state === 'connected'
-
-const leaveActiveChannel = () => {
-  const channelName = activeChannelName.value
-
-  activeChannel.value = null
-  activeChannelName.value = ''
-
-  if (channelName && canLeaveEchoChannel()) {
-    echo.value.leave(channelName)
-  }
-}
-
-const disconnectRealtime = () => {
-  activeChannel.value = null
-  activeChannelName.value = ''
-  userChannel.value = null
-  userChannelName.value = ''
-
-  if (echo.value) {
-    echo.value.disconnect()
-    echo.value = null
-  }
+const getAvatarColor = (index) => {
+  const colors = ['bg-rose-500', 'bg-violet-500', 'bg-sky-500', 'bg-slate-500']
+  return colors[index % colors.length]
 }
 
 const handleDocumentPointerDown = (event) => {
@@ -167,300 +73,45 @@ const handleDocumentKeydown = (event) => {
   }
 }
 
-const upsertThread = (incomingThread) => {
-  const normalized = normalizeThread(incomingThread)
-  const hasMessagePayload = Object.prototype.hasOwnProperty.call(incomingThread ?? {}, 'messages')
-    && Array.isArray(incomingThread.messages)
-  const nextThreads = [...threads.value]
-  const existingIndex = nextThreads.findIndex((item) => item.thread_id === normalized.thread_id)
-
-  if (existingIndex >= 0) {
-    const existingThread = nextThreads[existingIndex]
-
-    nextThreads.splice(existingIndex, 1, {
-      ...existingThread,
-      ...normalized,
-      messages: hasMessagePayload ? normalized.messages : existingThread.messages,
-    })
-  } else {
-    nextThreads.unshift(normalized)
-  }
-
-  threads.value = nextThreads.sort((left, right) => {
-    if (left.status !== right.status) {
-      return left.status === 'active' ? -1 : 1
-    }
-
-    return new Date(right.last_message_at ?? 0).getTime() - new Date(left.last_message_at ?? 0).getTime()
-  })
-}
-
-const upsertMessageIntoThread = (thread, incomingMessage) => {
-  const existingIndex = incomingMessage.message_id
-    ? thread.messages.findIndex((message) => message.message_id === incomingMessage.message_id)
-    : -1
-
-  if (existingIndex >= 0) {
-    thread.messages = thread.messages.map((message, index) =>
-      index === existingIndex ? { ...message, ...incomingMessage } : message
-    )
-
-    return false
-  }
-
-  thread.messages = [...thread.messages, incomingMessage]
-
-  return true
-}
-
-const scrollMessagesToBottom = async () => {
-  await nextTick()
-  await new Promise((resolve) => requestAnimationFrame(resolve))
-
-  if (threadScrollRef.value) {
-    threadScrollRef.value.scrollTop = threadScrollRef.value.scrollHeight
-  }
-}
-
-const emitUnreadCount = () => {
-  emit(
-    'unread-count-change',
-    threads.value.reduce((total, thread) => total + Number(thread.unread_count ?? 0), 0),
-  )
-}
-
-const loadThreads = async () => {
-  if (!props.currentUserId) {
-    threads.value = []
-    return
-  }
-
-  loading.value = true
-
-  try {
-    const response = await fetchChatThreads()
-    const refreshedThreadIds = new Set()
-
-    for (const thread of response.data.data.threads ?? []) {
-      refreshedThreadIds.add(thread?.thread_id ?? '')
-      upsertThread(thread)
-    }
-
-    threads.value = threads.value.filter((thread) => refreshedThreadIds.has(thread.thread_id))
-  } catch (error) {
-    console.error('Failed to load chat threads:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadSelectedThread = async (threadId) => {
-  if (!threadId) {
-    return
-  }
-
-  threadLoading.value = true
-  sendError.value = ''
-
-  leaveActiveChannel()
-
-  try {
-    const response = await fetchChatThread(threadId)
-    upsertThread(response.data.data.thread)
-    await markChatThreadAsRead(threadId)
-
-    const echoInstance = ensureEcho()
-    if (echoInstance) {
-      activeChannelName.value = `assignment-chat.${threadId}`
-      activeChannel.value = echoInstance.private(activeChannelName.value)
-      activeChannel.value.listen('.assignment-chat.message.created', async (payload) => {
-        if (!payload?.message) {
-          return
-        }
-
-        const incomingMessage = normalizeMessage(payload.message)
-        const currentThread = threads.value.find((thread) => thread.thread_id === threadId)
-
-        if (!currentThread) {
-          return
-        }
-
-        const messageWasAdded = upsertMessageIntoThread(currentThread, incomingMessage)
-
-        currentThread.last_message_at = incomingMessage.created_at
-        currentThread.last_message_preview = incomingMessage.body
-        currentThread.unread_count = incomingMessage.is_own_message ? 0 : currentThread.unread_count + (messageWasAdded ? 1 : 0)
-        upsertThread(currentThread)
-
-        if (!incomingMessage.is_own_message) {
-          try {
-            await markChatThreadAsRead(threadId)
-            await loadThreads()
-          } catch {
-            // Keep failures quiet in the launcher.
-          }
-        }
-
-        await scrollMessagesToBottom()
-      })
-    }
-
-  } catch (err) {
-    sendError.value = err.response?.data?.message ?? 'Unable to load this conversation.'
-  } finally {
-    threadLoading.value = false
-    await scrollMessagesToBottom()
-  }
-}
-
-const ensurePayloadThread = async (threadId) => {
-  if (!threadId) {
-    return null
-  }
-
-  const existingThread = threads.value.find((item) => item.thread_id === threadId) ?? null
-  if (existingThread) {
-    return existingThread
-  }
-
-  const response = await fetchChatThread(threadId)
-  upsertThread(response.data.data.thread)
-  return threads.value.find((item) => item.thread_id === threadId) ?? null
-}
-
-const handleIncomingMessagePayload = async (payload) => {
-  if (!payload?.message) {
-    return
-  }
-
-  const incomingMessage = normalizeMessage(payload.message)
-  const threadId = payload.thread_id ?? incomingMessage.thread_id
-  const currentThread = await ensurePayloadThread(threadId)
-
-  if (!currentThread) {
-    return
-  }
-
-  const isSelectedThread = selectedThreadId.value === currentThread.thread_id
-  const messageWasAdded = upsertMessageIntoThread(currentThread, incomingMessage)
-
-  currentThread.last_message_at = incomingMessage.created_at
-  currentThread.last_message_preview = incomingMessage.body
-  currentThread.unread_count = incomingMessage.is_own_message || isSelectedThread
-    ? 0
-    : currentThread.unread_count + (messageWasAdded ? 1 : 0)
-  upsertThread(currentThread)
-
-  if (isSelectedThread && !incomingMessage.is_own_message) {
-    try {
-      await markChatThreadAsRead(currentThread.thread_id)
-    } catch {
-      // Keep failures quiet in the launcher.
-    }
-  }
-
-  if (isSelectedThread) {
-    await scrollMessagesToBottom()
-  }
-}
-
-const subscribeToUserChat = () => {
-  if (userChannel.value || !props.currentUserId) {
-    return
-  }
-
-  const echoInstance = ensureEcho()
-  if (!echoInstance) {
-    return
-  }
-
-  userChannelName.value = `assignment-chat-user.${props.currentUserId}`
-  userChannel.value = echoInstance.private(userChannelName.value)
-  userChannel.value.listen('.assignment-chat.message.created', (payload) => {
-    void handleIncomingMessagePayload(payload).catch(() => {})
-  })
-}
-
-const openThread = async (threadId) => {
-  if (!threadId) {
-    return
-  }
-
-  selectedThreadId.value = threadId
-  await loadSelectedThread(threadId)
-}
-
 const backToInbox = () => {
   selectedThreadId.value = ''
-  leaveActiveChannel()
+  chat.subscribeToUserChat()
 }
 
-const sendMessage = async () => {
-  const body = messageDraft.value.trim()
+onMounted(() => {
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+  document.addEventListener('keydown', handleDocumentKeydown)
 
-  if (!body || !selectedThread.value || selectedThreadArchived.value) {
-    return
-  }
+  subscribeToUserChatIfOpen()
+})
 
-  sending.value = true
-  sendError.value = ''
-
-  try {
-    const response = await sendChatMessage(selectedThread.value.thread_id, { body })
-    const message = normalizeMessage(response.data.data.message)
-    const currentThread = selectedThread.value
-
-    upsertMessageIntoThread(currentThread, message)
-    currentThread.last_message_at = message.created_at
-    currentThread.last_message_preview = message.body
-    currentThread.unread_count = 0
-    upsertThread(currentThread)
-
-    messageDraft.value = ''
-    await scrollMessagesToBottom()
-  } catch (err) {
-    sendError.value = err.response?.data?.message ?? 'Unable to send the message.'
-  } finally {
-    sending.value = false
+function subscribeToUserChatIfOpen() {
+  if (props.open) {
+    initialize()
   }
 }
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  document.removeEventListener('keydown', handleDocumentKeydown)
+})
 
 watch(
   () => props.open,
   (value) => {
     if (value) {
       selectedThreadId.value = ''
-      subscribeToUserChat()
-      void loadThreads()
+      initialize()
       return
     }
 
     selectedThreadId.value = ''
-    leaveActiveChannel()
-  },
+  }
 )
 
-onMounted(() => {
-  document.addEventListener('pointerdown', handleDocumentPointerDown)
-  document.addEventListener('keydown', handleDocumentKeydown)
-
-  subscribeToUserChat()
-  void loadThreads()
-})
-
-onBeforeUnmount(() => {
-  disconnectRealtime()
-  document.removeEventListener('pointerdown', handleDocumentPointerDown)
-  document.removeEventListener('keydown', handleDocumentKeydown)
-})
-
-watch(
-  threads,
-  () => {
-    emitUnreadCount()
-  },
-  { deep: true, immediate: true },
-)
+watch(totalUnreadCount, (count) => {
+  emit('unread-count-change', count)
+}, { immediate: true })
 </script>
 
 <template>
@@ -479,6 +130,7 @@ watch(
         class="fixed bottom-6 right-6 z-50 flex h-[33rem] w-[22.5rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-[#253043] bg-[#171a25] shadow-[0_22px_60px_rgba(0,0,0,0.38)] max-h-[calc(100vh-2rem)]"
       >
         <template v-if="selectedThread">
+          <!-- Thread View -->
           <div class="flex items-center justify-between gap-3 border-b border-[#253043] px-4 py-4">
             <div class="flex min-w-0 items-center gap-3">
               <button
@@ -556,7 +208,7 @@ watch(
                     {{ message.sender_name }}
                   </p>
                   <p :class="['text-[10px] uppercase tracking-[0.18em]', message.is_own_message ? 'text-violet-100/80' : 'text-zinc-500']">
-                    {{ formatTimestamp(message.created_at) }}
+                    {{ chat.formatTimestamp(message.created_at) }}
                   </p>
                 </div>
                 <p :class="['mt-2 text-sm leading-6', message.is_own_message ? 'text-white' : 'text-zinc-200']">
@@ -583,7 +235,7 @@ watch(
                 v-model="messageDraft"
                 type="text"
                 class="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
-                placeholder="Reply to Sarah..."
+                placeholder="Reply..."
                 @keydown.enter.prevent="sendMessage"
               />
               <button
@@ -611,6 +263,7 @@ watch(
         </template>
 
         <template v-else>
+          <!-- Thread List View -->
           <div class="flex items-start justify-between gap-4 border-b border-[#253043] px-4 py-4">
             <div class="min-w-0">
               <h2 class="text-[1rem] font-semibold leading-none text-white">{{ title }}</h2>
@@ -660,9 +313,7 @@ watch(
               >
                 <div
                   class="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                  :class="[
-                    index === 0 ? 'bg-rose-500' : index === 1 ? 'bg-violet-500' : index === 2 ? 'bg-sky-500' : 'bg-slate-500',
-                  ]"
+                  :class="getAvatarColor(index)"
                 >
                   {{ getAvatarLabel(thread.counterpart?.name) }}
                   <span
@@ -683,7 +334,7 @@ watch(
                     </div>
                     <div class="flex flex-col items-end gap-2">
                       <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                        {{ formatTimestamp(thread.last_message_at) }}
+                        {{ chat.formatTimestamp(thread.last_message_at) }}
                       </span>
                       <span
                         v-if="thread.unread_count > 0"
