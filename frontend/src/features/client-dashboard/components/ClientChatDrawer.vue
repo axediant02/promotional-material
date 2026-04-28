@@ -15,7 +15,7 @@ const props = defineProps({
   title: { type: String, default: 'Messages' },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'unread-count-change'])
 
 const threads = ref([])
 const loading = ref(false)
@@ -131,15 +131,17 @@ const disconnectRealtime = () => {
     activeChannelName.value = ''
   }
 
+  if (echo.value) {
+    echo.value.disconnect()
+    echo.value = null
+  }
+}
+
+const leaveUserChannel = () => {
   if (userChannel.value && userChannelName.value) {
     echo.value?.leave(userChannelName.value)
     userChannel.value = null
     userChannelName.value = ''
-  }
-
-  if (echo.value) {
-    echo.value.disconnect()
-    echo.value = null
   }
 }
 
@@ -163,7 +165,8 @@ const handleDocumentKeydown = (event) => {
 
 const upsertThread = (incomingThread) => {
   const normalized = normalizeThread(incomingThread)
-  const hasMessagePayload = Array.isArray(incomingThread?.messages)
+  const hasMessagePayload = Object.prototype.hasOwnProperty.call(incomingThread ?? {}, 'messages')
+    && Array.isArray(incomingThread.messages)
   const nextThreads = [...threads.value]
   const existingIndex = nextThreads.findIndex((item) => item.thread_id === normalized.thread_id)
 
@@ -214,6 +217,13 @@ const scrollMessagesToBottom = async () => {
   }
 }
 
+const emitUnreadCount = () => {
+  emit(
+    'unread-count-change',
+    threads.value.reduce((total, thread) => total + Number(thread.unread_count ?? 0), 0),
+  )
+}
+
 const loadThreads = async () => {
   if (!props.currentUserId) {
     threads.value = []
@@ -224,7 +234,14 @@ const loadThreads = async () => {
 
   try {
     const response = await fetchChatThreads()
-    threads.value = (response.data.data.threads ?? []).map(normalizeThread)
+    const refreshedThreadIds = new Set()
+
+    for (const thread of response.data.data.threads ?? []) {
+      refreshedThreadIds.add(thread?.thread_id ?? '')
+      upsertThread(thread)
+    }
+
+    threads.value = threads.value.filter((thread) => refreshedThreadIds.has(thread.thread_id))
   } catch (error) {
     console.error('Failed to load chat threads:', error)
   } finally {
@@ -249,6 +266,7 @@ const loadSelectedThread = async (threadId) => {
   try {
     const response = await fetchChatThread(threadId)
     upsertThread(response.data.data.thread)
+    await markChatThreadAsRead(threadId)
 
     const echoInstance = ensureEcho()
     if (echoInstance) {
@@ -421,7 +439,11 @@ watch(
     }
 
     selectedThreadId.value = ''
-    disconnectRealtime()
+    if (activeChannel.value && activeChannelName.value) {
+      echo.value?.leave(activeChannelName.value)
+      activeChannel.value = null
+      activeChannelName.value = ''
+    }
   },
 )
 
@@ -429,17 +451,24 @@ onMounted(() => {
   document.addEventListener('pointerdown', handleDocumentPointerDown)
   document.addEventListener('keydown', handleDocumentKeydown)
 
-  if (props.open) {
-    subscribeToUserChat()
-    void loadThreads()
-  }
+  subscribeToUserChat()
+  void loadThreads()
 })
 
 onBeforeUnmount(() => {
   disconnectRealtime()
+  leaveUserChannel()
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
   document.removeEventListener('keydown', handleDocumentKeydown)
 })
+
+watch(
+  threads,
+  () => {
+    emitUnreadCount()
+  },
+  { deep: true, immediate: true },
+)
 </script>
 
 <template>
@@ -455,7 +484,7 @@ onBeforeUnmount(() => {
       <aside
         v-if="open"
         ref="panelRef"
-        class="fixed bottom-[5.25rem] right-6 z-50 flex h-[33rem] w-[22.5rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-[#253043] bg-[#171a25] shadow-[0_22px_60px_rgba(0,0,0,0.38)] max-h-[calc(100vh-7rem)]"
+        class="fixed bottom-6 right-6 z-50 flex h-[33rem] w-[22.5rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-[#253043] bg-[#171a25] shadow-[0_22px_60px_rgba(0,0,0,0.38)] max-h-[calc(100vh-2rem)]"
       >
         <template v-if="selectedThread">
           <div class="flex items-center justify-between gap-3 border-b border-[#253043] px-4 py-4">

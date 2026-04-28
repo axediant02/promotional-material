@@ -1,6 +1,4 @@
 <script setup>
-import AssignmentChatPanel from '../../chat/components/AssignmentChatPanel.vue'
-
 defineProps({
   selectedFolder: {
     type: Object,
@@ -74,16 +72,6 @@ const categoryClasses = {
           <span>{{ selectedFolder.statusLabel }}</span>
         </div>
       </div>
-
-      <section class="mt-6">
-        <AssignmentChatPanel
-          :current-user-id="currentUserId"
-          :preferred-client-id="selectedFolder.clientId ?? ''"
-          title="Client chat"
-          description="Message the assigned client for this workspace while the assignment is still active."
-          empty-message="No chat history is available for this client assignment yet."
-        />
-      </section>
 
       <section class="mt-6">
         <div class="flex items-center justify-between gap-3">

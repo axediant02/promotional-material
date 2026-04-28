@@ -173,7 +173,8 @@ const scrollMessagesToBottom = async () => {
 
 const upsertThread = (incomingThread) => {
   const normalized = normalizeThread(incomingThread)
-  const hasMessagePayload = Array.isArray(incomingThread?.messages)
+  const hasMessagePayload = Object.prototype.hasOwnProperty.call(incomingThread ?? {}, 'messages')
+    && Array.isArray(incomingThread.messages)
   const nextThreads = [...threads.value]
   const existingIndex = nextThreads.findIndex((item) => item.thread_id === normalized.thread_id)
 
@@ -243,7 +244,14 @@ const loadThreads = async () => {
 
   try {
     const response = await fetchChatThreads()
-    threads.value = (response.data.data.threads ?? []).map(normalizeThread)
+    const refreshedThreadIds = new Set()
+
+    for (const thread of response.data.data.threads ?? []) {
+      refreshedThreadIds.add(thread?.thread_id ?? '')
+      upsertThread(thread)
+    }
+
+    threads.value = threads.value.filter((thread) => refreshedThreadIds.has(thread.thread_id))
     selectBestThread()
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to load chat threads.'
