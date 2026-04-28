@@ -124,24 +124,28 @@ const ensureEcho = () => {
   return echo.value
 }
 
-const disconnectRealtime = () => {
-  if (activeChannel.value && activeChannelName.value) {
-    echo.value?.leave(activeChannelName.value)
-    activeChannel.value = null
-    activeChannelName.value = ''
+const canLeaveEchoChannel = () => echo.value?.connector?.pusher?.connection?.state === 'connected'
+
+const leaveActiveChannel = () => {
+  const channelName = activeChannelName.value
+
+  activeChannel.value = null
+  activeChannelName.value = ''
+
+  if (channelName && canLeaveEchoChannel()) {
+    echo.value.leave(channelName)
   }
+}
+
+const disconnectRealtime = () => {
+  activeChannel.value = null
+  activeChannelName.value = ''
+  userChannel.value = null
+  userChannelName.value = ''
 
   if (echo.value) {
     echo.value.disconnect()
     echo.value = null
-  }
-}
-
-const leaveUserChannel = () => {
-  if (userChannel.value && userChannelName.value) {
-    echo.value?.leave(userChannelName.value)
-    userChannel.value = null
-    userChannelName.value = ''
   }
 }
 
@@ -211,6 +215,7 @@ const upsertMessageIntoThread = (thread, incomingMessage) => {
 
 const scrollMessagesToBottom = async () => {
   await nextTick()
+  await new Promise((resolve) => requestAnimationFrame(resolve))
 
   if (threadScrollRef.value) {
     threadScrollRef.value.scrollTop = threadScrollRef.value.scrollHeight
@@ -257,11 +262,7 @@ const loadSelectedThread = async (threadId) => {
   threadLoading.value = true
   sendError.value = ''
 
-  if (activeChannel.value && activeChannelName.value) {
-    echo.value?.leave(activeChannelName.value)
-    activeChannel.value = null
-    activeChannelName.value = ''
-  }
+  leaveActiveChannel()
 
   try {
     const response = await fetchChatThread(threadId)
@@ -304,11 +305,11 @@ const loadSelectedThread = async (threadId) => {
       })
     }
 
-    await scrollMessagesToBottom()
   } catch (err) {
     sendError.value = err.response?.data?.message ?? 'Unable to load this conversation.'
   } finally {
     threadLoading.value = false
+    await scrollMessagesToBottom()
   }
 }
 
@@ -391,11 +392,7 @@ const openThread = async (threadId) => {
 
 const backToInbox = () => {
   selectedThreadId.value = ''
-  if (activeChannel.value && activeChannelName.value) {
-    echo.value?.leave(activeChannelName.value)
-    activeChannel.value = null
-    activeChannelName.value = ''
-  }
+  leaveActiveChannel()
 }
 
 const sendMessage = async () => {
@@ -439,11 +436,7 @@ watch(
     }
 
     selectedThreadId.value = ''
-    if (activeChannel.value && activeChannelName.value) {
-      echo.value?.leave(activeChannelName.value)
-      activeChannel.value = null
-      activeChannelName.value = ''
-    }
+    leaveActiveChannel()
   },
 )
 
@@ -457,7 +450,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   disconnectRealtime()
-  leaveUserChannel()
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
   document.removeEventListener('keydown', handleDocumentKeydown)
 })
