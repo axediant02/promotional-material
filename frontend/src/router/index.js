@@ -9,9 +9,7 @@ const routes = [
   { path: '/register', name: 'register', component: () => import('../features/auth/pages/RegisterPage.vue'), meta: { guestOnly: true, title: `Register | ${APP_TITLE}` } },
   { path: '/client', name: 'client-dashboard', component: () => import('../features/client-dashboard/pages/ClientDashboardPage.vue'), meta: { requiresAuth: true, role: 'client', title: `Client Dashboard | ${APP_TITLE}` } },
   { path: '/agent', name: 'agent-dashboard', component: () => import('../features/agent-dashboard/pages/AgentDashboardPage.vue'), meta: { requiresAuth: true, role: 'agent', title: `Agent Dashboard | ${APP_TITLE}` } },
-  { path: '/agent-new', redirect: { name: 'agent-dashboard' } },
   { path: '/admin', name: 'admin-dashboard', component: () => import('../features/admin-dashboard/pages/AdminDashboardPage.vue'), meta: { requiresAuth: true, role: 'admin', title: `Admin Dashboard | ${APP_TITLE}` } },
-  { path: '/admin-new', redirect: { name: 'admin-dashboard' } },
   {
     path: '/production',
     name: 'production-dashboard',
