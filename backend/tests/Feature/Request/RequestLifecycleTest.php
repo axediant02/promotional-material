@@ -267,6 +267,51 @@ class RequestLifecycleTest extends TestCase
             ->assertJsonPath('data.request.status', ClientRequest::STATUS_IN_PROGRESS);
     }
 
+    public function test_production_status_update_notifies_client(): void
+    {
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+
+        // Create folder for client
+        $folder = Folder::query()->create([
+            'folder_name' => $client->name,
+            'client_id' => $client->user_id,
+            'created_by' => null,
+        ]);
+
+        // Create assignment
+        AssignedClient::query()->create([
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_IN_PROGRESS,
+        ]);
+
+        // Create request
+        $clientRequest = ClientRequest::query()->create([
+            'client_id' => $client->user_id,
+            'folder_id' => $folder->folder_id,
+            'title' => 'Client Request',
+            'description' => 'Request for production.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => null,
+        ]);
+
+        Sanctum::actingAs($production);
+
+        // Update to in_progress
+        $this->patchJson("/api/production/requests/{$clientRequest->request_id}", [
+            'status' => ClientRequest::STATUS_IN_PROGRESS,
+        ])->assertOk();
+
+        // Verify client received notification
+        $this->assertDatabaseHas('notifications', [
+            'type' => 'App\\Notifications\\WorkflowNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $client->user_id,
+        ]);
+    }
+
     public function test_admin_can_set_due_date_on_request(): void
     {
         $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
