@@ -22,8 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-_bmad-output/
-codex-output.md
-_bmad
-.agents/skills
