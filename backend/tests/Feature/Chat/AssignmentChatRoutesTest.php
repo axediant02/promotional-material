@@ -8,6 +8,7 @@ use App\Models\AssignmentChatThread;
 use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\User;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
@@ -193,6 +194,37 @@ class AssignmentChatRoutesTest extends TestCase
             'socket_id' => '123.456',
             'channel_name' => 'private-assignment-chat.'.$thread->thread_id,
         ])->assertForbidden();
+    }
+
+    public function test_message_broadcast_targets_thread_and_recipient_user_channel(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $this->createClientRequest($client, $production);
+
+        Sanctum::actingAs($admin);
+        $this->postJson('/api/admin/assignments', [
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_IN_PROGRESS,
+        ])->assertCreated();
+
+        $thread = AssignmentChatThread::query()->firstOrFail();
+
+        Sanctum::actingAs($production);
+        $this->postJson("/api/chat/threads/{$thread->thread_id}/messages", [
+            'body' => 'First production note.',
+        ])->assertCreated();
+
+        $event = new AssignmentChatMessageCreated($thread->messages()->firstOrFail(), $production);
+        $channelNames = collect($event->broadcastOn())
+            ->map(fn (PrivateChannel $channel) => $channel->name)
+            ->all();
+
+        $this->assertContains('private-assignment-chat.'.$thread->thread_id, $channelNames);
+        $this->assertContains('private-assignment-chat-user.'.$client->user_id, $channelNames);
+        $this->assertNotContains('private-assignment-chat-user.'.$production->user_id, $channelNames);
     }
 
     private function createUser(string $name, string $email, string $role): User

@@ -48,6 +48,8 @@ const sending = ref(false)
 const echo = ref(null)
 const activeChannel = ref(null)
 const activeChannelName = ref('')
+const userChannel = ref(null)
+const userChannelName = ref('')
 const threadScrollRef = ref(null)
 
 const activeThreads = computed(() => threads.value.filter((thread) => thread.status === 'active'))
@@ -138,11 +140,21 @@ const ensureEcho = () => {
   return echo.value
 }
 
-const disconnectRealtime = () => {
+const leaveActiveThreadChannel = () => {
   if (activeChannel.value && activeChannelName.value) {
     echo.value?.leave(activeChannelName.value)
     activeChannel.value = null
     activeChannelName.value = ''
+  }
+}
+
+const disconnectRealtime = () => {
+  leaveActiveThreadChannel()
+
+  if (userChannel.value && userChannelName.value) {
+    echo.value?.leave(userChannelName.value)
+    userChannel.value = null
+    userChannelName.value = ''
   }
 
   if (echo.value) {
@@ -253,8 +265,78 @@ const markSelectedThreadAsRead = async () => {
   }
 }
 
+const ensurePayloadThread = async (threadId) => {
+  if (!threadId) {
+    return null
+  }
+
+  let thread = threads.value.find((item) => item.thread_id === threadId) ?? null
+
+  if (thread) {
+    return thread
+  }
+
+  const response = await fetchChatThread(threadId)
+  upsertThread(response.data.data.thread)
+
+  if (!selectedThreadId.value) {
+    selectBestThread()
+  }
+
+  return threads.value.find((item) => item.thread_id === threadId) ?? null
+}
+
+const handleIncomingMessagePayload = async (payload) => {
+  if (!payload?.message) {
+    return
+  }
+
+  const incomingMessage = normalizeMessage(payload.message)
+  const threadId = payload.thread_id ?? incomingMessage.thread_id
+  const currentThread = await ensurePayloadThread(threadId)
+
+  if (!currentThread) {
+    return
+  }
+
+  const isSelectedThread = selectedThreadId.value === currentThread.thread_id
+  const messageWasAdded = upsertMessageIntoThread(currentThread, incomingMessage)
+
+  currentThread.last_message_at = incomingMessage.created_at
+  currentThread.last_message_preview = incomingMessage.body
+  currentThread.unread_count = incomingMessage.is_own_message || isSelectedThread
+    ? 0
+    : currentThread.unread_count + (messageWasAdded ? 1 : 0)
+  upsertThread(currentThread)
+
+  if (isSelectedThread && !incomingMessage.is_own_message) {
+    await markSelectedThreadAsRead()
+  }
+
+  if (isSelectedThread) {
+    await scrollMessagesToBottom()
+  }
+}
+
+const subscribeToUserChat = () => {
+  if (userChannel.value) {
+    return
+  }
+
+  const echoInstance = ensureEcho()
+  if (!echoInstance || !props.currentUserId) {
+    return
+  }
+
+  userChannelName.value = `assignment-chat-user.${props.currentUserId}`
+  userChannel.value = echoInstance.private(userChannelName.value)
+  userChannel.value.listen('.assignment-chat.message.created', (payload) => {
+    void handleIncomingMessagePayload(payload).catch(() => {})
+  })
+}
+
 const subscribeToThread = (threadId) => {
-  disconnectRealtime()
+  leaveActiveThreadChannel()
 
   if (!threadId) {
     return
@@ -267,32 +349,8 @@ const subscribeToThread = (threadId) => {
 
   activeChannelName.value = `assignment-chat.${threadId}`
   activeChannel.value = echoInstance.private(activeChannelName.value)
-  activeChannel.value.listen('.assignment-chat.message.created', async (payload) => {
-    if (!payload?.message) {
-      return
-    }
-
-    const incomingMessage = normalizeMessage(payload.message)
-    const currentThread = selectedThread.value
-
-    if (!currentThread) {
-      return
-    }
-
-    const messageWasAdded = upsertMessageIntoThread(currentThread, incomingMessage)
-
-    currentThread.last_message_at = incomingMessage.created_at
-    currentThread.last_message_preview = incomingMessage.body
-    currentThread.unread_count = incomingMessage.is_own_message
-      ? 0
-      : currentThread.unread_count + (messageWasAdded ? 1 : 0)
-    upsertThread(currentThread)
-
-    if (!incomingMessage.is_own_message) {
-      await markSelectedThreadAsRead()
-    }
-
-    await scrollMessagesToBottom()
+  activeChannel.value.listen('.assignment-chat.message.created', (payload) => {
+    void handleIncomingMessagePayload(payload).catch(() => {})
   })
 }
 
@@ -304,10 +362,11 @@ const loadSelectedThread = async (threadId) => {
   threadLoading.value = true
   sendError.value = ''
 
+  subscribeToThread(threadId)
+
   try {
     const response = await fetchChatThread(threadId)
     upsertThread(response.data.data.thread)
-    subscribeToThread(threadId)
     await markSelectedThreadAsRead()
     await scrollMessagesToBottom()
   } catch (err) {
@@ -368,7 +427,7 @@ watch(selectedThreadId, (threadId) => {
     return
   }
 
-  disconnectRealtime()
+  leaveActiveThreadChannel()
 })
 
 watch(
@@ -379,6 +438,7 @@ watch(
 )
 
 onMounted(async () => {
+  subscribeToUserChat()
   await loadThreads()
 })
 
