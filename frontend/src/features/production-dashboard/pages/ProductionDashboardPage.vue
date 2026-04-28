@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
+import AssignmentChatWidget from '../../chat/components/AssignmentChatWidget.vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import ProductionSidebar from '../components/ProductionSidebar.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
@@ -65,6 +66,7 @@ const files = ref([])
 const recycleBinFiles = ref([])
 
 const currentUser = computed(() => dashboardData.value.user ?? authStore.user ?? {})
+const currentUserId = computed(() => currentUser.value?.user_id ?? currentUser.value?.id ?? '')
 const isFolderRoute = computed(() => ['production-folder-index', 'production-folder-detail'].includes(route.name))
 
 const sectionCounts = computed(() => ({
@@ -951,5 +953,10 @@ onMounted(() => {
         </div>
       </main>
     </div>
+
+    <AssignmentChatWidget
+      :current-user-id="currentUserId"
+      title="Messages"
+    />
   </div>
 </template>

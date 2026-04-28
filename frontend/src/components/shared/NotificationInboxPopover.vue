@@ -22,7 +22,7 @@ const panelPosition = ref({
   width: 'min(24rem, calc(100vw - 2rem))',
 })
 
-const badgeLabel = computed(() => (props.unreadCount > 99 ? '99+' : props.unreadCount))
+const badgeLabel = computed(() => (props.unreadCount > 9 ? '9+' : props.unreadCount))
 
 const panelStyle = computed(() => ({
   top: panelPosition.value.top,

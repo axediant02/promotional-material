@@ -1,12 +1,10 @@
 <script setup>
-import { ref } from 'vue'
 import ClientAssetCatalog from './ClientAssetCatalog.vue'
-import ClientChatDrawer from './ClientChatDrawer.vue'
-import ClientChatLauncher from './ClientChatLauncher.vue'
 import ClientDashboardTopbar from './ClientDashboardTopbar.vue'
 import ClientDeliveryHero from './ClientDeliveryHero.vue'
 import ClientRequestHistoryPanel from './ClientRequestHistoryPanel.vue'
 import ClientRequestSidebar from './ClientRequestSidebar.vue'
+import AssignmentChatWidget from '../../chat/components/AssignmentChatWidget.vue'
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -47,7 +45,6 @@ const emit = defineEmits([
   'update:requestMode',
 ])
 
-const chatOpen = ref(false)
 </script>
 
 <template>
@@ -112,16 +109,9 @@ const chatOpen = ref(false)
       @request-created="emit('request-created')"
     />
 
-    <ClientChatLauncher
-      :badge-count="unreadCount"
-      :open="chatOpen"
-      @toggle="chatOpen = !chatOpen"
-    />
-
-    <ClientChatDrawer
-      :open="chatOpen"
+    <AssignmentChatWidget
       :current-user-id="currentUserId"
-      @close="chatOpen = false"
+      title="Messages"
     />
   </div>
 </template>
