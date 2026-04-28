@@ -442,7 +442,7 @@ const signOut = async () => {
       <aside class="flex h-full min-h-screen flex-col bg-[linear-gradient(180deg,#58489b_0%,#4b3d74_100%)] text-white shadow-[24px_0_60px_rgba(75,61,116,0.24)] xl:sticky xl:top-0">
         <div class="border-b border-white/10 px-6 py-7">
           <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Promotional Materials</p>
-          <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+          <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white ">
             Agent.
           </h1>
           <p class="mt-1 text-sm text-white/65">Client file access</p>
@@ -541,7 +541,7 @@ const signOut = async () => {
           <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0">
               <p class="text-[11px] uppercase tracking-[0.42em] text-brand-600 dark:text-brand-100">{{ activeViewMeta.eyebrow }}</p>
-              <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+              <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white ">
                 {{ activeViewMeta.title }}
               </h1>
               <p class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-300">
@@ -604,7 +604,7 @@ const signOut = async () => {
                   class="pm-surface rounded-[1.7rem] px-5 py-5"
                 >
                   <p class="text-[10px] uppercase tracking-[0.32em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
                     {{ stat.value }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
@@ -919,7 +919,7 @@ const signOut = async () => {
                 <aside class="space-y-4">
                   <section class="pm-surface-strong rounded-[2rem] p-5">
                     <p class="text-[10px] uppercase tracking-[0.34em] text-brand-600 dark:text-brand-100">Selected folder</p>
-                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink dark:text-white ">
                       {{ selectedFolder?.workspace ?? 'No folder selected' }}
                     </h2>
                     <p class="mt-2 text-sm text-muted dark:text-zinc-300">{{ selectedFolder?.clientName ?? 'Choose a folder to inspect.' }}</p>

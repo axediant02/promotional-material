@@ -24,7 +24,7 @@ const goToRegister = () => {
 <template>
   <aside class="pm-surface-strong px-8 py-7 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(26,26,29,0.96),rgba(20,18,20,0.985))] dark:shadow-[0_28px_80px_rgba(0,0,0,0.34)] sm:px-9 sm:py-8">
     <div class="space-y-2.5">
-      <h2 class="max-w-[12ch] text-[2.05rem] font-semibold leading-[0.94] tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+      <h2 class="max-w-[12ch] text-[2.05rem] font-semibold leading-[0.94] tracking-[-0.045em] text-ink dark:text-white ">
         Welcome back to Studio
       </h2>
       <p class="max-w-[24rem] text-[10px] uppercase tracking-[0.34em] text-muted">

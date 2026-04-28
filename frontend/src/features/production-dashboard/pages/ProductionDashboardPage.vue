@@ -699,7 +699,7 @@ onMounted(() => {
                   class="pm-surface rounded-[1.7rem] px-5 py-5"
                 >
                   <p class="text-[10px] uppercase tracking-[0.36em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
                     {{ stat.value }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
@@ -717,7 +717,7 @@ onMounted(() => {
                   class="pm-surface rounded-[1.8rem] px-5 py-5"
                 >
                   <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
                     {{ stat.value }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
@@ -760,7 +760,7 @@ onMounted(() => {
                             </span>
                           </div>
 
-                          <h2 class="mt-5 text-3xl font-semibold tracking-[-0.04em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                          <h2 class="mt-5 text-3xl font-semibold tracking-[-0.04em] text-ink dark:text-white ">
                             {{ row.title }}
                           </h2>
                           <p class="mt-3 max-w-3xl text-sm leading-7 text-muted dark:text-zinc-300">
@@ -806,7 +806,7 @@ onMounted(() => {
                       class="pm-surface rounded-[1.8rem] border-dashed px-6 py-10 text-center"
                     >
                       <p class="text-[10px] uppercase tracking-[0.32em] text-brand-600 dark:text-brand-100">Queue clear</p>
-                      <h2 class="mt-3 text-2xl font-semibold text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                      <h2 class="mt-3 text-2xl font-semibold text-ink dark:text-white ">
                         No assigned requests match the current filter.
                       </h2>
                     </article>
@@ -854,21 +854,21 @@ onMounted(() => {
               <section class="grid gap-4 xl:grid-cols-3">
                 <article class="pm-surface rounded-[1.8rem] px-5 py-5">
                   <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Deleted files</p>
-                  <p class="mt-4 text-4xl leading-none text-brand-700 dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-brand-700 dark:text-white ">
                     {{ recycleBinFiles.length }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">In assigned recycle scope</p>
                 </article>
                 <article class="pm-surface rounded-[1.8rem] px-5 py-5">
                   <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Recoverable clients</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
                     {{ new Set(recycleBinFiles.map((file) => file.folder?.folder_id ?? file.folder_id)).size }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">Workspaces with deleted assets</p>
                 </article>
                 <article class="pm-surface rounded-[1.8rem] px-5 py-5">
                   <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">Live library</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
                     {{ files.length }}
                   </p>
                   <p class="mt-3 text-sm text-muted dark:text-zinc-300">Files still active outside recycle bin</p>
@@ -884,7 +884,7 @@ onMounted(() => {
                   <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div class="min-w-0">
                       <p class="text-[11px] uppercase tracking-[0.26em] text-muted dark:text-zinc-400">{{ formatShortId(file.file_id, 'FILE') }}</p>
-                      <h2 class="mt-3 truncate text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                      <h2 class="mt-3 truncate text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white ">
                         {{ file.file_name }}
                       </h2>
                       <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-muted dark:text-zinc-400">
@@ -910,7 +910,7 @@ onMounted(() => {
                   class="pm-surface rounded-[1.8rem] border-dashed px-6 py-10 text-center"
                 >
                   <p class="text-[10px] uppercase tracking-[0.32em] text-brand-600 dark:text-brand-100">Recycle bin clear</p>
-                  <h2 class="mt-3 text-2xl font-semibold text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+                  <h2 class="mt-3 text-2xl font-semibold text-ink dark:text-white ">
                     No assigned deleted files match the current search.
                   </h2>
                 </article>

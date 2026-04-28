@@ -8,7 +8,7 @@ defineProps({
   <section class="pm-surface rounded-[1.8rem] p-6 lg:p-8">
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">Folders</h2>
+        <h2 class="text-2xl font-semibold tracking-[-0.03em] text-ink dark:text-white ">Folders</h2>
         <p class="mt-2 text-sm text-muted dark:text-zinc-300">Structured client spaces for downloads and organization.</p>
       </div>
     </div>

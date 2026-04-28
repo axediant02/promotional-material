@@ -52,7 +52,7 @@ const categoryClasses = {
     <template v-if="selectedFolder">
       <div class="border-b border-border/70 pb-5 dark:border-white/10">
         <p class="text-[10px] uppercase tracking-[0.34em] text-brand-600 dark:text-brand-100">Selected folder</p>
-        <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink dark:text-white ">
           {{ selectedFolder.workspace }}
         </h2>
         <p class="mt-2 text-sm text-muted dark:text-zinc-300">{{ selectedFolder.clientName }}</p>
@@ -202,7 +202,7 @@ const categoryClasses = {
     >
       <div>
         <p class="text-[10px] uppercase tracking-[0.3em] text-brand-600 dark:text-brand-100">No folder selected</p>
-        <h3 class="mt-3 text-2xl font-semibold text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <h3 class="mt-3 text-2xl font-semibold text-ink dark:text-white ">
           Select an assigned folder to inspect its requests and files.
         </h3>
       </div>

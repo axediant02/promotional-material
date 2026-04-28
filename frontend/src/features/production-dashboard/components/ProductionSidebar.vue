@@ -27,7 +27,7 @@ const sectionMeta = [
   <aside class="flex h-full min-h-screen flex-col bg-[linear-gradient(180deg,#58489b_0%,#4b3d74_100%)] text-white shadow-[24px_0_60px_rgba(75,61,116,0.24)] xl:sticky xl:top-0">
     <div class="border-b border-white/10 px-6 py-7">
       <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Nexus Archive</p>
-      <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+      <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white ">
         Studio.
       </h1>
       <p class="mt-1 text-sm text-white/65">Delivery execution</p>
