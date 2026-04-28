@@ -55,7 +55,7 @@ const themeStore = useThemeStore()
     <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0">
         <p class="text-[11px] uppercase tracking-[0.42em] text-brand-600 dark:text-brand-100">{{ eyebrow }}</p>
-        <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <h1 class="mt-3 text-4xl font-semibold tracking-[-0.045em] text-ink dark:text-white ">
           {{ title }}
         </h1>
         <p v-if="description" class="mt-3 max-w-2xl text-sm leading-6 text-muted dark:text-zinc-300">

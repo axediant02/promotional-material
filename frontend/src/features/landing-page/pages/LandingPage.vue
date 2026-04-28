@@ -16,7 +16,7 @@ const themeStore = useThemeStore()
           <div class="flex items-center gap-3">
             <RouterLink
               to="/"
-              class="text-4xl font-semibold tracking-[-0.05em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]"
+              class="text-4xl font-semibold tracking-[-0.05em] text-ink dark:text-white "
             >
               Studio<span class="text-brand-500">.</span>
             </RouterLink>
