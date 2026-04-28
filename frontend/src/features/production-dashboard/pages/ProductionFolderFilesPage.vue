@@ -13,6 +13,9 @@ const selectedFolder = computed(() => workspace.selectedFolder.value)
 const folderFiles = computed(() => workspace.selectedFolderFiles.value)
 const selectedFolderRequestCount = computed(() => workspace.selectedFolderRequests.value.length)
 const showUploadPanel = ref(false)
+const selectedFiles = ref([])
+const uploadError = ref('')
+const fileInputRef = ref(null)
 
 const ensureValidFolder = () => {
   if (workspace.loading.value) {
@@ -28,7 +31,54 @@ const openUploadPanel = () => {
   showUploadPanel.value = true
 }
 
+const isDragging = ref(false)
+
+const handleFileSelect = (event) => {
+  const files = Array.from(event.target.files ?? [])
+  if (files.length) {
+    selectedFiles.value = [...selectedFiles.value, ...files]
+    uploadError.value = ''
+  }
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+  }
+}
+
+const handleFileDrop = (event) => {
+  isDragging.value = false
+  const files = Array.from(event.dataTransfer.files ?? [])
+  if (files.length) {
+    selectedFiles.value = [...selectedFiles.value, ...files]
+    uploadError.value = ''
+  }
+}
+
+const removeSelectedFile = (index) => {
+  selectedFiles.value = selectedFiles.value.filter((_, i) => i !== index)
+}
+
+const submitUpload = async () => {
+  if (!selectedFolder.value?.id || !selectedFiles.value.length) {
+    return
+  }
+
+  uploadError.value = ''
+
+  for (const file of selectedFiles.value) {
+    try {
+      await workspace.handleUploadFile(file, selectedFolder.value.id)
+    } catch {
+      // error is surfaced by the dashboard-level error state
+    }
+  }
+
+  selectedFiles.value = []
+  showUploadPanel.value = false
+}
+
 const closeUploadPanel = () => {
+  selectedFiles.value = []
+  uploadError.value = ''
   showUploadPanel.value = false
 }
 
@@ -295,52 +345,48 @@ onMounted(() => {
               <p class="mt-2 truncate text-sm font-semibold text-white">{{ selectedFolder?.clientName ?? 'Assigned client' }}</p>
             </div>
             <div class="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-              <p class="text-[10px] uppercase tracking-[0.22em] text-zinc-500">Mode</p>
-              <p class="mt-2 text-sm font-semibold text-white">UI preview only</p>
+              <p class="text-[10px] uppercase tracking-[0.22em] text-zinc-500">Selected</p>
+              <p class="mt-2 text-sm font-semibold text-white">{{ selectedFiles.length }} file{{ selectedFiles.length !== 1 ? 's' : '' }}</p>
             </div>
           </div>
         </div>
 
         <div class="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1.15fr)_18rem]">
           <div class="space-y-6">
-            <section class="rounded-[1.6rem] border border-dashed border-[#9cdcfe]/30 bg-[#9cdcfe]/[0.06] px-6 py-10 text-center">
+            <section
+              :class="[
+                'rounded-[1.6rem] border border-dashed px-6 py-10 text-center transition cursor-pointer',
+                isDragging
+                  ? 'border-[#9cdcfe] bg-[#9cdcfe]/[0.12]'
+                  : 'border-[#9cdcfe]/30 bg-[#9cdcfe]/[0.06] hover:border-[#9cdcfe]/50',
+              ]"
+              @click="fileInputRef?.click()"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handleFileDrop"
+            >
+              <input
+                ref="fileInputRef"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,application/pdf"
+                class="hidden"
+                @change="handleFileSelect"
+              />
               <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#9cdcfe]/20 bg-[#9cdcfe]/10 text-[#d7f0ff]">
                 <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
                 </svg>
               </div>
               <h4 class="mt-4 text-lg font-semibold text-white">Select client assets</h4>
-              <p class="mt-2 text-sm text-zinc-400">Drag files into this area or browse from your device once upload logic is connected.</p>
+              <p class="mt-2 text-sm text-zinc-400">
+                {{ isDragging ? 'Drop files to add them' : 'Drag files here or click to browse' }}
+              </p>
             </section>
 
-            <section class="grid gap-4 md:grid-cols-2">
-              <label class="block">
-                <span class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-400">Category</span>
-                <select class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none">
-                  <option class="bg-[#1f1f1f]">Image</option>
-                  <option class="bg-[#1f1f1f]">Video</option>
-                  <option class="bg-[#1f1f1f]">PDF</option>
-                </select>
-              </label>
-
-              <label class="block">
-                <span class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-400">Client folder</span>
-                <input
-                  class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300 outline-none"
-                  :value="selectedFolder?.workspace ?? ''"
-                  readonly
-                  type="text"
-                />
-              </label>
-            </section>
-
-            <label class="block">
-              <span class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-400">Upload note</span>
-              <textarea
-                class="min-h-28 w-full rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none"
-                placeholder="Add a delivery note, batch label, or internal handoff context."
-              ></textarea>
-            </label>
+            <p v-if="uploadError" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {{ uploadError }}
+            </p>
           </div>
 
           <aside class="rounded-[1.6rem] border border-white/10 bg-black/20 p-4">
@@ -348,7 +394,24 @@ onMounted(() => {
             <div class="mt-4 space-y-4">
               <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">Selected files</p>
-                <p class="mt-2 text-sm text-zinc-500">No files selected yet.</p>
+                <ul v-if="selectedFiles.length" class="mt-2 space-y-1">
+                  <li
+                    v-for="(file, idx) in selectedFiles"
+                    :key="idx"
+                    class="flex items-start justify-between gap-2 text-sm text-zinc-300"
+                  >
+                    <span class="truncate">{{ file.name }}</span>
+                    <button
+                      class="shrink-0 text-zinc-500 hover:text-red-400 transition"
+                      @click="removeSelectedFile(idx)"
+                    >
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                      </svg>
+                    </button>
+                  </li>
+                </ul>
+                <p v-else class="mt-2 text-sm text-zinc-500">No files selected yet.</p>
               </div>
 
               <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
@@ -359,9 +422,18 @@ onMounted(() => {
               <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">Status</p>
                 <div class="mt-2 flex items-center justify-between gap-3">
-                  <p class="text-sm text-zinc-300">Waiting for file selection</p>
-                  <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-zinc-400">
-                    Pending
+                  <p class="text-sm text-zinc-300">
+                    {{ selectedFiles.length ? 'Ready to upload' : 'Waiting for file selection' }}
+                  </p>
+                  <span
+                    :class="[
+                      'rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.22em]',
+                      selectedFiles.length
+                        ? 'border-brand-400/30 bg-brand-400/10 text-brand-300'
+                        : 'border-white/10 bg-white/5 text-zinc-400',
+                    ]"
+                  >
+                    {{ selectedFiles.length ? 'Ready' : 'Pending' }}
                   </span>
                 </div>
               </div>
@@ -377,13 +449,17 @@ onMounted(() => {
             Cancel
           </button>
           <button
-            class="inline-flex items-center gap-2 rounded-xl border border-[#9cdcfe]/20 bg-[#9cdcfe]/10 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d7f0ff] opacity-70"
-            disabled
+            class="inline-flex items-center gap-2 rounded-xl border border-[#9cdcfe]/40 bg-[linear-gradient(135deg,rgba(156,220,254,0.3),rgba(156,220,254,0.15))] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d7f0ff] transition hover:border-[#9cdcfe]/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!selectedFiles.length || workspace.uploadingFileId.value === selectedFolder?.id"
+            @click="submitUpload"
           >
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <svg v-if="workspace.uploadingFileId.value === selectedFolder?.id" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
             </svg>
-            Upload files
+            <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
+            </svg>
+            {{ workspace.uploadingFileId.value === selectedFolder?.id ? 'Uploading...' : 'Upload files' }}
           </button>
         </div>
       </div>

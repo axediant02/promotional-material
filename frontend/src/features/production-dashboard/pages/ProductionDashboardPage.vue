@@ -7,7 +7,7 @@ import ProductionTopbar from '../components/ProductionTopbar.vue'
 import { provideProductionWorkspace } from '../productionWorkspace'
 import { fetchRecycleBin } from '../../../services/activityLogService'
 import { fetchDashboard } from '../../../services/dashboardService'
-import { downloadFile, fetchFiles, restoreFile } from '../../../services/fileService'
+import { downloadFile, fetchFiles, restoreFile, uploadFile } from '../../../services/fileService'
 import { fetchFolders } from '../../../services/folderService'
 import { fetchProductionRequests, updateProductionRequestStatus } from '../../../services/requestService'
 import { useAuthStore } from '../../../stores/auth'
@@ -48,6 +48,7 @@ const updatingRequestId = ref('')
 const restoringFileId = ref('')
 const downloadingFileId = ref('')
 const syncingFolderQuery = ref(false)
+const uploadingFileId = ref('')
 
 const dashboardData = ref({
   user: null,
@@ -606,6 +607,34 @@ const handleSectionChange = (section) => {
   }
 }
 
+const handleUploadFile = async (file, folderId) => {
+  uploadingFileId.value = folderId
+  error.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder_id', folderId)
+
+    const response = await uploadFile(formData)
+    const newFile = response.data.data.file
+
+    const enrichedFile = {
+      ...newFile,
+      shortId: formatShortId(newFile.file_id, 'FILE'),
+      uploaderName: currentUser.value?.name ?? 'You',
+      updatedLabel: formatDateLabel(newFile.updated_at),
+      folderName: newFile.folder?.folder_name ?? 'Workspace',
+    }
+
+    files.value = [enrichedFile, ...files.value]
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to upload the file.'
+  } finally {
+    uploadingFileId.value = ''
+  }
+}
+
 const loadData = async () => {
   loading.value = true
   error.value = ''
@@ -642,6 +671,7 @@ provideProductionWorkspace({
   selectedFolderFiles,
   selectedFolderRequests,
   downloadingFileId,
+  uploadingFileId,
   updatingRequestId,
   categoryToneLookup,
   setFolderBrowserMode,
@@ -650,6 +680,7 @@ provideProductionWorkspace({
   openFolder,
   goToFolderIndex,
   handleDownloadFile,
+  handleUploadFile,
   updateRequestStatus,
 })
 
