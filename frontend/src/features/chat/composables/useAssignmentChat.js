@@ -232,7 +232,9 @@ export function useAssignmentChat(props, options = {}) {
   }
 
   // API calls
-  const loadThreads = async () => {
+  const loadThreads = async (options = {}) => {
+    const { autoSelect = true } = options
+
     loading.value = true
     error.value = ''
 
@@ -246,7 +248,10 @@ export function useAssignmentChat(props, options = {}) {
       }
 
       threads.value = threads.value.filter((thread) => refreshedThreadIds.has(thread.thread_id))
-      selectBestThread(props.preferredClientId)
+
+      if (autoSelect) {
+        selectBestThread(props.preferredClientId)
+      }
     } catch (err) {
       error.value = err.response?.data?.message ?? 'Unable to load chat threads.'
       onLoadError(err)

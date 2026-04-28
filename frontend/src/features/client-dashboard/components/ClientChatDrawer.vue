@@ -30,8 +30,13 @@ const {
   openThread,
   sendMessage,
   loadThreads,
-  initialize,
 } = chat
+
+// Initialize without auto-selecting a thread - show the list instead
+const initializeDrawer = () => {
+  chat.subscribeToUserChat()
+  void loadThreads({ autoSelect: false })
+}
 
 const totalUnreadCount = computed(() =>
   threads.value.reduce((total, thread) => total + Number(thread.unread_count ?? 0), 0)
@@ -87,7 +92,7 @@ onMounted(() => {
 
 function subscribeToUserChatIfOpen() {
   if (props.open) {
-    initialize()
+    initializeDrawer()
   }
 }
 
@@ -101,7 +106,7 @@ watch(
   (value) => {
     if (value) {
       selectedThreadId.value = ''
-      initialize()
+      initializeDrawer()
       return
     }
 
