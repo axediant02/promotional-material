@@ -639,7 +639,7 @@ watch(
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1 overflow-y-auto pb-2">
             <div v-if="loading" class="space-y-0">
               <div
                 v-for="index in 3"
@@ -657,51 +657,53 @@ watch(
               No conversations yet.
             </div>
 
-            <button
-              v-for="(thread, index) in threads"
-              :key="thread.thread_id"
-              type="button"
-              class="flex w-full items-start gap-3 border-b border-[#253043] px-4 py-4 text-left transition hover:bg-white/[0.03]"
-              :class="thread.unread_count > 0 ? 'bg-white/[0.02]' : ''"
-              @click="openThread(thread.thread_id)"
-            >
-              <div
-                class="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                :class="[
-                  index === 0 ? 'bg-rose-500' : index === 1 ? 'bg-violet-500' : index === 2 ? 'bg-sky-500' : 'bg-slate-500',
-                ]"
+            <div v-else>
+              <button
+                v-for="(thread, index) in threads"
+                :key="thread.thread_id"
+                type="button"
+                class="flex w-full items-start gap-3 border-b border-[#253043] px-4 py-4 text-left transition hover:bg-white/[0.03]"
+                :class="thread.unread_count > 0 ? 'bg-white/[0.02]' : ''"
+                @click="openThread(thread.thread_id)"
               >
-                {{ getAvatarLabel(thread.counterpart?.name) }}
-                <span
-                  class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#171a25]"
-                  :class="thread.status === 'active' ? 'bg-emerald-400' : 'bg-slate-500'"
-                />
-              </div>
+                <div
+                  class="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+                  :class="[
+                    index === 0 ? 'bg-rose-500' : index === 1 ? 'bg-violet-500' : index === 2 ? 'bg-sky-500' : 'bg-slate-500',
+                  ]"
+                >
+                  {{ getAvatarLabel(thread.counterpart?.name) }}
+                  <span
+                    class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#171a25]"
+                    :class="thread.status === 'active' ? 'bg-emerald-400' : 'bg-slate-500'"
+                  />
+                </div>
 
-              <div class="min-w-0 flex-1">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <h3 class="truncate text-sm font-semibold text-zinc-100">
-                      {{ thread.counterpart?.name ?? 'Conversation' }}
-                    </h3>
-                    <p class="mt-1 line-clamp-2 text-sm leading-5 text-zinc-400">
-                      {{ thread.last_message_preview }}
-                    </p>
-                  </div>
-                  <div class="flex flex-col items-end gap-2">
-                    <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                      {{ formatTimestamp(thread.last_message_at) }}
-                    </span>
-                    <span
-                      v-if="thread.unread_count > 0"
-                      class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-violet-500 px-1.5 text-[10px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(124,58,237,0.35)]"
-                    >
-                      {{ thread.unread_count > 9 ? '9+' : thread.unread_count }}
-                    </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <h3 class="truncate text-sm font-semibold text-zinc-100">
+                        {{ thread.counterpart?.name ?? 'Conversation' }}
+                      </h3>
+                      <p class="mt-1 line-clamp-2 text-sm leading-5 text-zinc-400">
+                        {{ thread.last_message_preview }}
+                      </p>
+                    </div>
+                    <div class="flex flex-col items-end gap-2">
+                      <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                        {{ formatTimestamp(thread.last_message_at) }}
+                      </span>
+                      <span
+                        v-if="thread.unread_count > 0"
+                        class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-violet-500 px-1.5 text-[10px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(124,58,237,0.35)]"
+                      >
+                        {{ thread.unread_count > 9 ? '9+' : thread.unread_count }}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
         </template>
       </aside>
