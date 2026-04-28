@@ -33,3 +33,9 @@ Broadcast::channel('assignment-chat.{threadId}', function ($user, $threadId) {
 
     return true;
 });
+
+Broadcast::channel('assignment-chat-user.{userId}', function ($user, $userId) {
+    abort_unless($user->user_id === $userId, 403);
+
+    return true;
+});

@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\AssignmentChatMessage;
+use App\Models\AssignmentChatThread;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -20,9 +21,25 @@ class AssignmentChatMessageCreated implements ShouldBroadcastNow
     ) {
     }
 
-    public function broadcastOn(): PrivateChannel
+    /**
+     * @return array<int, PrivateChannel>
+     */
+    public function broadcastOn(): array
     {
-        return new PrivateChannel('assignment-chat.'.$this->message->thread_id);
+        $thread = $this->message->thread ?? AssignmentChatThread::query()->find($this->message->thread_id);
+        $channels = [
+            new PrivateChannel('assignment-chat.'.$this->message->thread_id),
+        ];
+
+        $recipientId = $thread?->client_id === $this->message->sender_user_id
+            ? $thread?->production_id
+            : $thread?->client_id;
+
+        if ($recipientId) {
+            $channels[] = new PrivateChannel('assignment-chat-user.'.$recipientId);
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
