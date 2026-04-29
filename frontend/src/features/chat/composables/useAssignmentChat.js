@@ -17,10 +17,6 @@ const DEFAULT_REVERB_HOST = '127.0.0.1'
 const DEFAULT_REVERB_PORT = 8080
 const DEFAULT_REVERB_SCHEME = 'http'
 
-// Shared Echo instance to prevent multiple WebSocket connections
-const sharedEchoInstance = ref(null)
-const sharedEchoRefCount = ref(0)
-
 export function useAssignmentChat(props, options = {}) {
   const {
     onSendError = () => {},
@@ -63,21 +59,17 @@ export function useAssignmentChat(props, options = {}) {
       return null
     }
 
-    // Return existing shared instance if available
-    if (sharedEchoInstance.value) {
-      echoInstance.value = sharedEchoInstance.value
-      sharedEchoRefCount.value++
-      return sharedEchoInstance.value
+    if (echoInstance.value) {
+      return echoInstance.value
     }
 
-    // Create new shared instance only if none exists
     window.Pusher = Pusher
 
     const scheme = import.meta.env.VITE_REVERB_SCHEME ?? DEFAULT_REVERB_SCHEME
     const host = import.meta.env.VITE_REVERB_HOST ?? DEFAULT_REVERB_HOST
     const port = Number(import.meta.env.VITE_REVERB_PORT ?? DEFAULT_REVERB_PORT)
 
-    sharedEchoInstance.value = new Echo({
+    echoInstance.value = new Echo({
       broadcaster: 'reverb',
       key: import.meta.env.VITE_REVERB_APP_KEY ?? DEFAULT_REVERB_APP_KEY,
       wsHost: host,
@@ -94,10 +86,7 @@ export function useAssignmentChat(props, options = {}) {
       },
     })
 
-    sharedEchoRefCount.value = 1
-    echoInstance.value = sharedEchoInstance.value
-
-    return sharedEchoInstance.value
+    return echoInstance.value
   }
 
   const leaveActiveThreadChannel = () => {
@@ -117,18 +106,10 @@ export function useAssignmentChat(props, options = {}) {
       userChannelName.value = ''
     }
 
-    // Only disconnect shared Echo when last user cleans up
-    if (sharedEchoInstance.value) {
-      sharedEchoRefCount.value--
-      
-      if (sharedEchoRefCount.value <= 0) {
-        sharedEchoInstance.value.disconnect()
-        sharedEchoInstance.value = null
-        sharedEchoRefCount.value = 0
-      }
+    if (echoInstance.value) {
+      echoInstance.value.disconnect()
+      echoInstance.value = null
     }
-    
-    echoInstance.value = null
   }
 
   // Normalizers
@@ -319,12 +300,6 @@ export function useAssignmentChat(props, options = {}) {
     }
 
     const incomingMessage = normalizeMessage(payload.message)
-    
-    // Skip own messages - they were already added optimistically when sent
-    if (incomingMessage.is_own_message) {
-      return
-    }
-    
     const threadId = payload.thread_id ?? incomingMessage.thread_id
     const currentThread = await ensurePayloadThread(threadId)
 
@@ -337,12 +312,12 @@ export function useAssignmentChat(props, options = {}) {
 
     currentThread.last_message_at = incomingMessage.created_at
     currentThread.last_message_preview = incomingMessage.body
-    currentThread.unread_count = isSelectedThread
+    currentThread.unread_count = incomingMessage.is_own_message || isSelectedThread
       ? 0
       : currentThread.unread_count + (messageWasAdded ? 1 : 0)
     upsertThread(currentThread)
 
-    if (isSelectedThread) {
+    if (isSelectedThread && !incomingMessage.is_own_message) {
       await markSelectedThreadAsRead()
     }
 
