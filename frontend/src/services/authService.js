@@ -1,16 +1,8 @@
-import api, { ensureCsrfCookie } from './api'
+import api from './api'
 
-export const login = async (payload) => {
-  await ensureCsrfCookie()
+export const login = (payload) => api.post('/auth/login', payload)
 
-  return api.post('/auth/login', payload)
-}
-
-export const register = async (payload) => {
-  await ensureCsrfCookie()
-
-  return api.post('/auth/register', payload)
-}
+export const register = (payload) => api.post('/auth/register', payload)
 
 export const currentUser = () => api.get('/auth/currentUser')
 export const logout = () => api.post('/auth/logout')
