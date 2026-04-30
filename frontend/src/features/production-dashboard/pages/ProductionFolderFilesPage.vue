@@ -349,7 +349,7 @@ onMounted(() => {
                       class="rounded-xl border border-border bg-white/80 px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
                       @click="openUploadPanel"
                     >
-                      Upload
+                      Update
                     </button>
                   </div>
                 </div>
