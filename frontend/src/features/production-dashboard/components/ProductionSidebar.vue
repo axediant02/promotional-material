@@ -24,7 +24,7 @@ const sectionMeta = [
 </script>
 
 <template>
-  <aside class="flex h-full min-h-screen flex-col bg-[linear-gradient(180deg,#58489b_0%,#4b3d74_100%)] text-white shadow-[24px_0_60px_rgba(75,61,116,0.24)] xl:sticky xl:top-0">
+  <aside class="pm-dashboard-sidebar flex h-full min-h-screen flex-col xl:sticky xl:top-0">
     <div class="border-b border-white/10 px-6 py-7">
       <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Nexus Archive</p>
       <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white ">
@@ -44,8 +44,8 @@ const sectionMeta = [
         :class="[
           'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition',
           activeSection === section.id
-            ? 'bg-white text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)]'
-            : 'text-white/72 hover:bg-white/10 hover:text-white',
+            ? 'pm-dashboard-sidebar-item-active'
+            : 'pm-dashboard-sidebar-item',
         ]"
         @click="$emit('change-section', section.id)"
       >

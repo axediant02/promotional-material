@@ -439,7 +439,7 @@ const signOut = async () => {
 <template>
   <div class="pm-page min-h-screen text-ink dark:text-white">
     <div class="min-h-screen xl:grid xl:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside class="flex h-full min-h-screen flex-col bg-[linear-gradient(180deg,#58489b_0%,#4b3d74_100%)] text-white shadow-[24px_0_60px_rgba(75,61,116,0.24)] xl:sticky xl:top-0">
+      <aside class="pm-dashboard-sidebar flex h-full min-h-screen flex-col xl:sticky xl:top-0">
         <div class="border-b border-white/10 px-6 py-7">
           <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Promotional Materials</p>
           <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white ">
@@ -457,8 +457,8 @@ const signOut = async () => {
             :class="[
               'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition',
               activeView === 'folders'
-                ? 'bg-white text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)]'
-                : 'text-white/72 hover:bg-white/10 hover:text-white',
+                ? 'pm-dashboard-sidebar-item-active'
+                : 'pm-dashboard-sidebar-item',
             ]"
             @click="goToFolders"
           >
@@ -475,8 +475,8 @@ const signOut = async () => {
             :class="[
               'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-45',
               activeView === 'folder'
-                ? 'bg-white text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)]'
-                : 'text-white/72 hover:bg-white/10 hover:text-white',
+                ? 'pm-dashboard-sidebar-item-active'
+                : 'pm-dashboard-sidebar-item',
             ]"
             :disabled="!selectedFolder"
             @click="goToSelectedFolder"
@@ -497,8 +497,8 @@ const signOut = async () => {
             :class="[
               'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition',
               activeView === 'recent'
-                ? 'bg-white text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)]'
-                : 'text-white/72 hover:bg-white/10 hover:text-white',
+                ? 'pm-dashboard-sidebar-item-active'
+                : 'pm-dashboard-sidebar-item',
             ]"
             @click="goToRecentFiles"
           >
@@ -611,7 +611,7 @@ const signOut = async () => {
                 </article>
               </section>
 
-              <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
+              <section class="pm-dashboard-inverse-surface overflow-hidden rounded-[2rem]">
                 <div class="border-b border-white/10 px-5 py-5">
                   <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -796,7 +796,7 @@ const signOut = async () => {
               </nav>
 
               <section class="grid gap-6 2xl:grid-cols-[minmax(0,1.4fr)_24rem]">
-                <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
+                <section class="pm-dashboard-inverse-surface overflow-hidden rounded-[2rem]">
                   <div class="border-b border-white/10 px-5 py-5">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <DashboardSectionHeader
@@ -952,7 +952,7 @@ const signOut = async () => {
             </section>
 
             <section v-else class="space-y-5">
-              <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
+              <section class="pm-dashboard-inverse-surface overflow-hidden rounded-[2rem]">
                 <div class="border-b border-white/10 px-5 py-5">
                   <DashboardSectionHeader
                     eyebrow="Recent file activity"

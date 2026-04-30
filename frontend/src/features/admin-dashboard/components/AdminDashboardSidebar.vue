@@ -30,7 +30,7 @@ const initials = (props.currentUser?.name ?? 'Admin User')
 </script>
 
 <template>
-  <aside class="bg-gradient-to-b from-[#58489b] via-[#4f4188] to-[#463d78] text-white shadow-[20px_0_50px_rgba(75,61,116,0.22)] dark:from-[#1a1625] dark:via-[#16121f] dark:to-[#12101a] dark:shadow-[20px_0_50px_rgba(0,0,0,0.3)]">
+  <aside class="pm-dashboard-sidebar">
     <div class="flex min-h-full flex-col">
       <div class="border-b border-white/10 px-7 py-6">
         <p class="text-[10px] font-medium uppercase tracking-[0.38em] text-white/50">Nexus Archive</p>
@@ -52,8 +52,8 @@ const initials = (props.currentUser?.name ?? 'Admin User')
           :class="[
             'group mb-1.5 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-150',
             activeItem === item.id
-              ? 'bg-white text-[#4b3d74] shadow-[0_8px_24px_rgba(34,18,68,0.18)] dark:bg-white/[0.08] dark:text-white'
-              : 'text-white/65 hover:bg-white/[0.08] hover:text-white dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white',
+              ? 'pm-dashboard-sidebar-item-active'
+              : 'pm-dashboard-sidebar-item',
           ]"
           @click="emit('navigate', item.id)"
         >

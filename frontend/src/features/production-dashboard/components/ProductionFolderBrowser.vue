@@ -60,7 +60,7 @@ const statusAccentClasses = {
 </script>
 
 <template>
-  <section class="overflow-hidden rounded-[2rem] border border-slate-900/70 bg-[linear-gradient(180deg,#252526_0%,#1e1e1e_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.3)]">
+  <section class="pm-dashboard-inverse-surface overflow-hidden rounded-[2rem]">
     <div class="border-b border-white/10 px-5 py-5">
       <div class="flex flex-col gap-5">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
