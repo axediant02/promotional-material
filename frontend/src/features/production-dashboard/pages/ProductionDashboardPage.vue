@@ -800,7 +800,7 @@ onMounted(() => {
 <template>
   <div class="pm-page min-h-screen text-ink dark:text-white">
     <div
-      class="min-h-screen xl:grid"
+      class="min-h-screen transition-[grid-template-columns] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] xl:grid"
       :style="{ '--production-sidebar-width': sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH }"
       :class="'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]'"
     >
