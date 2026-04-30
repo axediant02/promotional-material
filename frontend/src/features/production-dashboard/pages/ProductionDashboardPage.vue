@@ -21,6 +21,8 @@ const SIDEBAR_COLLAPSED_STORAGE_KEY = 'production_sidebar_collapsed'
 const DUE_SOON_DAYS = 3
 const FOLDER_FILTERS = ['all', 'needs_action', 'has_requests', 'recently_updated', 'empty']
 const FOLDER_SORTS = ['recent', 'client_name', 'due_date', 'request_volume']
+const SIDEBAR_EXPANDED_WIDTH = '18.5rem'
+const SIDEBAR_COLLAPSED_WIDTH = '6.5rem'
 
 const router = useRouter()
 const route = useRoute()
@@ -788,8 +790,8 @@ onMounted(() => {
   <div class="pm-page min-h-screen text-ink dark:text-white">
     <div
       class="min-h-screen xl:grid"
-      :style="{ '--production-sidebar-width': sidebarCollapsed ? '5.5rem' : '18.5rem' }"
-      :class="sidebarCollapsed ? 'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]' : 'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]'"
+      :style="{ '--production-sidebar-width': sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH }"
+      :class="'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]'"
     >
       <ProductionSidebar
         :current-user="currentUser"
@@ -801,7 +803,7 @@ onMounted(() => {
         @sign-out="signOut"
       />
 
-      <main class="min-w-0">
+      <main class="relative min-w-0">
         <ProductionTopbar
           v-model:search-query="searchQuery"
           :current-user="currentUser"
