@@ -100,8 +100,8 @@
     radial-gradient(circle at 85% 15%, rgba(95, 80, 155, 0.22), transparent 25%),
     linear-gradient(180deg, #191427 0%, #231d35 45%, #120f1c 100%);
   --pm-dashboard-sidebar-bg:
-    linear-gradient(180deg, rgb(var(--pm-brand-600)) 0%, rgb(var(--pm-brand-700)) 100%);
-  --pm-dashboard-sidebar-shadow: 24px 0 60px rgba(75, 61, 116, 0.24);
+    linear-gradient(180deg, #7a61b2 0%, #6f52a7 48%, #684b9d 100%);
+  --pm-dashboard-sidebar-shadow: 24px 0 60px rgba(57, 36, 98, 0.26);
   --pm-dashboard-inverse-bg:
     linear-gradient(180deg, rgb(73 60 112 / 0.97) 0%, rgb(59 48 94 / 0.97) 100%);
   --pm-dashboard-inverse-border: rgb(255 255 255 / 0.12);

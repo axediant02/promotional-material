@@ -37,32 +37,37 @@ const getInitials = (name) =>
 
 const isSectionActive = (sectionId) => props.activeSection === sectionId
 
+const getSidebarClass = () =>
+  props.collapsed
+    ? 'pm-dashboard-sidebar border-r border-white/10'
+    : 'pm-dashboard-sidebar border-r border-white/10'
+
 const getSectionButtonClass = (sectionId) => {
   const active = isSectionActive(sectionId)
 
   if (props.collapsed) {
     return [
-      'group relative mx-auto flex h-12 w-12 items-center justify-center rounded-[18px] border text-left transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_10px_24px_rgba(22,16,38,0.12)]',
+      'group relative flex aspect-square w-full items-center justify-center rounded-[1.4rem] border transition-all duration-200 ease-out',
       active
-        ? 'border-white/20 bg-white/15 text-white shadow-[0_16px_30px_rgba(17,11,34,0.18)] backdrop-blur-md'
-        : 'border-transparent bg-white/8 text-white/70 hover:border-white/15 hover:bg-white/12 hover:text-white',
+        ? 'border-white/18 bg-white/12 text-white shadow-[0_16px_28px_rgba(34,18,68,0.24)]'
+        : 'border-transparent bg-transparent text-white/72 hover:bg-white/10 hover:text-white',
     ].join(' ')
   }
 
   return [
-    'group flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_10px_24px_rgba(22,16,38,0.12)]',
+    'group flex w-full items-center gap-3 rounded-[1.25rem] border px-4 py-3.5 text-left transition-all duration-200 ease-out',
     active
-      ? 'border-white/15 bg-white/95 text-brand-700 shadow-[0_16px_34px_rgba(34,18,68,0.18)]'
-      : 'border-transparent bg-white/8 text-white/74 hover:border-white/12 hover:bg-white/12 hover:text-white',
+      ? 'border-white/14 bg-white/95 text-brand-700 shadow-[0_16px_30px_rgba(34,18,68,0.18)]'
+      : 'border-transparent bg-transparent text-white/72 hover:border-white/12 hover:bg-white/10 hover:text-white',
   ].join(' ')
 }
 
 const getSectionIconClass = (sectionId) => {
   if (props.collapsed) {
-    return isSectionActive(sectionId) ? 'text-brand-600' : 'text-white/70'
+    return isSectionActive(sectionId) ? 'text-white' : 'text-current'
   }
 
-  return isSectionActive(sectionId) ? 'text-brand-600' : 'text-white/65'
+  return isSectionActive(sectionId) ? 'text-brand-600' : 'text-current'
 }
 
 const getFooterInitials = () => getInitials(props.currentUser?.name)
@@ -71,54 +76,50 @@ const getFooterInitials = () => getInitials(props.currentUser?.name)
 <template>
   <aside
     :class="[
-      'pm-dashboard-sidebar flex h-full min-h-screen flex-col overflow-hidden transition-[width] duration-300 xl:sticky xl:top-0 xl:border-r xl:border-white/10',
+      'relative flex h-full min-h-screen flex-col overflow-hidden transition-[width] duration-300 xl:sticky xl:top-0',
       collapsed ? 'xl:w-[6.5rem]' : 'xl:w-[18.5rem]',
+      getSidebarClass(),
     ]"
   >
     <div
-      class="border-b border-white/10 px-4 py-7"
-      :class="collapsed ? 'px-2 py-5 xl:px-2' : 'xl:px-6'"
+      class="border-b border-[#ddd4f0]"
+      :class="collapsed ? 'px-3 py-6' : 'px-5 py-6 xl:px-6'"
     >
-      <div :class="collapsed ? 'flex flex-col items-center gap-3' : 'flex items-start justify-between gap-3'">
-        <div :class="collapsed ? 'flex flex-col items-center gap-2' : 'min-w-0'">
-          <div :class="collapsed ? 'hidden' : 'min-w-0'">
-            <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">
-              Promotional Materials
-            </p>
-            <h1 class="mt-3 text-[2.15rem] font-semibold tracking-[-0.05em] text-white">
-              Production Hub
-            </h1>
-          </div>
+      <div :class="collapsed ? 'flex flex-col items-center gap-4' : 'flex items-start justify-between gap-4'">
+        <div v-if="!collapsed" class="min-w-0">
+          <p class="text-[10px] font-semibold uppercase tracking-[0.34em] text-white/58">
+            Production
+          </p>
+          <h1 class="mt-3 text-[1.95rem] font-semibold tracking-[-0.05em] text-white">
+            Workspace
+          </h1>
+          <p class="mt-3 max-w-[13rem] text-sm leading-6 text-white/65">
+            Review folders, active requests, and recovery tools from one focused rail.
+          </p>
         </div>
 
         <button
-          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/80 shadow-[0_12px_24px_rgba(17,11,34,0.12)] backdrop-blur-sm transition hover:-translate-y-[1px] hover:border-white/20 hover:bg-white/15 hover:text-white"
+          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white/80 shadow-[0_12px_24px_rgba(17,11,34,0.12)] transition hover:border-white/20 hover:bg-white/15 hover:text-white"
           type="button"
           :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
           @click="emit('toggle-collapse')"
         >
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <path d="M4 7h16" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M4 12h16" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M4 17h16" stroke-linecap="round" stroke-linejoin="round" />
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+            <path d="m10 7 5 5-5 5" stroke-linecap="round" stroke-linejoin="round" :class="collapsed ? '' : 'rotate-180 origin-center'" />
           </svg>
         </button>
       </div>
-
-      <p v-if="!collapsed" class="mt-4 max-w-[14rem] text-sm leading-6 text-white/65">
-        Manage assigned client folders, move requests forward, and keep delivery files organized.
-      </p>
     </div>
 
-    <nav class="flex-1 px-3 py-5" :class="collapsed ? 'xl:px-2' : 'xl:px-4'">
+    <nav class="flex-1" :class="collapsed ? 'px-3 py-5' : 'px-4 py-5 xl:px-5'">
       <p
-        class="px-3 pb-3 text-[10px] uppercase tracking-[0.32em] text-white/45"
-        :class="collapsed ? 'hidden' : ''"
+        v-if="!collapsed"
+        class="px-2 pb-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/42"
       >
-        Workspace
+        Navigation
       </p>
 
-      <div :class="collapsed ? 'space-y-2' : ''">
+      <div :class="collapsed ? 'space-y-3' : 'space-y-2'">
         <button
           v-for="section in sectionMeta"
           :key="section.id"
@@ -128,13 +129,10 @@ const getFooterInitials = () => getInitials(props.currentUser?.name)
           :class="getSectionButtonClass(section.id)"
           @click="emit('change-section', section.id)"
         >
-          <span
-            class="relative flex items-center gap-3"
-            :class="collapsed ? 'justify-center gap-0' : ''"
-          >
+          <span class="flex items-center gap-3" :class="collapsed ? 'justify-center' : ''">
             <svg
-              v-if="section.icon === 'queue'"
-              class="h-4 w-4 transition-transform duration-200 group-hover:scale-105"
+              v-if="section.icon === 'files'"
+              class="h-5 w-5 transition-transform duration-200 group-hover:scale-105"
               :class="getSectionIconClass(section.id)"
               viewBox="0 0 24 24"
               fill="none"
@@ -142,14 +140,15 @@ const getFooterInitials = () => getInitials(props.currentUser?.name)
               stroke-width="1.8"
               aria-hidden="true"
             >
-              <path d="M4 7h16" />
-              <path d="M4 12h10" />
-              <path d="M4 17h12" />
-              <path d="m16 12 2 2 4-4" />
+              <path d="M14 4v4h4" />
+              <path d="M6 5.5A1.5 1.5 0 0 1 7.5 4h6.4L18 8.1V18.5A1.5 1.5 0 0 1 16.5 20h-9A1.5 1.5 0 0 1 6 18.5z" stroke-linejoin="round" />
+              <path d="M9 12h6" stroke-linecap="round" />
+              <path d="M9 15.5h4" stroke-linecap="round" />
             </svg>
+
             <svg
-              v-else-if="section.icon === 'files'"
-              class="h-4 w-4 transition-transform duration-200 group-hover:scale-105"
+              v-else-if="section.icon === 'queue'"
+              class="h-5 w-5 transition-transform duration-200 group-hover:scale-105"
               :class="getSectionIconClass(section.id)"
               viewBox="0 0 24 24"
               fill="none"
@@ -157,14 +156,15 @@ const getFooterInitials = () => getInitials(props.currentUser?.name)
               stroke-width="1.8"
               aria-hidden="true"
             >
-              <path d="M14 3v5h5" />
-              <path d="M5 8.5V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3.5" />
-              <path d="M3 14h11" />
-              <path d="M3 18h8" />
+              <path d="M5 7h10" stroke-linecap="round" />
+              <path d="M5 12h10" stroke-linecap="round" />
+              <path d="M5 17h8" stroke-linecap="round" />
+              <path d="m15 12 2 2 4-5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
+
             <svg
               v-else
-              class="h-4 w-4 transition-transform duration-200 group-hover:scale-105"
+              class="h-5 w-5 transition-transform duration-200 group-hover:scale-105"
               :class="getSectionIconClass(section.id)"
               viewBox="0 0 24 24"
               fill="none"
@@ -172,70 +172,62 @@ const getFooterInitials = () => getInitials(props.currentUser?.name)
               stroke-width="1.8"
               aria-hidden="true"
             >
-              <path d="M4 7h16" />
-              <path d="M9 7V5h6v2" />
-              <path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7" />
-              <path d="M10 11v5" />
-              <path d="M14 11v5" />
+              <path d="M4.5 7h15" stroke-linecap="round" />
+              <path d="M9 7V5h6v2" stroke-linecap="round" />
+              <path d="M7 7v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7" stroke-linejoin="round" />
+              <path d="M10 11v5" stroke-linecap="round" />
+              <path d="M14 11v5" stroke-linecap="round" />
             </svg>
-            <span :class="collapsed ? 'hidden' : ''">{{ section.label }}</span>
 
-            <span
-              v-if="collapsed && isSectionActive(section.id)"
-              class="absolute -bottom-2 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-white/85"
-            />
+            <template v-if="!collapsed">
+              <span class="flex-1 truncate text-sm font-medium">{{ section.label }}</span>
+              <span
+                class="inline-flex min-w-[1.7rem] items-center justify-center rounded-full bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                :class="isSectionActive(section.id) ? 'text-brand-600' : 'text-white/48'"
+              >
+                {{ props.sectionCounts[section.id] ?? 0 }}
+              </span>
+            </template>
           </span>
 
           <span
             v-if="collapsed"
-            class="pointer-events-none absolute left-full top-1/2 z-20 ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/15 bg-slate-950/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white opacity-0 shadow-lg backdrop-blur-md transition duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+            class="pointer-events-none absolute left-full top-1/2 z-20 ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/15 bg-slate-950/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white opacity-0 shadow-[0_12px_24px_rgba(17,11,34,0.22)] transition duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
           >
             {{ section.label }}
-          </span>
-
-          <span
-            v-if="!collapsed"
-            :class="[
-              'ml-auto text-[11px] uppercase tracking-[0.22em] transition',
-              isSectionActive(section.id) ? 'text-brand-500' : 'text-white/45',
-            ]"
-          >
-            {{ props.sectionCounts[section.id] ?? 0 }}
           </span>
         </button>
       </div>
     </nav>
 
-    <div class="mt-auto border-t border-white/10 px-4 py-5" :class="collapsed ? 'px-2 xl:px-2' : 'xl:px-6'">
+    <div class="mt-auto border-t border-white/10" :class="collapsed ? 'px-3 py-5' : 'px-5 py-5 xl:px-6'">
       <div
         :class="[
-          'flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-4 shadow-[0_14px_26px_rgba(22,16,38,0.18)] backdrop-blur-sm',
-          collapsed ? 'mx-auto flex w-full max-w-[4.25rem] flex-col items-center gap-2 px-2 py-3' : '',
+          'flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/10',
+          collapsed ? 'flex-col px-2 py-3' : 'px-3 py-3.5',
         ]"
       >
-        <div
-          class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-white"
-        >
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/12 text-sm font-semibold text-white">
           {{ getFooterInitials() }}
         </div>
 
-        <div class="min-w-0 flex-1" :class="collapsed ? 'hidden' : ''">
+        <div v-if="!collapsed" class="min-w-0 flex-1">
           <p class="truncate text-sm font-semibold text-white">
             {{ props.currentUser.name || 'Production User' }}
           </p>
-          <p class="mt-1 text-[10px] uppercase tracking-[0.24em] text-white/55">
+          <p class="mt-1 text-[10px] uppercase tracking-[0.22em] text-white/52">
             {{ props.currentUser.role || 'production' }}
           </p>
         </div>
 
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/65 transition hover:-translate-y-[1px] hover:border-white/20 hover:bg-white/10 hover:text-white"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/68 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
           :class="collapsed ? '' : 'ml-auto'"
           type="button"
           :aria-label="collapsed ? 'Sign out' : 'Sign out of production dashboard'"
           @click="emit('sign-out')"
         >
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M15 7h4v10h-4" />
             <path d="m10 17 5-5-5-5" />
             <path d="M15 12H3" />
