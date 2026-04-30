@@ -220,6 +220,7 @@ const queueRows = computed(() =>
 
     return {
       id: request.request_id,
+      folderId: request.folder_id ?? '',
       reference: formatShortId(request.request_id),
       title: request.title ?? 'Untitled request',
       description: request.description ?? 'No request description provided.',
@@ -704,6 +705,16 @@ const closeOverviewRequest = () => {
   selectedOverviewRequestId.value = ''
 }
 
+const viewOverviewRequestFolder = (folderId) => {
+  if (!folderId) {
+    return
+  }
+
+  closeOverviewRequest()
+  activeSection.value = 'files'
+  openFolder(folderId)
+}
+
 const handleUploadFile = async (file, folderId) => {
   uploadingFileId.value = folderId
   error.value = ''
@@ -1066,6 +1077,7 @@ onMounted(() => {
       :updating-request-id="updatingRequestId"
       @close="closeOverviewRequest"
       @update-status="updateRequestStatus"
+      @view-folder="viewOverviewRequestFolder"
     />
   </div>
 </template>

@@ -10,9 +10,9 @@ const workspace = useProductionWorkspace()
 <template>
   <section class="space-y-5">
     <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-muted dark:text-zinc-400">
-      <span class="pm-chip rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.26em] dark:border-white/10 dark:bg-white/5 dark:text-zinc-300">Production</span>
+      <span class="rounded-full bg-white/60 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.26em] dark:bg-white/5 dark:text-zinc-300">Production</span>
       <span>/</span>
-      <span class="rounded-full border border-brand-300/40 bg-brand-50 px-3 py-1.5 text-brand-700 dark:border-white/15 dark:bg-white/10 dark:text-white">Client folders</span>
+      <span class="rounded-full bg-brand-50 px-3 py-1.5 text-brand-700 dark:bg-white/10 dark:text-white">Client folders</span>
     </nav>
 
     <ProductionFolderBrowser

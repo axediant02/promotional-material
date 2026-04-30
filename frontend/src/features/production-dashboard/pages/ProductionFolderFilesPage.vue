@@ -94,20 +94,20 @@ onMounted(() => {
   <section class="space-y-5">
     <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-muted dark:text-zinc-400">
       <button
-        class="rounded-full border border-border bg-white/60 px-3 py-1.5 transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:text-white"
+        class="rounded-full bg-white/60 px-3 py-1.5 transition hover:bg-brand-50 hover:text-brand-700 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white"
         @click="workspace.goToFolderIndex"
       >
         Production
       </button>
       <span>/</span>
       <button
-        class="rounded-full border border-border bg-white/60 px-3 py-1.5 transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:text-white"
+        class="rounded-full bg-brand-50 px-3 py-1.5 text-brand-700 transition hover:bg-brand-100 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
         @click="workspace.goToFolderIndex"
       >
         Client folders
       </button>
       <span>/</span>
-      <span class="rounded-full border border-brand-300/30 bg-brand-500/10 px-3 py-1.5 text-brand-700 dark:border-white/15 dark:bg-white/10 dark:text-white">
+      <span class="rounded-full bg-brand-100 px-3 py-1.5 text-brand-700 dark:bg-white/15 dark:text-white">
         {{ selectedFolder?.workspace ?? 'Folder' }}
       </span>
     </nav>

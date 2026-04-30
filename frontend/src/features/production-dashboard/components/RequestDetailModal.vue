@@ -18,8 +18,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'update-status', 'view-folder'])
 
-const handleVieFolder = () => {
-  if(props.request?.folderId){
+const handleViewFolder = () => {
+  if (props.request?.folderId) {
     emit('view-folder', props.request.folderId)
   }
 }
@@ -141,6 +141,24 @@ onBeforeUnmount(() => {
             </div>
           </section>
         </aside>
+      </div>
+
+      <div class="flex flex-col-reverse gap-3 border-t border-border/80 px-6 py-5 sm:flex-row sm:justify-end dark:border-white/10">
+        <button
+          class="rounded-2xl border border-border bg-white/80 px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-muted transition hover:border-brand-400 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
+          type="button"
+          @click="emit('close')"
+        >
+          Cancel
+        </button>
+        <button
+          class="pm-gradient-primary rounded-2xl px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          :disabled="!request.folderId"
+          @click="handleViewFolder"
+        >
+          Go to client folder
+        </button>
       </div>
     </div>
   </div>
