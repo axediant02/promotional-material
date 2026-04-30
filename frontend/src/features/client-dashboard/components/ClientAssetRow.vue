@@ -56,7 +56,7 @@ function formatBytes(bytes) {
 <template>
   <article
     class="flex flex-col gap-4 border-b border-border/70 px-5 py-5 last:border-b-0 dark:border-white/10 md:flex-row md:items-center md:justify-between"
-    :class="selected ? 'bg-brand-50/60 dark:bg-white/5' : ''"
+    :class="selected ? 'bg-brand-50/80 dark:bg-white/5' : ''"
   >
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center gap-3">
@@ -89,7 +89,7 @@ function formatBytes(bytes) {
         {{ isDownloading ? 'Preparing...' : 'Download' }}
       </button>
       <button
-        class="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:text-white dark:hover:border-white/20"
+        class="rounded-xl border border-border/70 bg-white/80 px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
         @click="emit('request-change', file)"
       >
         Request Change

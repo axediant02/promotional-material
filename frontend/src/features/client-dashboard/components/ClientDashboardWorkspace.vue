@@ -48,7 +48,7 @@ const emit = defineEmits([
 </script>
 
 <template>
-  <div class="dark min-h-screen bg-[#090b12] text-white">
+  <div class="pm-page min-h-screen bg-transparent text-ink dark:text-white">
     <ClientDashboardTopbar
       :search-query="searchQuery"
       :folder-label="folderLabel"

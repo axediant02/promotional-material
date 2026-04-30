@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
           @click.self="isHistoryOpen = false"
         >
           <div class="flex h-full items-center justify-center p-4 sm:p-6">
-            <div class="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]">
+            <div class="flex w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]">
               <div class="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5 dark:border-white/10">
                 <div>
                   <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request History</p>
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
                 </button>
               </div>
 
-              <div class="flex-1 overflow-y-auto px-6 py-6">
+              <div class="max-h-[min(52vh,28rem)] overflow-y-auto px-6 py-6">
                 <div class="space-y-4">
                   <article
                     v-for="request in requests"
