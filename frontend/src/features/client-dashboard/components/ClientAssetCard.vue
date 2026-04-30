@@ -14,26 +14,30 @@ const isDownloading = ref(false)
 const palette = computed(() => {
   const variants = {
     image: {
-      border: 'border-sky-500/35',
-      badge: 'border-sky-500/25 bg-sky-500/10 text-sky-200',
-      accent: 'text-sky-300',
+      border: 'border-sky-200 dark:border-sky-500/35',
+      badge: 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/25 dark:bg-sky-500/10 dark:text-sky-200',
+      accent: 'text-sky-600 dark:text-sky-300',
+      iconFrame: 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-500/35 dark:bg-sky-500/10 dark:text-sky-200',
     },
     video: {
-      border: 'border-violet-500/35',
-      badge: 'border-violet-500/25 bg-violet-500/10 text-violet-200',
-      accent: 'text-violet-300',
+      border: 'border-violet-200 dark:border-violet-500/35',
+      badge: 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-200',
+      accent: 'text-violet-600 dark:text-violet-300',
+      iconFrame: 'border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200',
     },
     pdf: {
-      border: 'border-rose-500/35',
-      badge: 'border-rose-500/25 bg-rose-500/10 text-rose-200',
-      accent: 'text-rose-300',
+      border: 'border-rose-200 dark:border-rose-500/35',
+      badge: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-200',
+      accent: 'text-rose-600 dark:text-rose-300',
+      iconFrame: 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-500/35 dark:bg-rose-500/10 dark:text-rose-200',
     },
   }
 
   return variants[props.file.category] ?? {
-    border: 'border-white/10',
-    badge: 'border-white/10 bg-white/5 text-zinc-300',
-    accent: 'text-zinc-300',
+    border: 'border-border/70 dark:border-white/10',
+    badge: 'border-border/70 bg-white text-muted dark:border-white/10 dark:bg-white/5 dark:text-zinc-300',
+    accent: 'text-muted dark:text-zinc-300',
+    iconFrame: 'border-border/70 bg-white text-muted dark:border-white/10 dark:bg-white/5 dark:text-zinc-300',
   }
 })
 
@@ -81,10 +85,10 @@ function formatBytes(bytes) {
 
 <template>
   <article
-    class="group overflow-hidden rounded-[1.35rem] border bg-[#111521] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_44px_rgba(0,0,0,0.28)]"
+    class="group overflow-hidden rounded-[1.35rem] border bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(247,240,253,0.95))] shadow-[0_18px_36px_rgba(75,61,116,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_44px_rgba(75,61,116,0.14)] dark:bg-[linear-gradient(180deg,rgba(17,21,33,0.98),rgba(17,21,33,0.98))] dark:shadow-[0_18px_36px_rgba(0,0,0,0.22)] dark:hover:shadow-[0_24px_44px_rgba(0,0,0,0.28)]"
     :class="[
       palette.border,
-      selected ? 'ring-2 ring-violet-400 ring-offset-2 ring-offset-[#090b12]' : '',
+      selected ? 'ring-2 ring-violet-400 ring-offset-2 ring-offset-[#fbf8ff] dark:ring-offset-[#090b12]' : '',
     ]"
   >
     <div class="flex min-h-[19rem] flex-col">
@@ -101,7 +105,7 @@ function formatBytes(bytes) {
       </div>
 
       <div class="flex flex-1 items-center justify-center px-4 py-4">
-        <div :class="['flex h-20 w-20 items-center justify-center rounded-2xl border bg-white/5', palette.border]">
+        <div :class="['flex h-20 w-20 items-center justify-center rounded-2xl border', palette.iconFrame]">
           <svg
             v-if="file.category === 'image'"
             :class="['h-10 w-10', palette.accent]"
@@ -141,12 +145,12 @@ function formatBytes(bytes) {
         </div>
       </div>
 
-      <div class="border-t border-white/10 px-4 py-4">
+      <div class="border-t border-border/70 px-4 py-4 dark:border-white/10">
         <div class="min-w-0">
-          <h4 class="truncate text-sm font-semibold text-white" :title="file.file_name">
+          <h4 class="truncate text-sm font-semibold text-ink dark:text-white" :title="file.file_name">
             {{ file.file_name }}
           </h4>
-          <div class="mt-1 flex items-center justify-between gap-3 text-xs text-zinc-400">
+          <div class="mt-1 flex items-center justify-between gap-3 text-xs text-muted dark:text-zinc-400">
             <span class="truncate">{{ updatedLabel }}</span>
             <span class="shrink-0">{{ sizeLabel }}</span>
           </div>
@@ -161,7 +165,7 @@ function formatBytes(bytes) {
             {{ isDownloading ? 'Preparing...' : 'Download' }}
           </button>
           <button
-            class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+            class="rounded-xl border border-border/70 bg-white/80 px-3 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
             @click="emit('request-change', file)"
           >
             Request
