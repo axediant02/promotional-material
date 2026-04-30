@@ -92,7 +92,7 @@ onMounted(() => {
 
 <template>
   <section class="space-y-5">
-    <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500">
+    <nav class="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-muted dark:text-zinc-400">
       <button
         class="rounded-full border border-border bg-white/60 px-3 py-1.5 transition hover:border-brand-500 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:text-white"
         @click="workspace.goToFolderIndex"
@@ -107,7 +107,7 @@ onMounted(() => {
         Client folders
       </button>
       <span>/</span>
-      <span class="rounded-full border border-[#9cdcfe]/30 bg-[#9cdcfe]/10 px-3 py-1.5 text-[#6ecff6] dark:text-[#b9e7ff]">
+      <span class="rounded-full border border-brand-300/30 bg-brand-500/10 px-3 py-1.5 text-brand-700 dark:border-white/15 dark:bg-white/10 dark:text-white">
         {{ selectedFolder?.workspace ?? 'Folder' }}
       </span>
     </nav>
@@ -118,7 +118,7 @@ onMounted(() => {
           <div class="flex flex-col gap-6">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div class="min-w-0">
-                <p class="text-[10px] uppercase tracking-[0.36em] text-[#9cdcfe]">Folder contents</p>
+                <p class="text-[10px] uppercase tracking-[0.36em] text-brand-100">Folder contents</p>
                 <h2 class="mt-2 truncate text-2xl font-semibold text-white">{{ selectedFolder?.workspace ?? 'Assigned folder' }}</h2>
                 <p class="mt-2 text-sm text-zinc-400">
                   {{ selectedFolder?.clientName ?? 'Assigned client' }} / {{ folderFiles.length }} files visible in this workspace.
@@ -147,19 +147,20 @@ onMounted(() => {
               </div>
             </div>
 
-            <section class="rounded-[1.6rem] border border-[#9cdcfe]/18 bg-[linear-gradient(135deg,rgba(156,220,254,0.14),rgba(255,255,255,0.04))] p-4 sm:p-5">
+            <section class="relative overflow-hidden rounded-[1.75rem] border border-amber-200/25 bg-[linear-gradient(180deg,rgba(255,248,220,0.12),rgba(95,80,155,0.2))] p-5 sm:p-6">
+              <div class="absolute right-6 top-0 h-8 w-24 -translate-y-1/2 rounded-full border border-amber-100/30 bg-amber-100/25 blur-[1px]" aria-hidden="true" />
               <div class="flex flex-col gap-6">
                 <div class="flex min-w-0 items-start gap-4">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem] border border-[#9cdcfe]/18 bg-[#9cdcfe]/10 text-[#d7f0ff]">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem] border border-amber-100/20 bg-amber-50/10 text-amber-50">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
                     </svg>
                   </div>
 
                   <div class="min-w-0">
-                    <p class="text-[10px] uppercase tracking-[0.34em] text-[#9cdcfe]">Production action</p>
-                    <h3 class="mt-2 text-lg font-semibold text-white">Add client delivery files</h3>
-                    <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
+                    <p class="text-[10px] uppercase tracking-[0.34em] text-amber-100">Pinned action</p>
+                    <h3 class="mt-2 text-lg font-semibold text-white">Upload delivery files to this workspace</h3>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-200/85">
                       Prepare uploads directly inside this folder so new assets stay tied to the selected client workspace.
                     </p>
                   </div>
@@ -167,19 +168,19 @@ onMounted(() => {
 
                 <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                   <div class="flex min-w-0 flex-col gap-2">
-                    <p class="text-[10px] uppercase tracking-[0.32em] text-zinc-500">Primary action</p>
+                    <p class="text-[10px] uppercase tracking-[0.32em] text-amber-100/80">Primary action</p>
                     <button
-                      class="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-[#9cdcfe]/40 bg-[linear-gradient(135deg,rgba(156,220,254,0.24),rgba(156,220,254,0.12))] px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white shadow-[0_18px_38px_rgba(34,79,112,0.26)] transition hover:border-[#cceeff]/65 hover:bg-[linear-gradient(135deg,rgba(156,220,254,0.32),rgba(156,220,254,0.16))] hover:shadow-[0_22px_44px_rgba(34,79,112,0.3)] xl:w-auto xl:min-w-[18rem]"
+                      class="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-amber-100/25 bg-[linear-gradient(135deg,rgba(109,80,162,0.44),rgba(75,61,116,0.28))] px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white shadow-[0_18px_38px_rgba(34,18,68,0.22)] transition hover:-translate-y-[1px] hover:border-amber-100/40 hover:brightness-110 hover:shadow-[0_22px_44px_rgba(34,18,68,0.28)] xl:w-auto xl:min-w-[18rem]"
                       @click="openUploadPanel"
                     >
-                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[#e6f6ff]">
+                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[#f8f2da]">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
                         </svg>
                       </span>
                       <span class="min-w-0">
                         <span class="block">Upload To Folder</span>
-                        <span class="mt-1 block text-[10px] font-medium normal-case tracking-normal text-[#d7f0ff]/78">
+                        <span class="mt-1 block text-[10px] font-medium normal-case tracking-normal text-[#f5ecd0]/82">
                           Add new client assets to this workspace
                         </span>
                       </span>
@@ -211,7 +212,7 @@ onMounted(() => {
             <article
               v-for="file in folderFiles"
               :key="file.file_id"
-              class="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 transition hover:border-[#9cdcfe]/35 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))]"
+            class="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-5 transition hover:-translate-y-[1px] hover:border-brand-400/40 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))]"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
@@ -231,7 +232,7 @@ onMounted(() => {
                 </div>
 
                 <button
-                  class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-[#9cdcfe]/35 hover:bg-[#9cdcfe]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-brand-400/40 hover:bg-brand-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="workspace.downloadingFileId.value === file.file_id"
                   @click="workspace.handleDownloadFile(file)"
                 >
@@ -262,7 +263,7 @@ onMounted(() => {
               <div class="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_8rem_9rem] md:items-center md:gap-4">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold text-white">{{ file.file_name }}</p>
-                  <p class="mt-1 text-xs text-zinc-500">{{ file.shortId }} · {{ file.uploaderName }}</p>
+                  <p class="mt-1 text-xs text-zinc-500">{{ file.shortId }} / {{ file.uploaderName }}</p>
                 </div>
                 <p class="truncate text-sm text-zinc-300">{{ file.updatedLabel }}</p>
                 <div>
@@ -316,11 +317,11 @@ onMounted(() => {
       class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm sm:items-center"
       @click.self="closeUploadPanel"
     >
-      <div class="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,#252526_0%,#1f1f1f_100%)] shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+      <div class="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgb(45,36,69)_0%,rgb(26,22,37)_100%)] shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
         <div class="border-b border-white/10 px-6 py-5">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <p class="text-[10px] uppercase tracking-[0.34em] text-[#9cdcfe]">Upload files</p>
+              <p class="text-[10px] uppercase tracking-[0.34em] text-brand-100">Upload files</p>
               <h3 class="mt-2 text-2xl font-semibold text-white">{{ selectedFolder?.workspace ?? 'Assigned folder' }}</h3>
               <p class="mt-2 text-sm text-zinc-400">{{ selectedFolder?.clientName ?? 'Assigned client' }}</p>
             </div>
@@ -357,8 +358,8 @@ onMounted(() => {
               :class="[
                 'rounded-[1.6rem] border border-dashed px-6 py-10 text-center transition cursor-pointer',
                 isDragging
-                  ? 'border-[#9cdcfe] bg-[#9cdcfe]/[0.12]'
-                  : 'border-[#9cdcfe]/30 bg-[#9cdcfe]/[0.06] hover:border-[#9cdcfe]/50',
+                  ? 'border-brand-200 bg-brand-200/15'
+                  : 'border-brand-200/40 bg-brand-200/10 hover:border-brand-200/60',
               ]"
               @click="fileInputRef?.click()"
               @dragover.prevent="isDragging = true"
@@ -373,7 +374,7 @@ onMounted(() => {
                 class="hidden"
                 @change="handleFileSelect"
               />
-              <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#9cdcfe]/20 bg-[#9cdcfe]/10 text-[#d7f0ff]">
+              <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-brand-100/20 bg-brand-100/10 text-brand-100">
                 <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
                 </svg>
@@ -449,7 +450,7 @@ onMounted(() => {
             Cancel
           </button>
           <button
-            class="inline-flex items-center gap-2 rounded-xl border border-[#9cdcfe]/40 bg-[linear-gradient(135deg,rgba(156,220,254,0.3),rgba(156,220,254,0.15))] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d7f0ff] transition hover:border-[#9cdcfe]/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            class="inline-flex items-center gap-2 rounded-xl border border-brand-200/40 bg-[linear-gradient(135deg,rgba(214,191,239,0.34),rgba(95,80,155,0.24))] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-brand-200/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="!selectedFiles.length || workspace.uploadingFileId.value === selectedFolder?.id"
             @click="submitUpload"
           >
@@ -466,3 +467,4 @@ onMounted(() => {
     </div>
   </section>
 </template>
+

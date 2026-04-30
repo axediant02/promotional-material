@@ -4,7 +4,9 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import AssignmentChatWidget from '../../chat/components/AssignmentChatWidget.vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import ProductionSidebar from '../components/ProductionSidebar.vue'
+import RequestDetailModal from '../components/RequestDetailModal.vue'
 import ProductionTopbar from '../components/ProductionTopbar.vue'
+import RequestStickyNote from '../components/RequestStickyNote.vue'
 import { provideProductionWorkspace } from '../productionWorkspace'
 import { fetchRecycleBin } from '../../../services/activityLogService'
 import { fetchDashboard } from '../../../services/dashboardService'
@@ -15,6 +17,7 @@ import { useAuthStore } from '../../../stores/auth'
 import { useNotificationStore } from '../../../stores/notifications'
 
 const FILE_BROWSER_STORAGE_KEY = 'production_folder_view_mode'
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'production_sidebar_collapsed'
 const DUE_SOON_DAYS = 3
 const FOLDER_FILTERS = ['all', 'needs_action', 'has_requests', 'recently_updated', 'empty']
 const FOLDER_SORTS = ['recent', 'client_name', 'due_date', 'request_volume']
@@ -33,6 +36,14 @@ const getSavedBrowserMode = () => {
   return savedMode === 'list' ? 'list' : 'grid'
 }
 
+const getSavedSidebarCollapsed = () => {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+}
+
 const normalizeBrowserMode = (value) => (value === 'list' ? 'list' : 'grid')
 const normalizeFilter = (value) => (FOLDER_FILTERS.includes(value) ? value : 'all')
 const normalizeSort = (value) => (FOLDER_SORTS.includes(value) ? value : 'recent')
@@ -45,11 +56,13 @@ const searchQuery = ref('')
 const folderBrowserMode = ref(getSavedBrowserMode())
 const folderBrowserFilter = ref('all')
 const folderBrowserSort = ref('recent')
+const sidebarCollapsed = ref(getSavedSidebarCollapsed())
 const updatingRequestId = ref('')
 const restoringFileId = ref('')
 const downloadingFileId = ref('')
 const syncingFolderQuery = ref(false)
 const uploadingFileId = ref('')
+const selectedOverviewRequestId = ref('')
 
 const dashboardData = ref({
   user: null,
@@ -79,8 +92,8 @@ const currentSectionMeta = computed(() => {
   if (activeSection.value === 'files') {
     return {
       eyebrow: currentUser.value?.name ? `${currentUser.value.name} / production` : 'Production workspace',
-      title: 'Assigned folders.',
-      description: 'Review assigned client workspaces, inspect request pressure, and open folder contents without leaving the production shell.',
+      // title: 'Assigned folders',
+      // description: 'Review assigned client workspaces, inspect request pressure, and open folder contents without leaving the production shell.',
     }
   }
 
@@ -181,6 +194,15 @@ const getDueSoonState = (value) => {
   }
 }
 
+const getPriorityState = (value) => {
+  const { isDueSoon, isOverdue } = getDueSoonState(value)
+
+  return {
+    isHighPriority: isDueSoon || isOverdue,
+    priorityLabel: isDueSoon || isOverdue ? 'High Priority' : '',
+  }
+}
+
 const getFileFolderId = (file) => file.folder?.folder_id ?? file.folder_id ?? null
 const getFileFolderName = (file) =>
   file.folder?.folder_name ?? folderLookup.value.get(getFileFolderId(file))?.folder_name ?? 'Workspace'
@@ -192,12 +214,14 @@ const queueRows = computed(() =>
   productionRequests.value.map((request) => {
     const folder = folderLookup.value.get(request.folder_id)
     const relatedFiles = files.value.filter((file) => getFileFolderId(file) === request.folder_id)
+    const { isHighPriority, priorityLabel } = getPriorityState(request.due_date)
 
     return {
       id: request.request_id,
       reference: formatShortId(request.request_id),
       title: request.title ?? 'Untitled request',
       description: request.description ?? 'No request description provided.',
+      sortTimestamp: normalizeTimestamp(request.updated_at ?? request.created_at ?? request.due_date ?? ''),
       clientName: folder?.client?.name ?? 'Assigned client',
       workspace: folder?.folder_name ?? 'Assigned workspace',
       requestType: formatRequestType(request.request_type),
@@ -205,6 +229,8 @@ const queueRows = computed(() =>
       statusTone: request.status ?? 'pending',
       statusLabel: (request.status ?? 'pending').replaceAll('_', ' '),
       dueLabel: request.due_date ? `Due ${formatDateLabel(request.due_date)}` : 'No due date set',
+      isHighPriority,
+      priorityLabel,
       fileCount: relatedFiles.length,
       fileNames: relatedFiles.slice(0, 3).map((file) => file.file_name),
     }
@@ -334,10 +360,42 @@ const workspaceSummaryStats = computed(() => {
   }).length
 
   return [
-    { id: 'assigned_folders', label: 'Assigned folders', value: folderWorkspaceRows.value.length, detail: 'Visible client workspaces' },
-    { id: 'open_requests', label: 'Open requests', value: openRequests, detail: `${productionRequests.value.length} total tracked` },
-    { id: 'files_in_scope', label: 'Files in scope', value: files.value.length, detail: 'Accessible production assets' },
-    { id: 'due_soon', label: 'Due soon', value: dueSoon, detail: 'Active requests nearing deadline' },
+    {
+      id: 'assigned_folders',
+      label: 'Assigned folders',
+      value: folderWorkspaceRows.value.length,
+      detail: 'Visible client workspaces',
+      accent: 'from-brand-500/16 via-brand-500/8 to-transparent',
+      chipTone: 'border-brand-300/40 bg-brand-50 text-brand-700 dark:border-white/10 dark:bg-white/10 dark:text-brand-100',
+      numberTone: 'text-brand-700 dark:text-brand-100',
+    },
+    {
+      id: 'open_requests',
+      label: 'Open requests',
+      value: openRequests,
+      detail: `${productionRequests.value.length} total tracked`,
+      accent: 'from-amber-500/16 via-amber-500/8 to-transparent',
+      chipTone: 'border-amber-300/40 bg-amber-50 text-amber-900 dark:border-white/10 dark:bg-white/10 dark:text-amber-100',
+      numberTone: 'text-amber-900 dark:text-amber-100',
+    },
+    {
+      id: 'files_in_scope',
+      label: 'Files in scope',
+      value: files.value.length,
+      detail: 'Accessible production assets',
+      accent: 'from-slate-400/14 via-white/10 to-transparent',
+      chipTone: 'border-border/80 bg-white/80 text-muted dark:border-white/10 dark:bg-white/10 dark:text-zinc-300',
+      numberTone: 'text-ink dark:text-white',
+    },
+    {
+      id: 'due_soon',
+      label: 'High Priority',
+      value: dueSoon,
+      detail: 'Active requests nearing deadline',
+      accent: 'from-orange-400/16 via-orange-400/8 to-transparent',
+      chipTone: 'border-orange-300/40 bg-orange-50 text-orange-900 dark:border-white/10 dark:bg-white/10 dark:text-orange-100',
+      numberTone: 'text-orange-900 dark:text-orange-100',
+    },
   ]
 })
 
@@ -409,6 +467,16 @@ const recentActivityFiles = computed(() =>
     updatedLabel: formatDateLabel(file.updated_at),
     category: file.category ?? 'asset',
   }))
+)
+
+const latestAssignedRequests = computed(() =>
+  queueRows.value
+    .slice()
+    .sort((left, right) => right.sortTimestamp - left.sortTimestamp)
+)
+
+const selectedOverviewRequest = computed(() =>
+  latestAssignedRequests.value.find((request) => request.id === selectedOverviewRequestId.value) ?? null
 )
 
 const filteredRecycleBinFiles = computed(() => {
@@ -492,6 +560,14 @@ watch(folderBrowserMode, (value) => {
   }
 
   window.localStorage.setItem(FILE_BROWSER_STORAGE_KEY, value)
+})
+
+watch(sidebarCollapsed, (value) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(value))
 })
 
 watch(searchQuery, (value) => {
@@ -609,6 +685,23 @@ const handleSectionChange = (section) => {
   }
 }
 
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const openLatestRequest = () => {
+  activeSection.value = 'queue'
+  router.push({ name: 'production-dashboard' })
+}
+
+const openOverviewRequest = (request) => {
+  selectedOverviewRequestId.value = request.id
+}
+
+const closeOverviewRequest = () => {
+  selectedOverviewRequestId.value = ''
+}
+
 const handleUploadFile = async (file, folderId) => {
   uploadingFileId.value = folderId
   error.value = ''
@@ -693,12 +786,18 @@ onMounted(() => {
 
 <template>
   <div class="pm-page min-h-screen text-ink dark:text-white">
-    <div class="min-h-screen xl:grid xl:grid-cols-[18.5rem_minmax(0,1fr)]">
+    <div
+      class="min-h-screen xl:grid"
+      :style="{ '--production-sidebar-width': sidebarCollapsed ? '5.5rem' : '18.5rem' }"
+      :class="sidebarCollapsed ? 'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]' : 'xl:grid-cols-[var(--production-sidebar-width)_minmax(0,1fr)]'"
+    >
       <ProductionSidebar
         :current-user="currentUser"
         :active-section="activeSection"
         :section-counts="sectionCounts"
+        :collapsed="sidebarCollapsed"
         @change-section="handleSectionChange"
+        @toggle-collapse="toggleSidebar"
         @sign-out="signOut"
       />
 
@@ -725,19 +824,11 @@ onMounted(() => {
 
           <template v-else>
             <section v-if="activeSection === 'files'" class="space-y-8">
-              <section class="grid gap-4 xl:grid-cols-4">
-                <article
-                  v-for="stat in workspaceSummaryStats"
-                  :key="stat.id"
-                  class="pm-surface rounded-[1.7rem] px-5 py-5"
-                >
-                  <p class="text-[10px] uppercase tracking-[0.36em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
-                    {{ stat.value }}
-                  </p>
-                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
-                </article>
-              </section>
+              <RequestStickyNote
+                :requests="latestAssignedRequests"
+                @open-queue="openLatestRequest"
+                @open-request="openOverviewRequest"
+              />
 
               <RouterView />
             </section>
@@ -747,13 +838,21 @@ onMounted(() => {
                 <article
                   v-for="stat in workspaceSummaryStats"
                   :key="stat.id"
-                  class="pm-surface rounded-[1.8rem] px-5 py-5"
+                  class="pm-surface relative overflow-hidden rounded-[1.8rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,244,252,0.96))] px-5 py-5 transition hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]"
                 >
-                  <p class="text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
-                  <p class="mt-4 text-4xl leading-none text-ink dark:text-white ">
-                    {{ stat.value }}
-                  </p>
-                  <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
+                  <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-90" :class="stat.accent" aria-hidden="true" />
+                  <div class="absolute right-5 top-5 h-10 w-10 rounded-full border border-white/60 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-white/10" aria-hidden="true" />
+
+                  <div class="relative">
+                    <div class="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]" :class="stat.chipTone">
+                      Live
+                    </div>
+                    <p class="mt-4 text-[10px] uppercase tracking-[0.38em] text-muted dark:text-zinc-400">{{ stat.label }}</p>
+                    <p :class="['mt-3 text-4xl leading-none font-semibold tracking-[-0.04em]', stat.numberTone]">
+                      {{ stat.value }}
+                    </p>
+                    <p class="mt-3 text-sm text-muted dark:text-zinc-300">{{ stat.detail }}</p>
+                  </div>
                 </article>
               </section>
 
@@ -958,5 +1057,14 @@ onMounted(() => {
       :current-user-id="currentUserId"
       title="Messages"
     />
+
+    <RequestDetailModal
+      :open="Boolean(selectedOverviewRequest)"
+      :request="selectedOverviewRequest"
+      :updating-request-id="updatingRequestId"
+      @close="closeOverviewRequest"
+      @update-status="updateRequestStatus"
+    />
   </div>
 </template>
+

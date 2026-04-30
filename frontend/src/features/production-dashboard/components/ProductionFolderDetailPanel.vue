@@ -56,11 +56,11 @@ const categoryClasses = {
         <p class="mt-2 text-sm text-muted dark:text-zinc-300">{{ selectedFolder.clientName }}</p>
 
         <div class="mt-4 grid grid-cols-2 gap-3">
-          <div class="rounded-2xl border border-border bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-black/10">
+          <div class="rounded-2xl border border-border bg-white/75 px-4 py-3 dark:border-white/10 dark:bg-black/10">
             <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-400">Files</p>
             <p class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ selectedFolder.fileCount }}</p>
           </div>
-          <div class="rounded-2xl border border-border bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-black/10">
+          <div class="rounded-2xl border border-border bg-white/75 px-4 py-3 dark:border-white/10 dark:bg-black/10">
             <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-400">Active requests</p>
             <p class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ selectedFolder.activeRequestCount }}</p>
           </div>
@@ -88,7 +88,7 @@ const categoryClasses = {
           <article
             v-for="request in folderRequests"
             :key="request.id"
-            class="rounded-[1.4rem] border border-border bg-white/65 p-4 dark:border-white/10 dark:bg-white/5"
+            class="rounded-[1.4rem] border border-border bg-white/75 p-4 transition hover:border-brand-400/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20"
           >
             <div class="flex flex-col gap-4">
               <div class="flex items-start justify-between gap-3">
@@ -145,7 +145,7 @@ const categoryClasses = {
           <article
             v-for="file in folderFiles"
             :key="file.file_id"
-            class="rounded-[1.4rem] border border-border bg-white/65 p-4 dark:border-white/10 dark:bg-white/5"
+            class="rounded-[1.4rem] border border-border bg-white/75 p-4 transition hover:border-brand-400/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20"
           >
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
