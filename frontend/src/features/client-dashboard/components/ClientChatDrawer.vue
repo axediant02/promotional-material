@@ -87,14 +87,8 @@ onMounted(() => {
   document.addEventListener('pointerdown', handleDocumentPointerDown)
   document.addEventListener('keydown', handleDocumentKeydown)
 
-  subscribeToUserChatIfOpen()
+  initializeDrawer()
 })
-
-function subscribeToUserChatIfOpen() {
-  if (props.open) {
-    initializeDrawer()
-  }
-}
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
