@@ -132,7 +132,7 @@ class FileService
     public function download(MediaFile $file)
     {
         $disk = Storage::disk($file->storage_disk);
-        $this->ensureStoredFileExists($disk, $file);
+        abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
 
         return $disk->download($file->storage_path, $file->file_name);
     }
@@ -140,7 +140,7 @@ class FileService
     public function preview(MediaFile $file)
     {
         $disk = Storage::disk($file->storage_disk);
-        $this->ensureStoredFileExists($disk, $file);
+        abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
 
         return $disk->response($file->storage_path, $file->file_name, [
             'Content-Type' => $this->resolvePreviewMimeType($file->category),
@@ -167,10 +167,5 @@ class FileService
             'video' => 'video/*',
             default => 'application/pdf',
         };
-    }
-
-    private function ensureStoredFileExists($disk, MediaFile $file): void
-    {
-        abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
     }
 }

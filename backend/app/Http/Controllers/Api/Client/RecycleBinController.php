@@ -36,9 +36,7 @@ class RecycleBinController extends Controller
     public function restore(string $id): JsonResponse
     {
         $user = request()->user();
-
         $file = MediaFile::withTrashed()->findOrFail($id);
-
         $this->authorize('restore', $file);
         $file->restore();
 

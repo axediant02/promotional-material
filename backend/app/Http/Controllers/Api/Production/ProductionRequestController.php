@@ -18,8 +18,7 @@ class ProductionRequestController extends Controller
     public function index(): JsonResponse
     {
         $user = request()->user();
-
-        abort_unless($user?->isProduction(), 403);
+        $this->authorize('viewAnyProduction', ClientRequest::class);
 
         $requests = ClientRequest::query()
             ->whereIn('client_id', function ($query) use ($user): void {
@@ -41,9 +40,7 @@ class ProductionRequestController extends Controller
     public function update(UpdateProductionRequestStatusRequest $request, ClientRequest $clientRequest): JsonResponse
     {
         $user = $request->user();
-
-        abort_unless($user?->isProduction(), 403);
-        abort_unless($this->isAssignedToProduction($clientRequest, $user->user_id), 403);
+        $this->authorize('updateProduction', $clientRequest);
         $newStatus = $request->string('status')->toString();
         $previousStatus = $clientRequest->status;
 
@@ -75,13 +72,5 @@ class ProductionRequestController extends Controller
                 'request' => $clientRequest->fresh(),
             ],
         ]);
-    }
-
-    private function isAssignedToProduction(ClientRequest $clientRequest, string $productionId): bool
-    {
-        return AssignedClient::query()
-            ->where('production_id', $productionId)
-            ->where('client_id', $clientRequest->client_id)
-            ->exists();
     }
 }

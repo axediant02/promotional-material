@@ -16,9 +16,8 @@ class AssignmentChatController extends Controller
 
     public function active(): JsonResponse
     {
-        /** @var User $user */
         $user = request()->user();
-        abort_unless($user->isClient() || $user->isProduction(), 403);
+        $this->authorize('viewAny', AssignmentChatThread::class);
 
         $thread = $this->assignmentChatService->accessibleThreadsQuery($user)
             ->where('status', AssignmentChatThread::STATUS_ACTIVE)
@@ -34,9 +33,8 @@ class AssignmentChatController extends Controller
 
     public function index(): JsonResponse
     {
-        /** @var User $user */
         $user = request()->user();
-        abort_unless($user->isClient() || $user->isProduction(), 403);
+        $this->authorize('viewAny', AssignmentChatThread::class);
 
         $threads = $this->assignmentChatService->accessibleThreadsQuery($user)->get();
 
@@ -50,11 +48,8 @@ class AssignmentChatController extends Controller
 
     public function show(AssignmentChatThread $thread): JsonResponse
     {
-        /** @var User $user */
         $user = request()->user();
-        abort_unless($user->isClient() || $user->isProduction(), 403);
-
-        $this->assignmentChatService->authorizeThread($user, $thread);
+        $this->authorize('view', $thread);
 
         $thread->load([
             'client:user_id,name,email,role',
@@ -73,11 +68,9 @@ class AssignmentChatController extends Controller
 
     public function markRead(AssignmentChatThread $thread): JsonResponse
     {
-        /** @var User $user */
         $user = request()->user();
-        abort_unless($user->isClient() || $user->isProduction(), 403);
+        $this->authorize('markRead', $thread);
 
-        $this->assignmentChatService->authorizeThread($user, $thread);
         $thread = $this->assignmentChatService->markThreadRead($user, $thread);
 
         return response()->json([

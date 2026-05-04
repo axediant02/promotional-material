@@ -20,7 +20,7 @@ class AdminAssignmentController extends Controller
 
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $assignments = AssignedClient::query()
             ->orderByDesc('created_at')
@@ -44,7 +44,7 @@ class AdminAssignmentController extends Controller
 
     public function store(StoreAdminAssignmentRequest $request): JsonResponse
     {
-        abort_unless($request->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $assignment = AssignedClient::query()->firstOrNew([
             'client_id' => $request->string('client_id')->toString(),
@@ -87,7 +87,7 @@ class AdminAssignmentController extends Controller
 
     public function destroy(AssignedClient $assignment): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $this->assignmentChatService->archiveForAssignmentDeletion($assignment);
         $assignment->delete();

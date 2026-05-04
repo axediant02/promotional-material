@@ -28,14 +28,8 @@ class FolderService
 
     public function authorizeFolderAccess(Folder $folder, User $user): void
     {
-        if ($user->isClient() && $folder->folder_id !== $user->assigned_folder_id) {
-            abort(403, 'You cannot access this folder.');
-        }
-
-        if ($user->isProduction() && ! $this->accessibleFoldersQuery($user)
+        abort_unless($this->accessibleFoldersQuery($user)
             ->whereKey($folder->getKey())
-            ->exists()) {
-            abort(403, 'You cannot access this folder.');
-        }
+            ->exists(), 403, 'You cannot access this folder.');
     }
 }

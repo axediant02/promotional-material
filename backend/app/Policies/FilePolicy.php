@@ -44,16 +44,14 @@ class FilePolicy
 
     public function delete(User $user, MediaFile $file): Response
     {
-        return $this->canModifyFile($user, $file)
-            ? Response::allow()
-            : Response::deny();
+        return $this->update($user, $file);
     }
 
     public function restore(User $user, MediaFile $file): Response
     {
         return $this->canModifyFile($user, $file)
             ? Response::allow()
-            : Response::deny();
+            : Response::deny('You cannot access this file.');
     }
 
     public function download(User $user, MediaFile $file): Response

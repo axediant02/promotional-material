@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Folder\StoreFolderRequest;
 use App\Http\Requests\Folder\UpdateFolderRequest;
 use App\Models\Folder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use App\Services\FolderService;
 
@@ -18,6 +19,7 @@ class FolderController extends Controller
     public function index(): JsonResponse
     {
         $user = request()->user();
+        $this->authorize('viewAny', Folder::class);
 
         $folders = $this->folderService->accessibleFoldersQuery($user)
             ->when(request('q'), fn (Builder $query, string $search) => $query->where('folder_name', 'like', "%{$search}%"))
@@ -33,7 +35,7 @@ class FolderController extends Controller
     public function store(StoreFolderRequest $request): JsonResponse
     {
         $user = $request->user();
-        abort_unless($user->isProduction(), 403);
+        $this->authorize('create', Folder::class);
 
         $folder = Folder::create([
             'folder_name' => $request->string('folder_name')->toString(),
@@ -49,8 +51,7 @@ class FolderController extends Controller
 
     public function show(Folder $folder): JsonResponse
     {
-        $user = request()->user();
-        $this->folderService->authorizeFolderAccess($folder, $user);
+        $this->authorize('view', $folder);
 
         return response()->json([
             'message' => 'Folder fetched.',
@@ -62,8 +63,7 @@ class FolderController extends Controller
 
     public function update(UpdateFolderRequest $request, Folder $folder): JsonResponse
     {
-        $user = $request->user();
-        abort_unless($user->isProduction(), 403);
+        $this->authorize('update', $folder);
 
         $folder->fill($request->validated());
         $folder->save();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAdminRequestDueDateRequest;
 use App\Models\ClientRequest;
+use App\Models\User;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
@@ -16,7 +17,7 @@ class AdminRequestController extends Controller
 
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $requests = ClientRequest::query()
             ->latest('created_at')
@@ -32,7 +33,7 @@ class AdminRequestController extends Controller
 
     public function update(UpdateAdminRequestDueDateRequest $request, ClientRequest $clientRequest): JsonResponse
     {
-        abort_unless($request->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $clientRequest->forceFill([
             'due_date' => $request->date('due_date'),
