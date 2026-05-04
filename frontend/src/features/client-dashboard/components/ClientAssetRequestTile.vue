@@ -10,7 +10,7 @@ const emit = defineEmits(['click'])
 <template>
   <button
     type="button"
-    class="flex min-h-[20rem] w-full flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,240,253,0.94))] px-5 py-5 text-center transition hover:-translate-y-0.5 hover:border-brand-300 hover:bg-white dark:border-white/18 dark:bg-[linear-gradient(180deg,rgba(16,19,28,0.98),rgba(16,19,28,0.98))] dark:hover:border-white/30 dark:hover:bg-[linear-gradient(180deg,rgba(19,24,39,0.98),rgba(19,24,39,0.98))]"
+    class="flex min-h-[14rem] w-full flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,240,253,0.94))] px-5 py-5 text-center transition hover:border-brand-300 hover:bg-white sm:min-h-[20rem] sm:hover:-translate-y-0.5 dark:border-white/18 dark:bg-[linear-gradient(180deg,rgba(16,19,28,0.98),rgba(16,19,28,0.98))] dark:hover:border-white/30 dark:hover:bg-[linear-gradient(180deg,rgba(19,24,39,0.98),rgba(19,24,39,0.98))]"
     @click="emit('click')"
   >
     <span class="flex h-10 w-10 items-center justify-center rounded-full border border-brand-200 bg-brand-50 text-brand-700 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200">

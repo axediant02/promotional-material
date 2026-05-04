@@ -85,13 +85,13 @@ function formatBytes(bytes) {
 
 <template>
   <article
-    class="group overflow-hidden rounded-[1.35rem] border bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(247,240,253,0.95))] shadow-[0_18px_36px_rgba(75,61,116,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_44px_rgba(75,61,116,0.14)] dark:bg-[linear-gradient(180deg,rgba(17,21,33,0.98),rgba(17,21,33,0.98))] dark:shadow-[0_18px_36px_rgba(0,0,0,0.22)] dark:hover:shadow-[0_24px_44px_rgba(0,0,0,0.28)]"
+    class="group overflow-hidden rounded-[1.35rem] border bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(247,240,253,0.95))] shadow-[0_18px_36px_rgba(75,61,116,0.08)] transition duration-300 hover:shadow-[0_24px_44px_rgba(75,61,116,0.14)] sm:hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(17,21,33,0.98),rgba(17,21,33,0.98))] dark:shadow-[0_18px_36px_rgba(0,0,0,0.22)] dark:hover:shadow-[0_24px_44px_rgba(0,0,0,0.28)]"
     :class="[
       palette.border,
       selected ? 'ring-2 ring-violet-400 ring-offset-2 ring-offset-[#fbf8ff] dark:ring-offset-[#090b12]' : '',
     ]"
   >
-    <div class="flex min-h-[19rem] flex-col">
+    <div class="flex min-h-[17rem] flex-col sm:min-h-[19rem]">
       <div class="flex items-start justify-between gap-3 px-4 pt-4">
         <span :class="['rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]', palette.badge]">
           {{ file.category ?? 'file' }}
@@ -156,16 +156,16 @@ function formatBytes(bytes) {
           </div>
         </div>
 
-        <div class="mt-4 flex translate-y-2 gap-2 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+        <div class="mt-4 flex flex-col gap-2 opacity-100 transition duration-200 sm:flex-row sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
           <button
-            class="pm-gradient-primary flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            class="pm-gradient-primary w-full rounded-xl px-3 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
             :disabled="isDownloading"
             @click="handleDownload"
           >
             {{ isDownloading ? 'Preparing...' : 'Download' }}
           </button>
           <button
-            class="rounded-xl border border-border/70 bg-white/80 px-3 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
+            class="w-full rounded-xl border border-border/70 bg-white/80 px-3 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white sm:flex-1"
             @click="emit('request-change', file)"
           >
             Request
