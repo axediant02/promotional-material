@@ -43,7 +43,7 @@ class FileController extends Controller
         $this->authorize('create', MediaFile::class);
 
         $folder = Folder::query()->findOrFail($request->input('folder_id'));
-        $this->folderService->authorizeFolderAccess($folder, $user);
+        $this->folderService->authorizeAccess($folder, $user);
         $file = $this->fileService->store($user, $folder, $request->file('file'));
 
         return response()->json([
@@ -70,7 +70,7 @@ class FileController extends Controller
         $validated = $request->validated();
         if (array_key_exists('folder_id', $validated)) {
             $targetFolder = Folder::query()->findOrFail($validated['folder_id']);
-            $this->folderService->authorizeFolderAccess($targetFolder, $user);
+            $this->folderService->authorizeAccess($targetFolder, $user);
         }
 
         $file = $this->fileService->update($user, $file, $validated, $request->file('file'));

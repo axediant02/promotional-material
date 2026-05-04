@@ -64,8 +64,13 @@ class AdminAssignmentController extends Controller
         $this->assignmentChatService->syncForAssignment($assignment, $previousProductionId, $previousStatus);
 
         if ($isNew || $previousProductionId !== $productionId) {
-            $productionUser = User::query()->find($productionId);
-            $clientUser = User::query()->find($assignment->client_id);
+            $users = User::query()
+                ->whereIn('user_id', [$productionId, $assignment->client_id])
+                ->get()
+                ->keyBy('user_id');
+
+            $productionUser = $users->get($productionId);
+            $clientUser = $users->get($assignment->client_id);
 
             if ($productionUser && $clientUser) {
                 $this->workflowNotificationService->sendToUser($productionUser, [

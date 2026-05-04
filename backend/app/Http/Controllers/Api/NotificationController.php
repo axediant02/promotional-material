@@ -12,7 +12,9 @@ class NotificationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $notifications = $request->user()
+        $user = $request->user();
+
+        $notifications = $user
             ->notifications()
             ->latest()
             ->limit(20)
@@ -23,14 +25,15 @@ class NotificationController extends Controller
             'message' => 'Notifications fetched.',
             'data' => [
                 'notifications' => $notifications,
-                'unread_count' => $request->user()->unreadNotifications()->count(),
+                'unread_count' => $user->unreadNotifications()->count(),
             ],
         ]);
     }
 
     public function update(Request $request, DatabaseNotification $notification): JsonResponse
     {
-        $this->authorizeNotification($request->user(), $notification);
+        $user = $request->user();
+        $this->authorizeNotification($user, $notification);
 
         if ($notification->read_at === null) {
             $notification->markAsRead();
@@ -40,7 +43,7 @@ class NotificationController extends Controller
             'message' => 'Notification marked as read.',
             'data' => [
                 'notification' => $this->transformNotification($notification->fresh()),
-                'unread_count' => $request->user()->unreadNotifications()->count(),
+                'unread_count' => $user->unreadNotifications()->count(),
             ],
         ]);
     }

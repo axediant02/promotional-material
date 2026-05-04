@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\AssignedClient;
 use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -75,17 +74,9 @@ class FilePolicy
             return true;
         }
 
-        if ($user->isClient()) {
-            return $file->folder?->folder_id === $user->assigned_folder_id;
-        }
-
-        if ($user->isProduction()) {
-            return AssignedClient::query()
-                ->where('production_id', $user->user_id)
-                ->where('client_id', $file->folder?->client_id)
-                ->exists();
-        }
-
-        return false;
+        return MediaFile::query()
+            ->accessibleTo($user, withTrashed: true)
+            ->whereKey($file->getKey())
+            ->exists();
     }
 }

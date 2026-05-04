@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\AssignedClient;
 use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Models\User;
@@ -19,22 +18,9 @@ class FileService
 
     public function accessibleFilesQuery(User $user, bool $onlyTrashed = false, bool $withTrashed = false): Builder
     {
-        $query = MediaFile::query()
-            ->when($onlyTrashed, fn (Builder $builder) => $builder->onlyTrashed())
-            ->when($withTrashed && ! $onlyTrashed, fn (Builder $builder) => $builder->withTrashed())
+        return MediaFile::query()
+            ->accessibleTo($user, $onlyTrashed, $withTrashed)
             ->with('folder:folder_id,folder_name,client_id', 'uploader:user_id,name,email');
-
-        if ($user->isClient()) {
-            return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->where('folder_id', $user->assigned_folder_id));
-        }
-
-        if ($user->isProduction()) {
-            return $query->whereHas('folder', fn (Builder $folderQuery) => $folderQuery->whereIn('client_id', AssignedClient::query()
-                ->select('client_id')
-                ->where('production_id', $user->user_id)));
-        }
-
-        return $query;
     }
 
     public function store(User $user, Folder $folder, UploadedFile $uploadedFile): MediaFile

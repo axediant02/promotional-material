@@ -15,9 +15,10 @@ class FolderPolicy
 
     public function view(User $user, Folder $folder): Response
     {
-        $query = app(\App\Services\FolderService::class)->accessibleFoldersQuery($user);
-
-        return $query->whereKey($folder->getKey())->exists()
+        return Folder::query()
+            ->accessibleTo($user)
+            ->whereKey($folder->getKey())
+            ->exists()
             ? Response::allow()
             : Response::deny('You cannot access this folder.');
     }
@@ -32,7 +33,8 @@ class FolderPolicy
     public function update(User $user, Folder $folder): Response
     {
         return $user->isProduction()
-            && app(\App\Services\FolderService::class)->accessibleFoldersQuery($user)
+            && Folder::query()
+                ->accessibleTo($user)
                 ->whereKey($folder->getKey())
                 ->exists()
             ? Response::allow()
