@@ -73,17 +73,17 @@ const handleClose = () => {
         >
           <aside
             v-if="open"
-            class="absolute right-0 top-0 flex h-full w-full max-w-[42rem] flex-col overflow-hidden border-l border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]"
+            class="absolute inset-x-0 bottom-0 top-0 flex h-[100dvh] w-full max-w-none flex-col overflow-hidden border-0 border-t border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))] sm:inset-y-0 sm:right-0 sm:top-0 sm:h-full sm:max-w-[42rem] sm:border-l sm:border-t-0 sm:rounded-none"
           >
-            <div class="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5 dark:border-white/10">
+            <div class="flex flex-col gap-4 border-b border-border/70 px-4 py-4 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-5">
               <div>
                 <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request Workspace</p>
-                <h2 class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ supportSummary.label }}</h2>
-                <p class="mt-2 max-w-xl text-sm leading-6 text-muted dark:text-zinc-300">{{ supportSummary.description }}</p>
+                <h2 class="mt-2 text-xl font-semibold text-ink dark:text-white sm:text-2xl">{{ supportSummary.label }}</h2>
+                <p class="mt-2 max-w-none text-sm leading-6 text-muted dark:text-zinc-300 sm:max-w-xl">{{ supportSummary.description }}</p>
               </div>
               <button
                 type="button"
-                class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/70 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
+                class="flex h-11 w-11 self-end items-center justify-center rounded-full border border-border bg-white/70 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20 sm:self-auto"
                 @click="handleClose"
               >
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -93,19 +93,19 @@ const handleClose = () => {
               </button>
             </div>
 
-            <div class="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <div class="flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
               <div class="grid gap-3 sm:grid-cols-3">
-                <div class="rounded-2xl border border-border/80 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                <div class="rounded-2xl border border-border/80 bg-white/75 p-3 dark:border-white/10 dark:bg-white/5 sm:p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 1</p>
                   <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Choose context</p>
                   <p class="mt-1 text-sm text-muted dark:text-zinc-300">Use the selected file for targeted feedback or continue with a folder-level request.</p>
                 </div>
-                <div class="rounded-2xl border border-border/80 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                <div class="rounded-2xl border border-border/80 bg-white/75 p-3 dark:border-white/10 dark:bg-white/5 sm:p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 2</p>
                   <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Add clear details</p>
                   <p class="mt-1 text-sm text-muted dark:text-zinc-300">Specific copy, format, and delivery notes reduce back-and-forth later.</p>
                 </div>
-                <div class="rounded-2xl border border-border/80 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                <div class="rounded-2xl border border-border/80 bg-white/75 p-3 dark:border-white/10 dark:bg-white/5 sm:p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Step 3</p>
                   <p class="mt-2 text-sm font-semibold text-ink dark:text-white">Submit with confidence</p>
                   <p class="mt-1 text-sm text-muted dark:text-zinc-300">Your request goes into the queue and stays visible in recent history.</p>
@@ -121,7 +121,7 @@ const handleClose = () => {
                 <p class="mt-1 leading-6">{{ successMessage }}</p>
               </div>
 
-              <div class="rounded-[1.6rem] border border-border/80 bg-white/75 p-5 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5">
+              <div class="rounded-[1.6rem] border border-border/80 bg-white/75 p-4 shadow-[0_12px_28px_rgba(75,61,116,0.06)] dark:border-white/10 dark:bg-white/5 sm:p-5">
                 <RequestForm
                   :file="mode === 'update_asset' ? selectedFile : null"
                   :files="files"
@@ -135,7 +135,7 @@ const handleClose = () => {
               </div>
             </div>
 
-            <div class="border-t border-border/70 px-6 py-4 dark:border-white/10">
+            <div class="border-t border-border/70 px-4 py-4 dark:border-white/10 sm:px-6">
               <div class="flex items-center justify-center gap-2">
                 <span class="h-2 w-2 rounded-full bg-brand-600"></span>
                 <span class="text-[10px] font-semibold uppercase tracking-[0.26em] text-brand-700 dark:text-brand-100">Secure delivery active</span>

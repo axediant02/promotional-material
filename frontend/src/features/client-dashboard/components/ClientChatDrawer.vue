@@ -126,11 +126,11 @@ watch(totalUnreadCount, (count) => {
       <aside
         v-if="open"
         ref="panelRef"
-        class="fixed bottom-6 right-6 z-50 flex h-[33rem] w-[22.5rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-[#253043] bg-[#171a25] shadow-[0_22px_60px_rgba(0,0,0,0.38)] max-h-[calc(100vh-2rem)]"
+        class="fixed bottom-4 right-4 z-50 flex h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-[#253043] bg-[#171a25] shadow-[0_22px_60px_rgba(0,0,0,0.38)] max-h-[calc(100dvh-2rem)] sm:bottom-6 sm:right-6 sm:h-[33rem] sm:w-[22.5rem] sm:max-w-[calc(100vw-2rem)] sm:max-h-[calc(100vh-2rem)]"
       >
         <template v-if="selectedThread">
           <!-- Thread View -->
-          <div class="flex items-center justify-between gap-3 border-b border-[#253043] px-4 py-4">
+          <div class="flex items-center justify-between gap-3 border-b border-[#253043] px-4 py-4 sm:px-4">
             <div class="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -169,10 +169,7 @@ watch(totalUnreadCount, (count) => {
             </button>
           </div>
 
-          <div
-            ref="threadScrollRef"
-            class="flex-1 overflow-y-auto px-4 py-4"
-          >
+          <div ref="threadScrollRef" class="flex-1 overflow-y-auto px-4 py-4">
             <div v-if="threadLoading" class="space-y-3">
               <div
                 v-for="index in 3"
@@ -229,7 +226,7 @@ watch(totalUnreadCount, (count) => {
               Conversation archived. You can review the history, but new messages are disabled.
             </div>
 
-            <div v-else class="flex items-center gap-2 rounded-[0.8rem] border border-[#253043] bg-[#131722] px-3 py-2">
+            <div class="flex flex-col gap-2 rounded-[0.8rem] border border-[#253043] bg-[#131722] px-3 py-2 sm:flex-row sm:items-center">
               <input
                 v-model="messageDraft"
                 type="text"
@@ -238,7 +235,7 @@ watch(totalUnreadCount, (count) => {
                 @keydown.enter.prevent="sendMessage"
               />
               <button
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+                class="flex h-9 w-full items-center justify-center rounded-full bg-violet-600 text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60 sm:h-8 sm:w-8"
                 :disabled="sending || !messageDraft.trim()"
                 @click="sendMessage"
               >

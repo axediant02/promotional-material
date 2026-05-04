@@ -69,16 +69,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="request-history" class="pm-surface rounded-[1.75rem] p-6">
-    <div class="flex items-start justify-between gap-4">
+  <section id="request-history" class="pm-surface rounded-[1.5rem] p-5 sm:rounded-[1.75rem] sm:p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Latest Request</p>
-        <h3 class="mt-2 text-xl font-semibold text-ink dark:text-white">Track your most recent update</h3>
+        <h3 class="mt-2 text-lg font-semibold text-ink dark:text-white sm:text-xl">Track your most recent update</h3>
         <p class="mt-2 text-sm leading-6 text-muted dark:text-zinc-300">
           Keep the sidebar light while still staying close to your newest request.
         </p>
       </div>
-      <div class="rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
+      <div class="inline-flex self-start rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-border/70 dark:bg-white/5 dark:ring-white/10">
         <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted dark:text-zinc-400">Total</p>
         <p class="mt-1 text-lg font-semibold text-ink dark:text-white">{{ requests.length }}</p>
       </div>
@@ -152,19 +152,19 @@ onBeforeUnmount(() => {
           class="fixed inset-0 z-50 overflow-hidden bg-[rgba(19,12,36,0.5)] backdrop-blur-sm"
           @click.self="isHistoryOpen = false"
         >
-          <div class="flex h-full items-center justify-center p-4 sm:p-6">
-            <div class="flex w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))]">
-              <div class="flex items-start justify-between gap-4 border-b border-border/70 px-6 py-5 dark:border-white/10">
+          <div class="flex h-full items-end justify-center p-0 sm:items-center sm:p-6">
+            <div class="flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 bg-[linear-gradient(180deg,rgba(253,251,255,0.98),rgba(245,239,252,0.98))] shadow-[0_25px_70px_rgba(25,18,48,0.22)] dark:bg-[linear-gradient(180deg,rgba(24,20,36,0.98),rgba(18,14,29,0.98))] sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-4xl sm:rounded-[2rem] sm:border sm:border-border/70 dark:sm:border-white/10">
+              <div class="flex items-start justify-between gap-4 border-b border-border/70 px-4 py-4 dark:border-white/10 sm:px-6 sm:py-5">
                 <div>
                   <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted dark:text-zinc-400">Request History</p>
-                  <h3 class="mt-2 text-2xl font-semibold text-ink dark:text-white">All submitted requests</h3>
+                  <h3 class="mt-2 text-xl font-semibold text-ink dark:text-white sm:text-2xl">All submitted requests</h3>
                   <p class="mt-2 text-sm leading-6 text-muted dark:text-zinc-300">
                     Review statuses, due dates, and previous submissions in one place.
                   </p>
                 </div>
                 <button
                   type="button"
-                  class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/70 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
+                  class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/70 text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:border-white/20"
                   @click="isHistoryOpen = false"
                 >
                   <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
                 </button>
               </div>
 
-              <div class="max-h-[min(52vh,28rem)] overflow-y-auto px-6 py-6">
+              <div class="max-h-[calc(100dvh-10rem)] overflow-y-auto px-4 py-4 sm:max-h-[min(52vh,28rem)] sm:px-6 sm:py-6">
                 <div class="space-y-4">
                   <article
                     v-for="request in requests"

@@ -10,7 +10,7 @@ const emit = defineEmits(['toggle'])
 <template>
   <button
     type="button"
-    class="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_16px_40px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5 hover:brightness-110"
+    class="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_16px_40px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5 hover:brightness-110 sm:bottom-6 sm:right-6"
     :class="open ? 'bg-emerald-500 text-white' : 'bg-[#7c3aed] text-white'"
     @pointerdown.stop
     @click="emit('toggle')"

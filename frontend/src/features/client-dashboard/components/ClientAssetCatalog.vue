@@ -30,7 +30,7 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
 
     <div
       v-if="loading"
-      class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
+      class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
     >
       <div
         v-for="item in 6"
@@ -48,7 +48,7 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
 
     <div
       v-else-if="!files.length"
-      class="rounded-[1.75rem] border border-dashed border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(247,240,253,0.92))] px-6 py-16 text-center shadow-[0_18px_45px_rgba(75,61,116,0.08)] dark:border-white/15 dark:bg-[#10131c]"
+      class="rounded-[1.75rem] border border-dashed border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(247,240,253,0.92))] px-5 py-12 text-center shadow-[0_18px_45px_rgba(75,61,116,0.08)] sm:px-6 sm:py-16 dark:border-white/15 dark:bg-[#10131c]"
     >
       <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-brand-200 bg-brand-50 text-brand-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-200">
         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
 
     <div
       v-else-if="viewMode === 'grid'"
-      class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
+      class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
     >
       <ClientAssetCard
         v-for="file in files"
@@ -96,7 +96,7 @@ const emit = defineEmits(['update:viewMode', 'request-change', 'clear-search', '
 
     <div
       v-else
-      class="overflow-hidden rounded-[1.75rem] border border-border/70 bg-white/80 shadow-[0_18px_45px_rgba(75,61,116,0.08)] dark:border-white/10 dark:bg-white/5"
+      class="overflow-hidden rounded-[1.5rem] border border-border/70 bg-white/80 shadow-[0_18px_45px_rgba(75,61,116,0.08)] dark:border-white/10 dark:bg-white/5 sm:rounded-[1.75rem]"
     >
       <ClientAssetRow
         v-for="file in files"

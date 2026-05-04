@@ -62,7 +62,7 @@ const emit = defineEmits([
       @open-request="emit('open-request')"
     />
 
-    <main class="mx-auto flex w-full max-w-[1680px] flex-col gap-8 px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+    <main class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 pb-28 pt-5 sm:px-6 sm:pb-16 lg:px-8 xl:gap-8 xl:pb-12">
       <ClientDeliveryHero
         :folder="assignedFolder"
         :user="user"

@@ -99,13 +99,6 @@ const handleLogout = async () => {
             placeholder="Search command center..."
           />
         </label>
-        <button class="inline-flex items-center gap-2 rounded-xl border border-[#d4d0dc] bg-white px-4 py-2.5 text-sm font-medium text-[#4b3d74] shadow-[0_2px_6px_rgba(75,61,116,0.08)] transition duration-150 hover:border-brand-300 hover:bg-brand-50 dark:border-white/15 dark:bg-white/[0.06] dark:text-white dark:hover:border-white/25 dark:hover:bg-white/[0.1]">
-          <span>{{ activeCopy.action }}</span>
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-          </svg>
-        </button>
         <NotificationInboxPopover
           title="Notifications"
           description="Live workflow updates for incoming client requests and admin changes."
