@@ -3,21 +3,22 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
+use App\Services\AdminActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ActivityLogController extends Controller
 {
+    public function __construct(private readonly AdminActivityLogService $adminActivityLogService)
+    {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $perPage = max(1, min($request->integer('per_page', 15), 100));
 
-        $logs = ActivityLog::query()
-            ->with('user:user_id,name,email,role')
-            ->latest()
-            ->paginate($perPage);
+        $logs = $this->adminActivityLogService->activityLogsQuery()->paginate($perPage);
 
         return response()->json([
             'message' => 'Activity logs fetched.',

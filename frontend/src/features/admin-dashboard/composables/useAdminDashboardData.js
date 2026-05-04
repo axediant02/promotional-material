@@ -1,10 +1,7 @@
 import { ref } from 'vue'
-import { fetchDashboard } from '../../../services/dashboardService'
+import { fetchAdminWorkspace } from '../../../services/adminWorkspaceService'
 import {
-  fetchAdminActivityLogs,
   fetchAdminAssignments,
-  fetchAdminRequests,
-  fetchAdminUsers,
 } from '../../../services/adminService'
 
 export const useAdminDashboardData = () => {
@@ -40,20 +37,15 @@ export const useAdminDashboardData = () => {
     clearError()
 
     try {
-      const [dashboardResponse, requestsResponse, logsResponse, assignmentsResponse, usersResponse] = await Promise.all([
-        fetchDashboard(),
-        fetchAdminRequests(),
-        fetchAdminActivityLogs(),
-        fetchAdminAssignments(),
-        fetchAdminUsers(),
-      ])
+      const response = await fetchAdminWorkspace()
+      const workspace = response.data.data ?? {}
 
-      dashboardPayload.value = dashboardResponse.data.data
-      requestsPayload.value = requestsResponse.data.data.requests ?? []
-      activityLogs.value = logsResponse.data.data.logs ?? []
-      assignmentsPayload.value = assignmentsResponse.data.data.assignments ?? []
-      productionUsersPayload.value = assignmentsResponse.data.data.production_users ?? []
-      usersPayload.value = usersResponse.data.data.users ?? []
+      dashboardPayload.value = workspace.dashboard ?? dashboardPayload.value
+      requestsPayload.value = workspace.requests ?? []
+      activityLogs.value = workspace.activityLogs ?? []
+      assignmentsPayload.value = workspace.assignments ?? []
+      productionUsersPayload.value = workspace.productionUsers ?? []
+      usersPayload.value = workspace.users ?? []
     } catch (err) {
       setError(err.response?.data?.message ?? 'Unable to load the admin dashboard.')
     } finally {
@@ -62,9 +54,15 @@ export const useAdminDashboardData = () => {
   }
 
   const refreshDashboardAndRequests = async () => {
-    const [dashboardResponse, requestsResponse] = await Promise.all([fetchDashboard(), fetchAdminRequests()])
-    dashboardPayload.value = dashboardResponse.data.data
-    requestsPayload.value = requestsResponse.data.data.requests ?? []
+    const response = await fetchAdminWorkspace()
+    const workspace = response.data.data ?? {}
+
+    dashboardPayload.value = workspace.dashboard ?? dashboardPayload.value
+    requestsPayload.value = workspace.requests ?? []
+    activityLogs.value = workspace.activityLogs ?? []
+    assignmentsPayload.value = workspace.assignments ?? []
+    productionUsersPayload.value = workspace.productionUsers ?? []
+    usersPayload.value = workspace.users ?? []
   }
 
   return {

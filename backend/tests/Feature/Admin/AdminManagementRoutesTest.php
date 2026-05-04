@@ -3,8 +3,10 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\AssignedClient;
+use App\Models\ActivityLog;
 use App\Models\ClientRequest;
 use App\Models\Folder;
+use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -293,6 +295,71 @@ class AdminManagementRoutesTest extends TestCase
         $response->assertJsonFragment([
             'request_id' => $otherClientRequest->request_id,
         ]);
+    }
+
+    public function test_admin_can_fetch_the_composed_workspace_payload(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $folder = $this->assignFolderToClient($client, $production);
+
+        $request = ClientRequest::query()->create([
+            'client_id' => $client->user_id,
+            'folder_id' => $folder->folder_id,
+            'title' => 'Client User Request',
+            'description' => 'Request for the admin workspace bootstrap.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => null,
+        ]);
+
+        $assignment = AssignedClient::query()->create([
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+
+        $file = MediaFile::query()->create([
+            'folder_id' => $folder->folder_id,
+            'uploaded_by' => $production->user_id,
+            'file_name' => 'bootstrap.pdf',
+            'storage_disk' => 'local',
+            'storage_path' => 'clients/'.$folder->folder_id.'/bootstrap.pdf',
+            'category' => 'pdf',
+        ]);
+
+        ActivityLog::query()->create([
+            'user_id' => $admin->user_id,
+            'action' => 'dashboard_bootstrap',
+            'subject_type' => User::class,
+            'subject_id' => $client->user_id,
+            'description' => 'Bootstrap test log',
+            'metadata' => [],
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Admin workspace fetched.')
+            ->assertJsonPath('data.dashboard.stats.folders', 1)
+            ->assertJsonPath('data.dashboard.stats.files', 1)
+            ->assertJsonCount(1, 'data.dashboard.folders')
+            ->assertJsonCount(1, 'data.dashboard.recentFiles')
+            ->assertJsonCount(1, 'data.requests')
+            ->assertJsonCount(1, 'data.activityLogs')
+            ->assertJsonCount(1, 'data.assignments')
+            ->assertJsonCount(1, 'data.productionUsers')
+            ->assertJsonCount(3, 'data.users')
+            ->assertJsonPath('data.dashboard.folders.0.folder_id', $folder->folder_id)
+            ->assertJsonPath('data.dashboard.recentFiles.0.file_id', $file->file_id)
+            ->assertJsonPath('data.requests.0.request_id', $request->request_id)
+            ->assertJsonPath('data.assignments.0.id', $assignment->id)
+            ->assertJsonPath('data.productionUsers.0.user_id', $production->user_id)
+            ->assertJsonPath('data.users.0.user_id', $admin->user_id);
     }
 
     public function test_admin_activity_logs_are_paginated_without_breaking_the_log_list_shape(): void

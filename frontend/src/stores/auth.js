@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('pm_token'))
   const user = ref(null)
   const isReady = ref(false)
+  const bootstrapInFlight = ref(null)
 
   const defaultRoute = computed(() => {
     if (!user.value) {
@@ -30,21 +31,36 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const bootstrap = async () => {
+    if (user.value && isReady.value) {
+      return user.value
+    }
+
+    if (bootstrapInFlight.value) {
+      return bootstrapInFlight.value
+    }
+
     if (!token.value) {
       notificationStore.reset()
       isReady.value = true
-      return
+      return null
     }
 
-    try {
-      const response = await currentUser()
-      user.value = response.data.data.user
-      await notificationStore.initializeForUser(user.value)
-    } catch {
-      clearSession()
-    } finally {
-      isReady.value = true
-    }
+    bootstrapInFlight.value = (async () => {
+      try {
+        const response = await currentUser()
+        user.value = response.data.data.user
+        await notificationStore.initializeForUser(user.value)
+        return user.value
+      } catch {
+        clearSession()
+        return null
+      } finally {
+        isReady.value = true
+        bootstrapInFlight.value = null
+      }
+    })()
+
+    return bootstrapInFlight.value
   }
 
   const performLogin = async (payload) => {
@@ -71,6 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     user.value = null
     isReady.value = true
+    bootstrapInFlight.value = null
     localStorage.removeItem('pm_token')
   }
 

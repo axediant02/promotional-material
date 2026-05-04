@@ -23,9 +23,7 @@ class ProductionRequestController extends Controller
         $user = request()->user();
         $this->authorize('viewAnyProduction', ClientRequest::class);
 
-        $requests = $this->productionRequestService->accessibleRequestsQuery($user)
-            ->latest('created_at')
-            ->get();
+        $requests = $this->productionRequestService->accessibleRequestsQuery($user)->get();
 
         return response()->json([
             'message' => 'Requests fetched.',
