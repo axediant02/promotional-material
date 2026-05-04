@@ -7,6 +7,7 @@ use App\Models\User;
 class ProductionWorkspaceService
 {
     public function __construct(
+        private readonly DashboardService $dashboardService,
         private readonly FolderService $folderService,
         private readonly FileService $fileService,
         private readonly ProductionRequestService $productionRequestService,
@@ -27,15 +28,7 @@ class ProductionWorkspaceService
         $recycleBinFiles = $recycleBinFilesQuery->get();
 
         return [
-            'dashboard' => [
-                'user' => $user->loadMissing('assignedFolder'),
-                'stats' => [
-                    'folders' => $folders->count(),
-                    'files' => $files->count(),
-                ],
-                'folders' => $folders->take($user->isClient() ? 1 : 12)->values(),
-                'recentFiles' => $files->take(8)->values(),
-            ],
+            'dashboard' => $this->dashboardService->getForUser($user),
             'folders' => $folders->values(),
             'requests' => $requests->values(),
             'files' => $files->values(),

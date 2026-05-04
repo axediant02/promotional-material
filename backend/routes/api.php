@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminAssignmentController;
 use App\Http\Controllers\Api\Admin\AdminRequestController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Chat\AssignmentChatController;
@@ -65,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     Route::prefix('admin')->group(function (): void {
+        Route::get('dashboard', [AdminWorkspaceController::class, 'show']);
         Route::post('agents', [AgentController::class, 'store']);
         Route::get('assignments', [AdminAssignmentController::class, 'index']);
         Route::post('assignments', [AdminAssignmentController::class, 'store']);

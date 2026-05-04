@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAdminRequestDueDateRequest;
 use App\Models\ClientRequest;
 use App\Models\User;
+use App\Services\AdminRequestService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class AdminRequestController extends Controller
 {
-    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly AdminRequestService $adminRequestService,
+    )
     {
     }
 
@@ -19,9 +23,7 @@ class AdminRequestController extends Controller
     {
         $this->authorize('admin', User::class);
 
-        $requests = ClientRequest::query()
-            ->latest('created_at')
-            ->get();
+        $requests = $this->adminRequestService->requestsQuery()->get();
 
         return response()->json([
             'message' => 'Requests fetched.',

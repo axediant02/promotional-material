@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreAdminAssignmentRequest;
 use App\Models\AssignedClient;
 use App\Models\User;
 use App\Services\AssignmentChatService;
+use App\Services\AdminAssignmentService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
@@ -15,6 +16,7 @@ class AdminAssignmentController extends Controller
     public function __construct(
         private readonly WorkflowNotificationService $workflowNotificationService,
         private readonly AssignmentChatService $assignmentChatService,
+        private readonly AdminAssignmentService $adminAssignmentService,
     ) {
     }
 
@@ -22,16 +24,8 @@ class AdminAssignmentController extends Controller
     {
         $this->authorize('admin', User::class);
 
-        $assignments = AssignedClient::query()
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->get();
-
-        $productionUsers = User::query()
-            ->where('role', User::ROLE_PRODUCTION)
-            ->orderBy('name')
-            ->orderBy('email')
-            ->get(['user_id', 'name', 'email']);
+        $assignments = $this->adminAssignmentService->assignmentsQuery()->get();
+        $productionUsers = $this->adminAssignmentService->productionUsersQuery()->get();
 
         return response()->json([
             'message' => 'Assignments fetched.',

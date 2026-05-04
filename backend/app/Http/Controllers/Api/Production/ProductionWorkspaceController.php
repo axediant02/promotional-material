@@ -16,12 +16,11 @@ class ProductionWorkspaceController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        $user = $request->user();
         $this->authorize('production', User::class);
 
         return response()->json([
             'message' => 'Production workspace fetched.',
-            'data' => $this->productionWorkspaceService->getForUser($user),
+            'data' => $this->productionWorkspaceService->getForUser($request->user()),
         ]);
     }
 }
