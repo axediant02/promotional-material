@@ -82,15 +82,6 @@ class AssignmentChatService
         return $query->whereRaw('1 = 0');
     }
 
-    public function authorizeThread(User $user, AssignmentChatThread $thread): void
-    {
-        $isAuthorized =
-            ($user->isClient() && $thread->client_id === $user->user_id)
-            || ($user->isProduction() && $thread->production_id === $user->user_id);
-
-        abort_unless($isAuthorized, 403, 'You cannot access this chat thread.');
-    }
-
     public function unreadCountForThread(User $user, AssignmentChatThread $thread): int
     {
         $readAt = $user->isClient() ? $thread->client_last_read_at : $thread->production_last_read_at;

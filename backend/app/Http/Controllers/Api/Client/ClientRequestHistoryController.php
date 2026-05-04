@@ -11,8 +11,7 @@ class ClientRequestHistoryController extends Controller
     public function index(): JsonResponse
     {
         $user = request()->user();
-
-        abort_unless($user?->isClient(), 403);
+        $this->authorize('viewHistory', ClientRequest::class);
 
         $requests = ClientRequest::query()
             ->where('client_id', $user->user_id)

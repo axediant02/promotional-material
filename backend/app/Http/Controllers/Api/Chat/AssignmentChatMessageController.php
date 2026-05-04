@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\StoreAssignmentChatMessageRequest;
 use App\Models\AssignmentChatMessage;
 use App\Models\AssignmentChatThread;
-use App\Models\User;
 use App\Services\AssignmentChatService;
 use Illuminate\Http\JsonResponse;
 
@@ -19,11 +18,8 @@ class AssignmentChatMessageController extends Controller
 
     public function store(StoreAssignmentChatMessageRequest $request, AssignmentChatThread $thread): JsonResponse
     {
-        /** @var User $user */
         $user = $request->user();
-        abort_unless($user->isClient() || $user->isProduction(), 403);
-
-        $this->assignmentChatService->authorizeThread($user, $thread);
+        $this->authorize('createMessage', $thread);
         abort_if($thread->status === AssignmentChatThread::STATUS_ARCHIVED, 422, 'This conversation is archived.');
         $body = trim($request->string('body')->toString());
         abort_if($body === '', 422, 'A message is required.');

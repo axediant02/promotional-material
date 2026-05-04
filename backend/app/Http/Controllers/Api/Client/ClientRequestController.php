@@ -20,8 +20,7 @@ class ClientRequestController extends Controller
     public function store(StoreClientRequestRequest $request): JsonResponse
     {
         $user = $request->user();
-
-        abort_unless($user->isClient(), 403);
+        $this->authorize('create', ClientRequest::class);
 
         $clientRequest = DB::transaction(function () use ($request, $user): ClientRequest {
             $assignedFolderId = $user->assigned_folder_id;

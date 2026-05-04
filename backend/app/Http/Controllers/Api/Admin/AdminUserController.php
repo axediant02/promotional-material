@@ -11,7 +11,7 @@ class AdminUserController extends Controller
 {
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $users = User::query()
             ->orderBy('name')
@@ -28,7 +28,7 @@ class AdminUserController extends Controller
 
     public function update(UpdateUserRoleRequest $request, User $user): JsonResponse
     {
-        abort_unless($request->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $user->forceFill([
             'role' => $request->string('role')->toString(),

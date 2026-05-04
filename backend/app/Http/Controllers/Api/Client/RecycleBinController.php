@@ -5,19 +5,24 @@ namespace App\Http\Controllers\Api\Client;
 use App\Http\Controllers\Controller;
 use App\Models\MediaFile;
 use App\Services\ActivityLogService;
+use App\Services\FileService;
 use Illuminate\Http\JsonResponse;
 
 class RecycleBinController extends Controller
 {
-    public function __construct(private readonly ActivityLogService $activityLogService)
+    public function __construct(
+        private readonly ActivityLogService $activityLogService,
+        private readonly FileService $fileService,
+    )
     {
     }
 
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()->isProduction(), 403);
+        $user = request()->user();
+        $this->authorize('production', \App\Models\User::class);
 
-        $files = FileController::accessibleFilesQuery(request()->user(), onlyTrashed: true)
+        $files = $this->fileService->accessibleFilesQuery($user, onlyTrashed: true)
             ->with('folder:folder_id,folder_name', 'uploader:user_id,name')
             ->latest('deleted_at')
             ->get();
@@ -30,17 +35,15 @@ class RecycleBinController extends Controller
 
     public function restore(string $id): JsonResponse
     {
-        abort_unless(request()->user()->isProduction(), 403);
+        $user = request()->user();
+        $this->authorize('production', \App\Models\User::class);
 
-        $file = FileController::accessibleFilesQuery(request()->user(), onlyTrashed: true)
-            ->whereKey($id)
-            ->first();
-
-        abort_if(! $file, 403, 'You cannot access this file.');
+        $file = MediaFile::withTrashed()->findOrFail($id);
+        $this->authorize('restore', $file);
         $file->restore();
 
         $this->activityLogService->log(
-            request()->user(),
+            $user,
             'file_restored',
             $file,
             'Restored '.$file->file_name,
