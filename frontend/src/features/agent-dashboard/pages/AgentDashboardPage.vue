@@ -3,12 +3,16 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
+import AgentDashboardSidebar from '../components/AgentDashboardSidebar.vue'
 import { fetchDashboard } from '../../../services/dashboardService'
 import { downloadFile, fetchFiles } from '../../../services/fileService'
 import { fetchFolders } from '../../../services/folderService'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'agent_sidebar_collapsed'
+const SIDEBAR_EXPANDED_WIDTH = '18.5rem'
+const SIDEBAR_COLLAPSED_WIDTH = '6.5rem'
 const VIEW_STORAGE_KEY = 'agent_file_browser_view_mode'
 const FOLDER_FILTERS = ['all', 'recently_updated', 'has_files', 'empty']
 const FOLDER_SORTS = ['recent', 'client_name', 'file_volume']
@@ -41,6 +45,16 @@ const themeStore = useThemeStore()
 const normalizeViewMode = (value) => (value === 'list' ? 'list' : 'grid')
 const normalizeFilter = (value) => (FOLDER_FILTERS.includes(value) ? value : 'all')
 const normalizeSort = (value) => (FOLDER_SORTS.includes(value) ? value : 'recent')
+
+const getSavedSidebarCollapsed = () => {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+}
+
+const sidebarCollapsed = ref(getSavedSidebarCollapsed())
 
 const getSavedBrowserMode = () => {
   if (typeof window === 'undefined') {
@@ -331,6 +345,12 @@ watch(folderBrowserMode, (value) => {
   }
 })
 
+watch(sidebarCollapsed, (value) => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(value))
+  }
+})
+
 watch(visibleFolderRows, (rows) => {
   if (!rows.length) {
     selectedFolderId.value = ''
@@ -351,14 +371,8 @@ const goToFolders = () => {
   activeView.value = 'folders'
 }
 
-const goToSelectedFolder = () => {
-  if (selectedFolder.value) {
-    activeView.value = 'folder'
-  }
-}
-
-const goToRecentFiles = () => {
-  activeView.value = 'recent'
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
 const setFolderBrowserMode = (value) => {
@@ -438,103 +452,21 @@ const signOut = async () => {
 
 <template>
   <div class="pm-page min-h-screen text-ink dark:text-white">
-    <div class="min-h-screen xl:grid xl:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside class="pm-dashboard-sidebar flex h-full min-h-screen flex-col xl:sticky xl:top-0">
-        <div class="border-b border-white/10 px-6 py-7">
-          <p class="text-[11px] uppercase tracking-[0.42em] text-white/60">Promotional Materials</p>
-          <h1 class="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-white ">
-            Agent.
-          </h1>
-          <p class="mt-1 text-sm text-white/65">Client file access</p>
-          <div class="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-white">
-            <span class="text-[#d8c5ff]">&bull;</span>
-            Download Desk
-          </div>
-        </div>
-
-        <nav class="flex-1 px-4 py-5">
-          <button
-            :class="[
-              'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition',
-              activeView === 'folders'
-                ? 'pm-dashboard-sidebar-item-active'
-                : 'pm-dashboard-sidebar-item',
-            ]"
-            @click="goToFolders"
-          >
-            <span class="flex items-center gap-3">
-              <svg class="h-4 w-4" :class="activeView === 'folders' ? 'text-brand-600' : 'text-white/65'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l1.8 2H18.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z" />
-              </svg>
-              <span>Folders</span>
-            </span>
-            <span :class="['text-[11px] uppercase tracking-[0.22em]', activeView === 'folders' ? 'text-brand-500' : 'text-white/45']">{{ sectionCounts.folders }}</span>
-          </button>
-
-          <button
-            :class="[
-              'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-45',
-              activeView === 'folder'
-                ? 'pm-dashboard-sidebar-item-active'
-                : 'pm-dashboard-sidebar-item',
-            ]"
-            :disabled="!selectedFolder"
-            @click="goToSelectedFolder"
-          >
-            <span class="flex min-w-0 items-center gap-3">
-              <svg class="h-4 w-4 shrink-0" :class="activeView === 'folder' ? 'text-brand-600' : 'text-white/65'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M14 3v5h5" />
-                <path d="M5 5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />
-                <path d="M9 14h6" />
-                <path d="M9 17h4" />
-              </svg>
-              <span class="truncate">{{ selectedFolder?.workspace ?? 'Open folder' }}</span>
-            </span>
-            <span :class="['text-[11px] uppercase tracking-[0.22em]', activeView === 'folder' ? 'text-brand-500' : 'text-white/45']">{{ sectionCounts.folder }}</span>
-          </button>
-
-          <button
-            :class="[
-              'mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-sm transition',
-              activeView === 'recent'
-                ? 'pm-dashboard-sidebar-item-active'
-                : 'pm-dashboard-sidebar-item',
-            ]"
-            @click="goToRecentFiles"
-          >
-            <span class="flex items-center gap-3">
-              <svg class="h-4 w-4" :class="activeView === 'recent' ? 'text-brand-600' : 'text-white/65'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M4 7h16" />
-                <path d="M4 12h12" />
-                <path d="M4 17h8" />
-                <path d="M18 14v5" />
-                <path d="m15.5 16.5 2.5 2.5 2.5-2.5" />
-              </svg>
-              <span>Recent Files</span>
-            </span>
-            <span :class="['text-[11px] uppercase tracking-[0.22em]', activeView === 'recent' ? 'text-brand-500' : 'text-white/45']">{{ sectionCounts.recent }}</span>
-          </button>
-        </nav>
-
-        <div class="mt-auto border-t border-white/10 px-6 py-5">
-          <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-4">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-white">
-              {{ (currentUser.name || 'A').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() }}
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-semibold text-white">{{ currentUser.name || 'Agent User' }}</p>
-              <p class="mt-1 text-[10px] uppercase tracking-[0.24em] text-white/55">{{ currentUser.role || 'agent' }}</p>
-            </div>
-            <button class="text-white/55 transition hover:text-white" @click="signOut">
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M15 7h4v10h-4" />
-                <path d="m10 17 5-5-5-5" />
-                <path d="M15 12H3" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </aside>
+    <div
+      class="min-h-screen xl:grid"
+      :style="{ '--agent-sidebar-width': sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH }"
+      :class="'xl:grid-cols-[var(--agent-sidebar-width)_minmax(0,1fr)]'"
+    >
+      <AgentDashboardSidebar
+        :current-user="currentUser"
+        :active-view="activeView"
+        :selected-folder="selectedFolder"
+        :section-counts="sectionCounts"
+        :collapsed="sidebarCollapsed"
+        @change-view="activeView = $event === 'folder' && !selectedFolder ? 'folders' : $event"
+        @sign-out="signOut"
+        @toggle-collapse="toggleSidebar"
+      />
 
       <main class="min-w-0">
         <header class="border-b border-border/70 px-6 py-5 dark:border-white/10 sm:px-8 lg:px-10">
