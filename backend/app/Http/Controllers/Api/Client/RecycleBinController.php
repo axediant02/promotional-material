@@ -20,7 +20,7 @@ class RecycleBinController extends Controller
     public function index(): JsonResponse
     {
         $user = request()->user();
-        $this->authorize('production', \App\Models\User::class);
+        $this->authorize('viewRecycleBin', MediaFile::class);
 
         $files = $this->fileService->accessibleFilesQuery($user, onlyTrashed: true)
             ->with('folder:folder_id,folder_name', 'uploader:user_id,name')
@@ -36,8 +36,6 @@ class RecycleBinController extends Controller
     public function restore(string $id): JsonResponse
     {
         $user = request()->user();
-        $this->authorize('production', \App\Models\User::class);
-
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorize('restore', $file);
         $file->restore();

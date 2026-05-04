@@ -132,7 +132,6 @@ class FileService
     public function download(MediaFile $file)
     {
         $disk = Storage::disk($file->storage_disk);
-
         abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
 
         return $disk->download($file->storage_path, $file->file_name);
@@ -141,7 +140,6 @@ class FileService
     public function preview(MediaFile $file)
     {
         $disk = Storage::disk($file->storage_disk);
-
         abort_unless($disk->exists($file->storage_path), 404, 'The stored file is missing.');
 
         return $disk->response($file->storage_path, $file->file_name, [

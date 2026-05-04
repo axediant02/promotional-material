@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Folder;
+use App\Models\AssignedClient;
 use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -12,6 +12,13 @@ class FilePolicy
     public function viewAny(User $user): Response
     {
         return Response::allow();
+    }
+
+    public function viewRecycleBin(User $user): Response
+    {
+        return $user->isProduction()
+            ? Response::allow()
+            : Response::deny();
     }
 
     public function view(User $user, MediaFile $file): Response
@@ -30,7 +37,7 @@ class FilePolicy
 
     public function update(User $user, MediaFile $file): Response
     {
-        return $user->isProduction() && $this->canAccessFile($user, $file)
+        return $this->canModifyFile($user, $file)
             ? Response::allow()
             : Response::deny();
     }
@@ -42,7 +49,7 @@ class FilePolicy
 
     public function restore(User $user, MediaFile $file): Response
     {
-        return $this->canRestoreFile($user, $file)
+        return $this->canModifyFile($user, $file)
             ? Response::allow()
             : Response::deny('You cannot access this file.');
     }
@@ -57,18 +64,28 @@ class FilePolicy
         return $this->view($user, $file);
     }
 
-    private function canAccessFile(User $user, MediaFile $file): bool
+    private function canModifyFile(User $user, MediaFile $file): bool
     {
-        $query = app(\App\Services\FileService::class)->accessibleFilesQuery($user, withTrashed: true);
-
-        return $query->whereKey($file->getKey())->exists();
+        return $user->isProduction() && $this->canAccessFile($user, $file);
     }
 
-    private function canRestoreFile(User $user, MediaFile $file): bool
+    private function canAccessFile(User $user, MediaFile $file): bool
     {
-        return $user->isProduction()
-            && app(\App\Services\FileService::class)->accessibleFilesQuery($user, onlyTrashed: true)
-                ->whereKey($file->getKey())
+        if ($user->isAdmin() || $user->isAgent()) {
+            return true;
+        }
+
+        if ($user->isClient()) {
+            return $file->folder?->folder_id === $user->assigned_folder_id;
+        }
+
+        if ($user->isProduction()) {
+            return AssignedClient::query()
+                ->where('production_id', $user->user_id)
+                ->where('client_id', $file->folder?->client_id)
                 ->exists();
+        }
+
+        return false;
     }
 }

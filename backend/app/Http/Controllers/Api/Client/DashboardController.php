@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Client;
 use App\Http\Controllers\Controller;
 use App\Services\FileService;
 use App\Services\FolderService;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class DashboardController extends Controller
