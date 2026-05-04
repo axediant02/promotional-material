@@ -4,9 +4,8 @@ import { useRouter } from 'vue-router'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 import AgentDashboardSidebar from '../components/AgentDashboardSidebar.vue'
-import { fetchDashboard } from '../../../services/dashboardService'
-import { downloadFile, fetchFiles } from '../../../services/fileService'
-import { fetchFolders } from '../../../services/folderService'
+import { downloadFile } from '../../../services/fileService'
+import { fetchAgentWorkspace } from '../../../services/agentWorkspaceService'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
 
@@ -410,30 +409,15 @@ const loadData = async () => {
   loading.value = true
   error.value = ''
 
-  const [dashboardResponse, folderResponse, filesResponse] = await Promise.allSettled([
-    fetchDashboard(),
-    fetchFolders(),
-    fetchFiles(),
-  ])
+  try {
+    const response = await fetchAgentWorkspace()
+    const workspace = response.data.data ?? {}
 
-  if (dashboardResponse.status === 'fulfilled') {
-    dashboardData.value = dashboardResponse.value.data.data
-  }
-
-  if (folderResponse.status === 'fulfilled') {
-    folders.value = folderResponse.value.data.data.folders ?? []
-  } else {
-    folders.value = dashboardData.value.folders ?? []
-  }
-
-  if (filesResponse.status === 'fulfilled') {
-    files.value = filesResponse.value.data.data.files ?? []
-  } else {
-    files.value = dashboardData.value.recentFiles ?? []
-  }
-
-  if (dashboardResponse.status === 'rejected' && folderResponse.status === 'rejected' && filesResponse.status === 'rejected') {
-    error.value = dashboardResponse.reason?.response?.data?.message ?? 'Unable to load the agent dashboard.'
+    dashboardData.value = workspace.dashboard ?? dashboardData.value
+    folders.value = workspace.folders ?? []
+    files.value = workspace.files ?? []
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to load the agent dashboard.'
   }
 
   selectedFolderId.value = visibleFolderRows.value[0]?.id ?? ''

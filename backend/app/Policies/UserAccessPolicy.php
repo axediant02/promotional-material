@@ -28,6 +28,13 @@ class UserAccessPolicy
             : Response::deny();
     }
 
+    public function agent(User $user): Response
+    {
+        return $user->isAgent()
+            ? Response::allow()
+            : Response::deny();
+    }
+
     public function clientOrProduction(User $user): Response
     {
         return ($user->isClient() || $user->isProduction())
