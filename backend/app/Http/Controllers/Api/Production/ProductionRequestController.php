@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Production\UpdateProductionRequestStatusRequest;
-use App\Models\AssignedClient;
 use App\Models\ClientRequest;
+use App\Services\ProductionRequestService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class ProductionRequestController extends Controller
 {
-    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly ProductionRequestService $productionRequestService,
+    )
     {
     }
 
@@ -20,12 +23,7 @@ class ProductionRequestController extends Controller
         $user = request()->user();
         $this->authorize('viewAnyProduction', ClientRequest::class);
 
-        $requests = ClientRequest::query()
-            ->whereIn('client_id', function ($query) use ($user): void {
-                $query->select('client_id')
-                    ->from((new AssignedClient())->getTable())
-                    ->where('production_id', $user->user_id);
-            })
+        $requests = $this->productionRequestService->accessibleRequestsQuery($user)
             ->latest('created_at')
             ->get();
 

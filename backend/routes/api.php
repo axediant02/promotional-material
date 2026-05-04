@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Client\FolderController;
 use App\Http\Controllers\Api\Client\RecycleBinController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Production\ProductionRequestController;
+use App\Http\Controllers\Api\Production\ProductionWorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('chat/threads/{thread}/read', [AssignmentChatController::class, 'markRead']);
 
     Route::prefix('production')->group(function (): void {
+        Route::get('dashboard', [ProductionWorkspaceController::class, 'show']);
         Route::get('requests', [ProductionRequestController::class, 'index']);
         Route::patch('requests/{clientRequest}', [ProductionRequestController::class, 'update']);
     });
