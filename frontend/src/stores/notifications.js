@@ -57,6 +57,8 @@ export const useNotificationStore = defineStore('notifications', () => {
   const lastRealtimeNotification = ref(null)
   const isLiveConnected = ref(false)
   const syncInFlight = ref(null)
+  const loadedUserId = ref('')
+  const initializeInFlight = ref(null)
 
   const unreadCount = computed(() => notifications.value.filter((notification) => !notification.readAt).length)
 
@@ -117,14 +119,12 @@ export const useNotificationStore = defineStore('notifications', () => {
 
     activeChannel.subscribed(() => {
       isLiveConnected.value = true
-      void syncNotifications()
     })
 
     const pusherConnection = echo.connector?.pusher?.connection
 
     pusherConnection?.bind('connected', () => {
       isLiveConnected.value = true
-      void syncNotifications()
     })
 
     pusherConnection?.bind('disconnected', () => {
@@ -168,6 +168,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     try {
       const response = await fetchNotifications()
       notifications.value = (response.data.data.notifications ?? []).map(normalizeNotification)
+      loadedUserId.value = activeUserId.value
     } finally {
       loading.value = false
     }
@@ -176,11 +177,30 @@ export const useNotificationStore = defineStore('notifications', () => {
   const initializeForUser = async (user) => {
     if (!user?.user_id) {
       reset()
-      return
+      return null
     }
 
-    await load()
-    connectForUser(user.user_id)
+    if (initializeInFlight.value) {
+      return initializeInFlight.value
+    }
+
+    if (loadedUserId.value === user.user_id) {
+      connectForUser(user.user_id)
+      return notifications.value
+    }
+
+    initializeInFlight.value = (async () => {
+      activeUserId.value = user.user_id
+      await load()
+      connectForUser(user.user_id)
+      return notifications.value
+    })()
+
+    try {
+      return await initializeInFlight.value
+    } finally {
+      initializeInFlight.value = null
+    }
   }
 
   const markAsRead = async (notificationId) => {
@@ -206,6 +226,9 @@ export const useNotificationStore = defineStore('notifications', () => {
     notifications.value = []
     loading.value = false
     lastRealtimeNotification.value = null
+    loadedUserId.value = ''
+    initializeInFlight.value = null
+    syncInFlight.value = null
   }
 
   return {
