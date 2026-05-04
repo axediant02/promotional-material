@@ -106,7 +106,7 @@ const emit = defineEmits([
       @update:mode="emit('update:requestMode', $event)"
       @select-file="emit('select-file', $event)"
       @clear-selected-file="emit('clear-selected-file')"
-      @request-created="emit('request-created')"
+      @request-created="emit('request-created', $event)"
     />
 
     <AssignmentChatWidget

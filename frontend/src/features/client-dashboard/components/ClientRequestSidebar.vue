@@ -39,7 +39,7 @@ onBeforeUnmount(() => {
 
 const handleRequestSuccess = (payload) => {
   successMessage.value = payload?.message || 'Request created.'
-  emit('request-created')
+  emit('request-created', payload?.data?.request ?? null)
 }
 
 const handleClose = () => {
