@@ -70,6 +70,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Keep bearer-token handling aligned with `pm_token` unless refactoring intentionally.
 - Keep route metadata aligned with auth-store redirects.
 - Keep Echo subscription lifecycle aligned with auth bootstrap, logout, and user switching.
+- When adding or refactoring frontend features or functions, keep components and composables focused, reuse shared UI and logic where it is genuinely repeated, separate data access from presentation, and avoid speculative abstractions that make the code harder to follow without clear reuse or complexity reduction.
 - When contracts change, update UI, services, and docs together.
 
 ## Current Feature Areas
