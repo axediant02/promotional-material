@@ -7,6 +7,8 @@ use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -291,6 +293,49 @@ class AdminManagementRoutesTest extends TestCase
         $response->assertJsonFragment([
             'request_id' => $otherClientRequest->request_id,
         ]);
+    }
+
+    public function test_admin_activity_logs_are_paginated_without_breaking_the_log_list_shape(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $subject = $this->createUser('Subject User', 'subject@example.com', User::ROLE_CLIENT);
+
+        for ($index = 1; $index <= 16; $index++) {
+            DB::table('activity_logs')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $admin->user_id,
+                'action' => 'activity_'.$index,
+                'subject_type' => User::class,
+                'subject_id' => $subject->user_id,
+                'description' => 'Activity log '.$index,
+                'metadata' => json_encode(['index' => $index], JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        Sanctum::actingAs($admin);
+
+        $firstPage = $this->getJson('/api/admin/activity-logs');
+
+        $firstPage
+            ->assertOk()
+            ->assertJsonPath('message', 'Activity logs fetched.')
+            ->assertJsonCount(15, 'data.logs')
+            ->assertJsonPath('pagination.current_page', 1)
+            ->assertJsonPath('pagination.per_page', 15)
+            ->assertJsonPath('pagination.last_page', 2)
+            ->assertJsonPath('pagination.total', 16);
+
+        $secondPage = $this->getJson('/api/admin/activity-logs?page=2&per_page=15');
+
+        $secondPage
+            ->assertOk()
+            ->assertJsonCount(1, 'data.logs')
+            ->assertJsonPath('pagination.current_page', 2)
+            ->assertJsonPath('pagination.per_page', 15)
+            ->assertJsonPath('pagination.last_page', 2)
+            ->assertJsonPath('pagination.total', 16);
     }
 
     public function test_non_admin_users_cannot_fetch_admin_request_listing(): void
