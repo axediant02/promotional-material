@@ -51,6 +51,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Reuse model constants for roles, statuses, request types, and categories.
 - Keep validation in Form Requests where practical.
 - Keep controllers thin; extract shared logic into helpers or services as needed.
+- When adding or refactoring backend features or functions, keep methods focused and small, separate orchestration from business rules, reuse shared logic instead of duplicating it, and avoid speculative abstraction that adds layers without clear reuse or complexity reduction.
 - Extend `ActivityLogService` instead of duplicating lifecycle logging.
 - Be explicit about UUID compatibility in migrations, relations, route model binding, and Sanctum integration.
 - Preserve soft-delete and recycle-bin behavior when touching file lifecycle code.

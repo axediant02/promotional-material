@@ -54,6 +54,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - Backend authorization is the source of truth.
 - Frontend guards and hidden UI are UX only.
 - Keep terminology aligned across backend, frontend, tests, and docs.
+- When adding or refactoring features, keep code small, single-purpose, and testable. Prefer separation of concerns, DRY reuse, and focused helpers/services/resources for repeated or complex logic, but avoid speculative abstraction or extra layers that do not clearly reduce duplication, risk, or complexity.
 - When working test-first, treat approved tests as fixed acceptance criteria.
 - If a newly added test fails, fix the implementation or supporting setup instead of rewriting the test just to make it pass.
 - Distinguish clearly between:
