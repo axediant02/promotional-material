@@ -2,10 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
-import { fetchDashboard } from '../../../services/dashboardService'
-import { fetchFiles } from '../../../services/fileService'
-import { fetchRequests } from '../../../services/requestService'
 import { useNotificationStore } from '../../../stores/notifications'
+import { fetchClientWorkspace } from '../../../services/clientWorkspaceService'
 import ClientDashboardWorkspace from '../components/ClientDashboardWorkspace.vue'
 
 const authStore = useAuthStore()
@@ -145,21 +143,15 @@ const closeRequestDrawer = () => {
   isRequestDrawerOpen.value = false
 }
 
-const handleRequestCreated = async () => {
-  await loadRequests()
-}
-
-const loadRequests = async () => {
-  requestsLoading.value = true
-
-  try {
-    const response = await fetchRequests()
-    requests.value = response.data.data.requests || []
-  } catch (error) {
-    console.error('Failed to load client requests:', error)
-  } finally {
-    requestsLoading.value = false
+const handleRequestCreated = (request) => {
+  if (!request?.request_id) {
+    return
   }
+
+  requests.value = [
+    request,
+    ...requests.value.filter((item) => item.request_id !== request.request_id),
+  ]
 }
 
 onMounted(async () => {
@@ -167,15 +159,12 @@ onMounted(async () => {
   requestsLoading.value = true
 
   try {
-    const [dashboardResponse, filesResponse, requestsResponse] = await Promise.all([
-      fetchDashboard(),
-      fetchFiles(),
-      fetchRequests(),
-    ])
+    const response = await fetchClientWorkspace()
+    const workspace = response.data.data ?? {}
 
-    payload.value = dashboardResponse.data.data
-    files.value = filesResponse.data.data.files || []
-    requests.value = requestsResponse.data.data.requests || []
+    payload.value = workspace.dashboard ?? payload.value
+    files.value = workspace.files || []
+    requests.value = workspace.requests || []
   } catch (error) {
     console.error('Failed to load client dashboard:', error)
   } finally {

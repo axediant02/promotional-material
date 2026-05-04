@@ -6,11 +6,13 @@ use App\Http\Controllers\Api\Admin\AdminRequestController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Api\Admin\AgentController;
+use App\Http\Controllers\Api\Agent\AgentWorkspaceController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Chat\AssignmentChatController;
 use App\Http\Controllers\Api\Chat\AssignmentChatMessageController;
 use App\Http\Controllers\Api\Client\ClientRequestController;
 use App\Http\Controllers\Api\Client\ClientRequestHistoryController;
+use App\Http\Controllers\Api\Client\ClientWorkspaceController;
 use App\Http\Controllers\Api\Client\DashboardController;
 use App\Http\Controllers\Api\Client\FileController;
 use App\Http\Controllers\Api\Client\FolderController;
@@ -38,6 +40,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     Route::get('dashboard', [DashboardController::class, 'show']);
+    Route::prefix('client')->group(function (): void {
+        Route::get('dashboard', [ClientWorkspaceController::class, 'show']);
+    });
 
     Route::apiResource('folders', FolderController::class)->except(['destroy']);
     Route::get('recycle-bin', [RecycleBinController::class, 'index']);
@@ -76,5 +81,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('users', [AdminUserController::class, 'index']);
         Route::patch('requests/{clientRequest}', [AdminRequestController::class, 'update']);
         Route::patch('users/{user}', [AdminUserController::class, 'update']);
+    });
+
+    Route::prefix('agent')->group(function (): void {
+        Route::get('dashboard', [AgentWorkspaceController::class, 'show']);
     });
 });
