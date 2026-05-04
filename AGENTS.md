@@ -16,7 +16,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - `client`
 
 ## Current Truth
-- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, client requests, and in-app notifications.
+- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, client requests, assignment chat, and in-app notifications.
 - Backend foundations now exist for:
   - `client_requests`
   - `assigned_clients`
@@ -37,9 +37,11 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - Agents can browse and download allowed files but do not participate in request management.
 - Clients can create requests and download files from their own assigned folder.
 - Realtime in-app notifications use Laravel Reverb on the backend and Echo on the frontend for `admin`, `production`, and `client`.
+- Assignment chat is live for client-to-production communication on assignment-linked threads.
 
 ## Target Direction
 - Complete backend and frontend implementation so the code fully matches the role model above.
+- Keep assignment chat, request, and notification workflows aligned across both apps.
 - Keep route and UI naming aligned with the canonical role surfaces:
   - `/admin`
   - `/agent`
@@ -98,6 +100,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
 - 2026-04-24: In-app notifications are now persisted in the database and delivered in realtime through Reverb/Echo for admin request intake, production assignments, and client due-date or status changes.
+- 2026-05-04: Assignment chat is now part of the live workflow for assigned client/production pairs and should be documented as a current feature, not planned work.
 
 ## Success Criteria
 - Secure file delivery

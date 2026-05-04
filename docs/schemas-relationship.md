@@ -2,6 +2,10 @@
 
 This document describes the current schema foundation and the core relationships used by the implemented flow.
 
+## Status
+- Current backend schema foundation unless a section is explicitly labeled target.
+- Do not assume every schema relationship is already fully exposed through APIs or screens.
+
 ## Current implemented backend schema
 
 ### `users`
@@ -84,6 +88,33 @@ Current assignment statuses in backend schema:
 - `in_progress`
 - `done`
 
+### `assignment_chat_threads`
+- `thread_id`
+- `assignment_id`
+- `client_id`
+- `production_id`
+- `status`
+- `started_at`
+- `closed_at`
+- `last_message_at`
+- `last_message_by`
+- `client_last_read_at`
+- `production_last_read_at`
+- `created_at`
+- `updated_at`
+
+Current assignment chat statuses in backend schema:
+- `active`
+- `archived`
+
+### `assignment_chat_messages`
+- `message_id`
+- `thread_id`
+- `sender_user_id`
+- `body`
+- `created_at`
+- `updated_at`
+
 ### `activity_logs`
 - `id`
 - `user_id`
@@ -115,6 +146,13 @@ Current assignment statuses in backend schema:
 - a `ClientRequest` belongs to one folder
 - an `AssignedClient` belongs to one production user
 - an `AssignedClient` belongs to one client
+- an `AssignedClient` has many assignment chat threads
+- an `AssignmentChatThread` belongs to one assignment
+- an `AssignmentChatThread` belongs to one client
+- an `AssignmentChatThread` belongs to one production user
+- an `AssignmentChatThread` has many messages
+- an `AssignmentChatMessage` belongs to one thread
+- an `AssignmentChatMessage` belongs to one sender user
 - an `ActivityLog` belongs to one user
 
 ## Target full-system relationships
@@ -125,11 +163,14 @@ Current assignment statuses in backend schema:
 - one client has many requests
 - one production user can be linked to many clients through `assigned_clients`
 - one client should have one active production ownership record at a time
+- one assignment can have one active chat thread at a time
+- one assignment chat thread belongs to one client and one production user
+- one assignment chat thread has many messages
 
 ## Important implementation notes
 - registration creates the client account first.
 - the first client request creates and assigns the folder.
 - `assigned_clients` is the client-to-production ownership model.
+- assignment chat threads are created from assignment state and archived when the assignment changes, completes, or is removed.
 - `due_date` belongs to admin-owned request management, not client input.
 - request linkage should stay aligned with [system-flow.md](./system-flow.md) and [request-workflow.md](./request-workflow.md).
-- Do not assume every schema relationship is already fully exposed through APIs or screens.

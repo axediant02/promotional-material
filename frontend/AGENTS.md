@@ -39,6 +39,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Current client request UI targets the live `POST /requests` endpoint.
 - In-app notifications are shown inside the admin, production, and client dashboards.
 - Registration creates the client account immediately, and the first submitted request creates the assigned folder.
+- Assignment chat is shown inside the client and production dashboards for active assignment threads.
 - Role ownership for ongoing UI work:
   - `admin` manages assignments, due dates, and user-role administration
   - `production` manages assigned-client work and uploads
@@ -80,6 +81,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - Production dashboard shell with nested folder browser/detail workspace
 - Request submission UI for clients
 - Realtime notification panels for admin, production, and client dashboards
+- Assignment chat widget for client and production dashboards
 
 ## Live Route Notes
 - Public:
@@ -125,6 +127,11 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - client request submission
   - role visibility
   - agent exclusion
+- If assignment chat UI changes, verify:
+  - dashboard widget rendering
+  - unread count updates
+  - message send/read flows
+  - realtime subscription teardown on logout
 - If notification UI changes, verify:
   - dashboard panel rendering
   - unread count updates
@@ -143,6 +150,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-23: The production shell now keeps sidebar/topbar stable while nested folder routes swap only the folder workspace section.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend entry routes reflected in the live router and auth-store defaults.
 - 2026-04-24: Admin, production, and client dashboards now include realtime in-app notification panels powered by Echo subscriptions to private user channels.
+- 2026-05-04: Assignment chat is now a live dashboard feature for client and production users and should be treated as part of the current UI, not future work.
 
 ## Success Criteria
 - Clear navigation

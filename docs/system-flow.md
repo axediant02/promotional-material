@@ -1,6 +1,11 @@
 # System Flow
 
-This document describes the current onboarding, admin management, request, and file-delivery flow across the portal.
+This document describes the current onboarding, admin management, request, assignment chat, and file-delivery flow across the portal.
+
+## Status
+- Current live flow unless a step is explicitly labeled planned elsewhere.
+- Backend authorization is the source of truth.
+- Frontend route guards and hidden UI are UX only.
 
 ## 1. Registration
 1. A guest opens `/register`.
@@ -42,7 +47,14 @@ This document describes the current onboarding, admin management, request, and f
 7. Admin reviews the full platform account list through the live users endpoint instead of inferred dashboard data.
 8. Admin can update user roles through `PATCH /admin/users/{user}`.
 
-## 5. Production execution
+## 5. Assignment chat
+1. When admin saves a client-to-production assignment, the backend ensures an active assignment chat thread exists for that client and production pair.
+2. Clients and production users open the shared assignment chat widget from their dashboards.
+3. Either side can send messages in the active thread.
+4. Messages are delivered in realtime to the active thread and the other participant's user channel.
+5. If the assignment changes, is marked done, or is removed, the active thread is archived and remains available as read-only history.
+
+## 6. Production execution
 1. Production opens `/production`.
 2. The production shell redirects into `/production/folders`.
 3. The nested workspace swaps between:
@@ -52,13 +64,13 @@ This document describes the current onboarding, admin management, request, and f
 5. Production updates operational request status through `PATCH /production/requests/{clientRequest}`.
 6. Production uploads files into assigned client folders and manages recycle-bin recovery.
 
-## 6. File access and delivery
+## 7. File access and delivery
 1. Clients can view, preview, and download files from their assigned folder only.
 2. Agents can browse and download files allowed by backend authorization.
 3. Production can browse assigned-client folders and deliver files through the production workspace.
 4. Admin management is centered on requests, assignments, activity, and role oversight rather than direct file-portal operation.
 
-## 7. Recycle bin
+## 8. Recycle bin
 1. Production deletes a file.
 2. The backend soft deletes the record and tracks deletion timing.
 3. The file appears in the recycle bin list.
@@ -76,12 +88,14 @@ This document describes the current onboarding, admin management, request, and f
   - request status execution
   - assigned-client folders
   - file uploads and recovery
+  - assignment chat with assigned clients
 - `agent`
   - browse and download allowed files
 - `client`
   - create requests
   - view own request history
   - access and download files from the assigned folder
+  - assignment chat with assigned production users
 
 ## Guardrails
 - Backend authorization is the source of truth.
@@ -89,3 +103,4 @@ This document describes the current onboarding, admin management, request, and f
 - Clients do not set due dates.
 - Production does not set admin due dates.
 - Assignment ownership stays at the client level through `assigned_clients`.
+- Assignment chat stays limited to the client and production users linked to the assignment.

@@ -2,6 +2,11 @@
 
 This document describes the current Vue router configuration in `frontend/src/router/index.js`.
 
+## Status
+- Current live router behavior unless a route is explicitly labeled compatibility or planned.
+- Backend authorization remains the source of truth.
+- Route guards are UX only.
+
 ## Route table
 
 | Path | Name | Access | Component | Notes |
@@ -74,6 +79,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - calls `GET /files`
 - submits requests through `POST /requests`
 - shows request history through the client request routes
+- mounts the assignment chat widget and loads chat threads for the active assignment
 
 ### Agent dashboard
 - calls `GET /dashboard`
@@ -83,6 +89,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - calls `GET /dashboard`
 - calls `GET /production/requests`
 - uses nested folder routes for assigned-client file operations
+- mounts the assignment chat widget and loads chat threads for the active assignment
 
 ### Admin dashboard
 - calls `GET /dashboard`
@@ -97,7 +104,7 @@ This document describes the current Vue router configuration in `frontend/src/ro
 - `/admin` and `/agent` are the canonical role entry routes.
 - `/admin-new` and `/agent-new` remain as compatibility redirects.
 - The agreed role model in the frontend is:
-- `admin` for admin management
+  - `admin` for admin management
   - `production` for execution
   - `agent` for browse/download access
-  - `client` for requests and own-folder access
+  - `client` for requests, own-folder access, and assignment chat

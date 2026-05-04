@@ -1,5 +1,9 @@
 # Proposal for Client File Storage and Delivery Portal
 
+> Historical proposal document only.
+> The live system truth is documented in `AGENTS.md` and `docs/*`.
+> Keep this file for original planning context, not current implementation guidance.
+
 ## Prepared For
 Internal Production Team, Agents, and Clients
 
@@ -8,6 +12,15 @@ Client File Storage and Delivery Portal
 
 ## Executive Summary
 This proposal presents the development of a secure, responsive web-based file storage and delivery portal designed for a production-driven workflow. The system will allow the production team to upload and manage photo assets, enable agents to access all client folders, and allow clients to securely view, preview, search, and download only the files assigned to them.
+
+## Live System Delta
+The current implemented portal differs from some early proposal assumptions:
+
+- registration creates a `client` account immediately
+- the first client request creates the assigned folder
+- assignment chat is now part of the live workflow
+- agents browse and download only the files allowed by backend authorization
+- admin and production ownership is split across assignment, due dates, execution, and uploads
 
 The proposed platform addresses the need for a centralized and controlled way to distribute raw photo materials without relying on scattered manual sharing methods. Unlike generic file-sharing tools, this portal will be structured around role-based access, client-specific folders, approval-based onboarding, and operational oversight for the production team.
 

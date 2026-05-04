@@ -1,14 +1,19 @@
+# Scratch Notes
+
+> This file is a scratch / draft code note, not a maintained documentation source.
+> Agents should not treat it as system truth.
+
 import React, { useState } from 'react';
-import { 
-  Folder, 
-  FileText, 
-  Image as ImageIcon, 
-  Video, 
-  UploadCloud, 
-  Grid, 
-  List, 
-  Search, 
-  Bell, 
+import {
+  Folder,
+  FileText,
+  Image as ImageIcon,
+  Video,
+  UploadCloud,
+  Grid,
+  List,
+  Search,
+  Bell,
   LogOut,
   ChevronLeft,
   Pin,
@@ -133,7 +138,6 @@ export default function ProductionDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0b0d14] text-slate-200 font-sans selection:bg-indigo-500/30">
-      
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-50 bg-[#12141d]/80 backdrop-blur-md border-b border-slate-800/50 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
@@ -146,15 +150,15 @@ export default function ProductionDashboard() {
               <span className="text-[10px] uppercase tracking-widest text-indigo-400 font-semibold">Production</span>
             </div>
           </div>
-          
+
           <nav className="hidden md:flex gap-6 text-sm font-medium text-slate-400">
-            <button 
-              onClick={goBackToOverview} 
+            <button
+              onClick={goBackToOverview}
               className={`hover:text-white transition-colors ${activeTab === 'overview' && !activeFolder ? 'text-white' : ''}`}
             >
               Overview
             </button>
-            <button 
+            <button
               onClick={goToTasks}
               className={`hover:text-white transition-colors ${activeTab === 'tasks' ? 'text-white' : ''}`}
             >
@@ -167,9 +171,9 @@ export default function ProductionDashboard() {
         <div className="flex items-center gap-4">
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Search folders, tasks..." 
+            <input
+              type="text"
+              placeholder="Search folders, tasks..."
               className="bg-[#1a1d27] border border-slate-800 rounded-full pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all w-64 text-slate-200 placeholder:text-slate-500"
             />
           </div>
@@ -192,32 +196,29 @@ export default function ProductionDashboard() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        
-        {/* Render either Overview, Folder Contents, or Tasks based on state */}
         {activeTab === 'tasks' ? (
           <TasksView onOpenFolder={openFolder} />
         ) : !activeFolder ? (
-          <Overview 
-            viewMode={viewMode} 
-            setViewMode={setViewMode} 
-            onOpenFolder={openFolder} 
+          <Overview
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            onOpenFolder={openFolder}
             pinnedTasks={pinnedTasks}
             onOpenTask={setSelectedTask}
           />
         ) : (
-          <FolderContents 
-            folder={activeFolder} 
-            onBack={goBackToOverview} 
+          <FolderContents
+            folder={activeFolder}
+            onBack={goBackToOverview}
           />
         )}
-
       </main>
 
       {/* Task Modal */}
       {selectedTask && (
-        <TaskModal 
-          task={selectedTask} 
-          onClose={() => setSelectedTask(null)} 
+        <TaskModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
           onUpdateStatus={(newStatus) => handleUpdateTaskStatus(selectedTask.id, newStatus)}
         />
       )}
@@ -230,22 +231,21 @@ export default function ProductionDashboard() {
 function Overview({ viewMode, setViewMode, onOpenFolder, pinnedTasks, onOpenTask }) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
       {/* Sticky Note: Latest Requests */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Pin className="w-4 h-4 text-amber-500" />
           <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-400">Pinned Tasks ({pinnedTasks.length})</h2>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {pinnedTasks.map((task, index) => (
-            <div 
-              key={task.id} 
+            <div
+              key={task.id}
               className={`relative overflow-hidden rounded-xl bg-gradient-to-br from-[#2a2416] to-[#1e1a12] border border-amber-900/30 p-6 shadow-lg shadow-amber-900/5 transform ${index % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'} hover:rotate-0 transition-transform duration-300 flex flex-col h-full`}
             >
               <div className="absolute top-0 left-0 w-1 h-full bg-amber-500/50"></div>
-              
+
               <div className="flex flex-col h-full justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
@@ -263,13 +263,13 @@ function Overview({ viewMode, setViewMode, onOpenFolder, pinnedTasks, onOpenTask
                     {task.description}
                   </p>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-auto">
                   <div className="flex items-center gap-2 text-amber-300">
                     <Clock className="w-4 h-4" />
                     <span className="text-sm font-medium">Due: {task.dueDate}</span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => onOpenTask(task)}
                     className="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-400 text-amber-950 font-semibold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 text-sm"
                   >
@@ -289,16 +289,16 @@ function Overview({ viewMode, setViewMode, onOpenFolder, pinnedTasks, onOpenTask
             <h2 className="text-xl font-bold text-white">Client Workspaces</h2>
             <p className="text-sm text-slate-400">Access and manage production files for your assigned clients.</p>
           </div>
-          
+
           <div className="flex items-center bg-[#161925] border border-slate-800 p-1 rounded-lg">
-            <button 
+            <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
               aria-label="Grid View"
             >
               <Grid className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
               aria-label="List View"
@@ -308,7 +308,6 @@ function Overview({ viewMode, setViewMode, onOpenFolder, pinnedTasks, onOpenTask
           </div>
         </div>
 
-        {/* Folders Grid/List Render */}
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {CLIENT_FOLDERS.map(folder => (
@@ -332,7 +331,7 @@ function FolderContents({ folder, onBack }) {
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       {/* Header / Breadcrumb */}
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={onBack}
           className="p-2 rounded-lg bg-[#161925] border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
         >
@@ -352,8 +351,6 @@ function FolderContents({ folder, onBack }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Main Content: Files */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-slate-200">Asset Catalog</h3>
@@ -361,7 +358,7 @@ function FolderContents({ folder, onBack }) {
               {FOLDER_CONTENTS.length} Items
             </span>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {FOLDER_CONTENTS.map(file => (
               <FileCard key={file.id} file={file} />
@@ -369,26 +366,23 @@ function FolderContents({ folder, onBack }) {
           </div>
         </div>
 
-        {/* Sidebar: Upload Area & Info */}
         <div className="space-y-6">
           <div className="bg-[#12141d] rounded-xl border border-slate-800/60 p-6 flex flex-col h-[300px]">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Upload New Assets</h3>
-            
-            {/* Upload Dropzone */}
+
             <div className="flex-1 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center p-6 text-center hover:bg-[#161925] hover:border-indigo-500/50 transition-colors cursor-pointer group">
               <div className="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-indigo-500/20 flex items-center justify-center mb-3 transition-colors">
                 <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-indigo-400" />
               </div>
               <p className="text-sm font-medium text-slate-200 mb-1">Click to upload or drag & drop</p>
               <p className="text-xs text-slate-500">SVG, PNG, JPG or PDF (max. 800x400px)</p>
-              
+
               <button className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
                 <Plus className="w-4 h-4" /> Browse Files
               </button>
             </div>
           </div>
 
-          {/* Folder Meta Info (Optional visual filler) */}
           <div className="bg-[#12141d] rounded-xl border border-slate-800/60 p-5 space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Folder Details</h3>
             <div className="space-y-3">
@@ -409,7 +403,6 @@ function FolderContents({ folder, onBack }) {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -419,13 +412,12 @@ function FolderContents({ folder, onBack }) {
 
 function FolderCard({ folder, onClick }) {
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`bg-[#161925] border border-slate-800 rounded-xl p-5 hover:border-indigo-500/50 hover:bg-[#1a1d27] transition-all cursor-pointer group relative overflow-hidden`}
     >
-      {/* Decorative top border matched to specific folder color if needed, or uniform */}
       <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-800 to-transparent group-hover:from-indigo-500 transition-colors`}></div>
-      
+
       <div className="flex justify-between items-start mb-4">
         <div className="w-10 h-10 rounded-lg bg-[#1e2235] flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
           <Folder className="w-5 h-5" />
@@ -434,10 +426,10 @@ function FolderCard({ folder, onClick }) {
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>
-      
+
       <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{folder.name}</h3>
       <p className="text-sm text-slate-400 mb-4">{folder.client}</p>
-      
+
       <div className="flex items-center justify-between text-xs font-medium text-slate-500 pt-4 border-t border-slate-800/60">
         <span className="bg-slate-800/50 px-2 py-1 rounded-md">{folder.files} files</span>
         <span>Updated {folder.updated}</span>
@@ -448,7 +440,7 @@ function FolderCard({ folder, onClick }) {
 
 function FolderListItem({ folder, onClick }) {
   return (
-    <div 
+    <div
       onClick={onClick}
       className="flex items-center justify-between p-4 bg-[#161925] border border-slate-800 rounded-xl hover:border-indigo-500/50 hover:bg-[#1a1d27] transition-all cursor-pointer group"
     >
@@ -461,7 +453,7 @@ function FolderListItem({ folder, onClick }) {
           <p className="text-xs text-slate-400">{folder.client}</p>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-8 text-sm text-slate-500">
         <div className="hidden sm:block w-24 text-right">{folder.files} files</div>
         <div className="hidden md:block w-32 text-right">{folder.updated}</div>
@@ -474,7 +466,6 @@ function FolderListItem({ folder, onClick }) {
 }
 
 function FileCard({ file }) {
-  // Determine styling based on file type to match image 4's distinct card styles
   let Icon = FileText;
   let tagColor = 'bg-slate-800 text-slate-300';
   let iconColor = 'text-slate-400';
@@ -499,24 +490,21 @@ function FileCard({ file }) {
 
   return (
     <div className={`bg-[#12141d] border border-slate-800/80 rounded-xl p-5 flex flex-col ${hoverBorder} hover:bg-[#161925] transition-all group`}>
-      {/* Top Tag */}
       <div className="flex justify-between items-start mb-6">
         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${tagColor}`}>
           {file.type}
         </span>
         <button className="text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity hover:text-white">
-           <MoreVertical className="w-4 h-4" />
+          <MoreVertical className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Centered Icon representing preview */}
       <div className="flex-1 flex items-center justify-center py-4 mb-4">
         <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
           <Icon className={`w-8 h-8 ${iconColor}`} />
         </div>
       </div>
 
-      {/* File Info Footer */}
       <div className="mt-auto border-t border-slate-800/60 pt-4">
         <p className="text-sm font-medium text-slate-200 truncate" title={file.name}>
           {file.name}
@@ -532,7 +520,7 @@ function FileCard({ file }) {
 
 function TasksView({ onOpenFolder }) {
   const getTagStyles = (tag) => {
-    switch(tag) {
+    switch (tag) {
       case 'PENDING': return 'bg-slate-800 text-slate-300 border border-slate-700';
       case 'IN PROGRESS': return 'bg-indigo-900/30 text-indigo-400 border border-indigo-800/50';
       case 'DONE': return 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50';
@@ -555,7 +543,6 @@ function TasksView({ onOpenFolder }) {
       </div>
 
       <div className="bg-[#12141d] border border-slate-800 rounded-xl overflow-hidden shadow-xl shadow-black/20">
-        {/* Table Header */}
         <div className="hidden lg:grid grid-cols-12 gap-4 p-4 border-b border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider bg-[#161925]/50">
           <div className="col-span-4">Request</div>
           <div className="col-span-2">Client</div>
@@ -565,58 +552,57 @@ function TasksView({ onOpenFolder }) {
           <div className="col-span-1 text-right">Action</div>
         </div>
 
-        {/* Task Rows */}
         <div className="divide-y divide-slate-800/80">
           {ALL_TASKS.map((task) => (
-             <div key={task.id} className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-5 lg:p-4 items-center hover:bg-[#161925] transition-colors group">
-                <div className="col-span-4 space-y-3">
-                   <div className="flex flex-wrap items-center gap-2">
-                     <span className="text-xs font-mono text-slate-500">{task.id}</span>
-                     {task.tags.map(tag => (
-                       <span key={tag} className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getTagStyles(tag)}`}>
-                         {tag}
-                       </span>
-                     ))}
-                   </div>
-                   <div>
-                     <h4 className="text-base font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">{task.title}</h4>
-                     <p className="text-xs text-slate-500 mt-1">
-                       ASSIGNED FOLDER <span className="text-slate-400 font-medium ml-1">{task.folder}</span>
-                     </p>
-                   </div>
+            <div key={task.id} className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-5 lg:p-4 items-center hover:bg-[#161925] transition-colors group">
+              <div className="col-span-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-mono text-slate-500">{task.id}</span>
+                  {task.tags.map(tag => (
+                    <span key={tag} className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getTagStyles(tag)}`}>
+                      {tag}
+                    </span>
+                  ))}
                 </div>
+                <div>
+                  <h4 className="text-base font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">{task.title}</h4>
+                  <p className="text-xs text-slate-500 mt-1">
+                    ASSIGNED FOLDER <span className="text-slate-400 font-medium ml-1">{task.folder}</span>
+                  </p>
+                </div>
+              </div>
 
-                <div className="col-span-2 text-sm font-medium text-slate-300 lg:block flex justify-between items-center">
-                  <span className="lg:hidden text-xs text-slate-500 uppercase">Client</span>
-                  {task.client}
-                </div>
+              <div className="col-span-2 text-sm font-medium text-slate-300 lg:block flex justify-between items-center">
+                <span className="lg:hidden text-xs text-slate-500 uppercase">Client</span>
+                {task.client}
+              </div>
 
-                <div className="col-span-2 text-sm text-slate-400 lg:block flex justify-between items-center">
-                  <span className="lg:hidden text-xs text-slate-500 uppercase">Type</span>
-                  {task.type}
-                </div>
+              <div className="col-span-2 text-sm text-slate-400 lg:block flex justify-between items-center">
+                <span className="lg:hidden text-xs text-slate-500 uppercase">Type</span>
+                {task.type}
+              </div>
 
-                <div className="col-span-2 text-sm text-slate-300 flex justify-between items-center lg:justify-start lg:gap-2">
-                  <span className="lg:hidden text-xs text-slate-500 uppercase">Due</span>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-500" />
-                    {task.dueDate}
-                  </div>
+              <div className="col-span-2 text-sm text-slate-300 flex justify-between items-center lg:justify-start lg:gap-2">
+                <span className="lg:hidden text-xs text-slate-500 uppercase">Due</span>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-500" />
+                  {task.dueDate}
                 </div>
+              </div>
 
-                <div className="col-span-1 flex lg:justify-center justify-between items-center">
-                   <span className="lg:hidden text-xs text-slate-500 uppercase">State</span>
-                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-[#1a1d27] text-slate-400 border border-slate-700">
-                     {task.status}
-                   </span>
-                </div>
+              <div className="col-span-1 flex lg:justify-center justify-between items-center">
+                <span className="lg:hidden text-xs text-slate-500 uppercase">State</span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-[#1a1d27] text-slate-400 border border-slate-700">
+                  {task.status}
+                </span>
+              </div>
 
-                <div className="col-span-1 flex lg:justify-end justify-start mt-2 lg:mt-0">
-                  <button className="w-full lg:w-auto px-4 py-2.5 lg:py-2 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-600/50 rounded-lg text-xs font-bold tracking-wider transition-colors whitespace-nowrap">
-                    {task.actionText}
-                  </button>
-                </div>
-             </div>
+              <div className="col-span-1 flex lg:justify-end justify-start mt-2 lg:mt-0">
+                <button className="w-full lg:w-auto px-4 py-2.5 lg:py-2 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-600/50 rounded-lg text-xs font-bold tracking-wider transition-colors whitespace-nowrap">
+                  {task.actionText}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -629,7 +615,7 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
   const statuses = ['Pending', 'In Progress', 'Done'];
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'Done': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
       case 'In Progress': return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30';
       default: return 'bg-slate-800 text-slate-300 border-slate-700';
@@ -643,14 +629,12 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       ></div>
-      
+
       <div className="relative w-full max-w-xl bg-[#12141d] border border-slate-800 rounded-2xl shadow-2xl overflow-visible flex flex-col animate-in zoom-in-95 duration-200">
-        
-        {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#161925]/50">
           <div className="flex items-center gap-3">
             <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-semibold uppercase tracking-wider border border-slate-700">
@@ -658,7 +642,7 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
             </span>
             <span className="text-sm font-medium text-slate-400">{task.client}</span>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           >
@@ -666,7 +650,6 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-white mb-3">{task.title}</h2>
@@ -691,12 +674,11 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
             </div>
           </div>
 
-          {/* Status Update Dropdown */}
           <div className="space-y-3 pb-8">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Update Status</p>
-            
+
             <div className="relative w-48">
-              <button 
+              <button
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
                 className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-between border ${getStatusColor(task.status)}`}
               >
@@ -719,10 +701,8 @@ function TaskModal({ task, onClose, onUpdateStatus }) {
                 </div>
               )}
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
   );

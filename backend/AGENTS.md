@@ -29,6 +29,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - `client_requests` and `assigned_clients` tables/models exist.
 - Registration creates the client account immediately.
 - The first client request creates and assigns the client's folder.
+- Assignment chat threads and messages exist for client-to-production communication.
 - Role ownership:
   - `admin` manages client assignment, due dates, and user roles
   - `production` uploads files and executes work for assigned clients
@@ -83,6 +84,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Production request status updates
 - Admin request listing and due-date updates
 - Backend assignment foundations
+- Assignment chat thread listing, history, message posting, and read tracking
 
 ## Planned Areas Still Incomplete
 - Full assignment-management workflow
@@ -119,6 +121,11 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - client download scoping
   - agent download access
   - assignment linkage
+- For assignment chat changes, verify:
+  - thread listing and history access
+  - message posting rules
+  - read tracking
+  - broadcast channel authorization
 - For notification changes, verify:
   - database notification creation
   - user-scoped notification read endpoints
@@ -137,6 +144,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-23: Backend TDD work keeps newly written failing tests fixed as acceptance criteria; implementation must move to the test, not the other way around.
 - 2026-04-24: Admin user listing and role update routes are part of the live backend surface; remaining incompleteness is centered on broader assignment workflow fit-and-finish rather than missing admin role-management endpoints.
 - 2026-04-24: In-app notifications now use Laravel database notifications plus Reverb-backed private user channels for admin request intake, production assignment alerts, and client due-date or status alerts.
+- 2026-05-04: Assignment chat threads are created from assignment state and archived when assignments change, complete, or are removed.
 
 ## Success Criteria
 - Correct authorization

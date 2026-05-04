@@ -1,6 +1,11 @@
 # Request Workflow
 
-This document describes the current request lifecycle, ownership model, and route responsibilities.
+This document describes the current request lifecycle, ownership model, assignment chat, and route responsibilities.
+
+## Status
+- Current live request workflow unless a section is labeled planned or target.
+- Requests and assignment chat are live backend features.
+- If this doc and the code disagree, treat the live backend as the source of truth and mark the mismatch explicitly in future updates.
 
 ## Purpose
 Clients can request:
@@ -43,6 +48,27 @@ Admin governs due dates and assignment context. Production executes the work.
 
 Assignments live at the client level, not the individual request level.
 
+### `assignment_chat_threads`
+- `thread_id`
+- `assignment_id`
+- `client_id`
+- `production_id`
+- `status`
+- `started_at`
+- `closed_at`
+- `last_message_at`
+- `last_message_by`
+- `client_last_read_at`
+- `production_last_read_at`
+- timestamps
+
+### `assignment_chat_messages`
+- `message_id`
+- `thread_id`
+- `sender_user_id`
+- `body`
+- timestamps
+
 ## Access rules
 
 ### Client
@@ -62,10 +88,18 @@ Assignments live at the client level, not the individual request level.
 - can view requests for assigned clients
 - can update request status
 - can upload files for assigned-client work
+- can use the assignment chat on active assignment threads
 
 ### Agent
 - does not access request routes
 - can browse and download files allowed by backend authorization
+
+## Assignment chat
+1. Saving an assignment creates or reuses the active chat thread for the client and production pair.
+2. Client and production users can fetch the active thread, the full thread list, and message history through the chat routes.
+3. Either side can post messages while the thread status is `active`.
+4. When the assignment is changed, marked done, or removed, the active thread is archived and remains read-only.
+5. Realtime delivery uses private `assignment-chat.{thread_id}` and `assignment-chat-user.{user_id}` channels.
 
 ## Current workflow
 1. A user registers and receives the `client` role.
@@ -77,8 +111,9 @@ Assignments live at the client level, not the individual request level.
 7. Admin reviews the full queue through `GET /admin/requests`.
 8. Admin sets or updates the due date through `PATCH /admin/requests/{clientRequest}`.
 9. Admin links the client to production through `POST /admin/assignments`.
-10. Production fetches requests for assigned clients through `GET /production/requests`.
-11. Production updates operational status through `PATCH /production/requests/{clientRequest}`.
+10. The backend creates or reuses the active assignment chat thread for that assignment.
+11. Production fetches requests for assigned clients through `GET /production/requests`.
+12. Production updates operational status through `PATCH /production/requests/{clientRequest}`.
 
 ## Admin management UI
 - The admin dashboard at `/admin` shows admin stats, the request queue, assignments, activity logs, and user-role context.
@@ -94,6 +129,8 @@ Assignments live at the client level, not the individual request level.
 - Production status updates and admin due-date updates are separate routes with separate validation rules.
 - The admin due-date route prohibits `status`.
 - The production status route prohibits `due_date`.
+- Assignment chat becomes read-only when the assignment is archived or removed.
+- Assignment chat is part of the current workflow, not future work.
 
 ## TDD rule
 - New backend request-workflow changes should be written test-first.

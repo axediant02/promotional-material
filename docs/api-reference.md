@@ -2,6 +2,10 @@
 
 This document describes the current backend API in `backend/routes/api.php`.
 
+## Status
+- Current live backend route behavior unless a route is explicitly marked compatibility or future-only.
+- When a route has both product ownership and compatibility behavior, call that out directly instead of collapsing the difference.
+
 ## Base URL
 - Local API base: `http://127.0.0.1:8000/api`
 
@@ -93,6 +97,7 @@ Most endpoints return:
   - `unread_count`
 - Notes:
   - users may mark only their own notifications
+  - the live code also accepts `PATCH /notifications/{notification}/read`
 
 ### `POST /notifications/read-all`
 - Purpose: mark all of the authenticated user's unread notifications as read
@@ -100,6 +105,55 @@ Most endpoints return:
   - authenticated users only
 - Returns:
   - `unread_count`
+- Notes:
+  - the live code also accepts `PATCH /notifications/read-all`
+
+## Chat routes
+
+### `GET /chat/thread`
+- Purpose: fetch the active assignment chat thread for the authenticated client or production user
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `thread`
+- Notes:
+  - returns `null` when no active assignment chat exists
+
+### `GET /chat/threads`
+- Purpose: fetch all assignment chat threads visible to the authenticated user
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `threads`
+
+### `GET /chat/threads/{thread}`
+- Purpose: fetch one assignment chat thread and its message history
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `thread`
+- Notes:
+  - only the linked client or production user can access the thread
+
+### `POST /chat/threads/{thread}/messages`
+- Purpose: send a message in an assignment chat thread
+- Access:
+  - client only
+  - production only
+- Body:
+  - `body`
+- Notes:
+  - the message body must be present and non-empty
+  - archived threads are read-only
+
+### `POST /chat/threads/{thread}/read`
+- Purpose: mark an assignment chat thread as read for the authenticated user
+- Access:
+  - client only
+  - production only
 
 ## Folder routes
 
@@ -282,6 +336,7 @@ Most endpoints return:
 - Purpose: fetch recent activity logs
 - Access:
   - authenticated users can reach the route in the current code
+  - admin is the intended management audience in the current product flow
 - Returns:
   - `logs`
 
@@ -326,3 +381,5 @@ Most endpoints return:
 ## Realtime delivery
 - In-app notifications are stored in the database and broadcast over Laravel Reverb private channels.
 - Frontend subscriptions use Echo on user-scoped channels in the form `users.{user_id}.notifications`.
+- Assignment chat uses private thread channels in the form `assignment-chat.{thread_id}` and private user channels in the form `assignment-chat-user.{user_id}`.
+- The broadcast auth endpoint used by Echo is `POST /broadcasting/auth`.
