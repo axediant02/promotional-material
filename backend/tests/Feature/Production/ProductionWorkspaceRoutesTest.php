@@ -7,6 +7,8 @@ use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -116,6 +118,37 @@ class ProductionWorkspaceRoutesTest extends TestCase
         $this->postJson("/api/files/{$assignedFile->file_id}/restore")
             ->assertOk()
             ->assertJsonPath('data.file.file_id', $assignedFile->file_id);
+    }
+
+    public function test_production_can_replace_an_existing_file_in_place(): void
+    {
+        Storage::fake('local');
+
+        [$production, $assignedFolder, , $assignedFile] = $this->createProductionWorkspaceFixtures();
+        Storage::disk('local')->put($assignedFile->storage_path, 'Assigned file content.');
+
+        Sanctum::actingAs($production);
+
+        $response = $this->patch("/api/files/{$assignedFile->file_id}", [
+            'file' => UploadedFile::fake()->create('replacement.pdf', 24, 'application/pdf'),
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'File updated.')
+            ->assertJsonPath('data.file.file_id', $assignedFile->file_id)
+            ->assertJsonPath('data.file.folder_id', $assignedFolder->folder_id)
+            ->assertJsonPath('data.file.file_name', 'replacement.pdf')
+            ->assertJsonPath('data.file.category', 'pdf');
+
+        $this->assertDatabaseHas('files', [
+            'file_id' => $assignedFile->file_id,
+            'folder_id' => $assignedFolder->folder_id,
+            'file_name' => 'replacement.pdf',
+            'category' => 'pdf',
+        ]);
+
+        Storage::disk('local')->assertMissing($assignedFile->storage_path);
     }
 
     /**

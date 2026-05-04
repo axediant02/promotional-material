@@ -204,13 +204,14 @@ Most endpoints return:
 - Purpose: fetch one file record
 
 ### `PUT|PATCH /files/{file}`
-- Purpose: update file metadata
+- Purpose: update file metadata or replace the stored file in place
 - Access:
   - production only
 - Body may include:
   - `folder_id`
   - `file_name`
   - `category`
+  - `file` multipart upload to replace the current file blob
 
 ### `DELETE /files/{file}`
 - Purpose: soft delete a file

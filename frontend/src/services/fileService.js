@@ -7,6 +7,13 @@ export const uploadFile = (payload) =>
       'Content-Type': 'multipart/form-data',
     },
   })
+export const updateFile = (id, payload) =>
+  api.post(`/files/${id}`, payload, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+export const fetchFilePreview = (id) => api.get(`/files/${id}/preview`, { responseType: 'blob' })
 export const deleteFile = (id) => api.delete(`/files/${id}`)
 export const restoreFile = (id) => api.post(`/files/${id}/restore`)
 export const downloadFile = async (file) => {

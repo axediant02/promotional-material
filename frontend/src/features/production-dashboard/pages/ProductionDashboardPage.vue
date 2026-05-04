@@ -10,7 +10,7 @@ import RequestStickyNote from '../components/RequestStickyNote.vue'
 import { provideProductionWorkspace } from '../productionWorkspace'
 import { fetchRecycleBin } from '../../../services/activityLogService'
 import { fetchDashboard } from '../../../services/dashboardService'
-import { downloadFile, fetchFiles, restoreFile, uploadFile } from '../../../services/fileService'
+import { downloadFile, fetchFiles, restoreFile, updateFile, uploadFile } from '../../../services/fileService'
 import { fetchFolders } from '../../../services/folderService'
 import { fetchProductionRequests, updateProductionRequestStatus } from '../../../services/requestService'
 import { useAuthStore } from '../../../stores/auth'
@@ -62,6 +62,7 @@ const sidebarCollapsed = ref(getSavedSidebarCollapsed())
 const updatingRequestId = ref('')
 const restoringFileId = ref('')
 const downloadingFileId = ref('')
+const updatingFileId = ref('')
 const syncingFolderQuery = ref(false)
 const uploadingFileId = ref('')
 const selectedOverviewRequestId = ref('')
@@ -738,8 +739,38 @@ const handleUploadFile = async (file, folderId) => {
     files.value = [enrichedFile, ...files.value]
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to upload the file.'
+    throw err
   } finally {
     uploadingFileId.value = ''
+  }
+}
+
+const handleReplaceFile = async (file, folderId, fileId) => {
+  updatingFileId.value = fileId
+  error.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder_id', folderId)
+    formData.append('_method', 'PATCH')
+
+    const response = await updateFile(fileId, formData)
+    const updatedFile = response.data.data.file
+    const enrichedFile = {
+      ...updatedFile,
+      shortId: formatShortId(updatedFile.file_id, 'FILE'),
+      uploaderName: currentUser.value?.name ?? 'You',
+      updatedLabel: formatDateLabel(updatedFile.updated_at),
+      folderName: updatedFile.folder?.folder_name ?? 'Workspace',
+    }
+
+    files.value = [enrichedFile, ...files.value.filter((item) => item.file_id !== enrichedFile.file_id)]
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Unable to replace the file.'
+    throw err
+  } finally {
+    updatingFileId.value = ''
   }
 }
 
@@ -780,6 +811,7 @@ provideProductionWorkspace({
   selectedFolderRequests,
   downloadingFileId,
   uploadingFileId,
+  updatingFileId,
   updatingRequestId,
   categoryToneLookup,
   setFolderBrowserMode,
@@ -789,6 +821,7 @@ provideProductionWorkspace({
   goToFolderIndex,
   handleDownloadFile,
   handleUploadFile,
+  handleReplaceFile,
   updateRequestStatus,
 })
 

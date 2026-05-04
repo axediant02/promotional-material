@@ -62,7 +62,7 @@ This document describes the current onboarding, admin management, request, assig
    - `/production/folders/:folderId`
 4. Production sees requests for assigned clients through `GET /production/requests`.
 5. Production updates operational request status through `PATCH /production/requests/{clientRequest}`.
-6. Production uploads files into assigned client folders and manages recycle-bin recovery.
+6. Production uploads new files into assigned client folders, replaces existing files in place when needed, and manages recycle-bin recovery.
 
 ## 7. File access and delivery
 1. Clients can view, preview, and download files from their assigned folder only.
