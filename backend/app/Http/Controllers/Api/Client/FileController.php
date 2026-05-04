@@ -108,8 +108,56 @@ class FileController extends Controller
         abort_unless($request->user()->isProduction(), 403);
         $this->authorizeFile($file, $request->user());
 
-        $file->fill($request->validated());
+        $validated = $request->validated();
+        if (array_key_exists('folder_id', $validated)) {
+            $targetFolder = Folder::query()->findOrFail($validated['folder_id']);
+            abort_unless(FolderController::accessibleFoldersQuery($request->user())
+                ->whereKey($targetFolder->getKey())
+                ->exists(), 403, 'You cannot access this folder.');
+        }
+
+        $replacementFile = $request->file('file');
+        $previousStorageDisk = $file->storage_disk;
+        $previousStoragePath = $file->storage_path;
+
+        if ($replacementFile) {
+            $targetFolderId = $validated['folder_id'] ?? $file->folder_id;
+            $storageDisk = $previousStorageDisk ?: config('filesystems.default', 'local');
+            $storagePath = $replacementFile->storeAs(
+                trim('clients/'.$targetFolderId, '/'),
+                Str::uuid().'-'.$replacementFile->getClientOriginalName(),
+                $storageDisk
+            );
+
+            $file->forceFill([
+                'folder_id' => $targetFolderId,
+                'uploaded_by' => $request->user()->user_id,
+                'file_name' => $replacementFile->getClientOriginalName(),
+                'storage_disk' => $storageDisk,
+                'storage_path' => $storagePath,
+                'category' => $this->resolveCategory($replacementFile->getMimeType()),
+            ]);
+        } else {
+            $file->fill($validated);
+        }
+
         $file->save();
+
+        if ($replacementFile && $previousStoragePath !== $file->storage_path) {
+            Storage::disk($previousStorageDisk)->delete($previousStoragePath);
+        }
+
+        $activityAction = $replacementFile ? 'file_replaced' : 'file_updated';
+        $activityDescription = $replacementFile
+            ? 'Replaced '.$file->file_name
+            : 'Updated '.$file->file_name;
+
+        $this->activityLogService->log(
+            $request->user(),
+            $activityAction,
+            $file,
+            $activityDescription,
+        );
 
         return response()->json([
             'message' => 'File updated.',

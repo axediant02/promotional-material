@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductionFolderDetailPanel from '../components/ProductionFolderDetailPanel.vue'
 import { useProductionWorkspace } from '../productionWorkspace'
+import { fetchFilePreview } from '../../../services/fileService'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,8 +15,106 @@ const folderFiles = computed(() => workspace.selectedFolderFiles.value)
 const selectedFolderRequestCount = computed(() => workspace.selectedFolderRequests.value.length)
 const showUploadPanel = ref(false)
 const selectedFiles = ref([])
+const selectedFileToReplace = ref(null)
 const uploadError = ref('')
 const fileInputRef = ref(null)
+const isReplacingFile = computed(() => Boolean(selectedFileToReplace.value))
+const selectedReplacementFile = computed(() => selectedFiles.value[0] ?? null)
+const canSubmitUpload = computed(() =>
+  Boolean(selectedFiles.value.length)
+  && workspace.uploadingFileId.value !== selectedFolder.value?.id
+  && (!isReplacingFile.value || workspace.updatingFileId.value !== selectedFileToReplace.value?.file_id),
+)
+const selectedReplacementPreviewUrl = ref('')
+const currentFilePreviewUrl = ref('')
+let previewToken = 0
+const activePreviewUrl = computed(() => selectedReplacementPreviewUrl.value || currentFilePreviewUrl.value)
+const activePreviewLabel = computed(() =>
+  selectedReplacementFile.value ? 'New file preview' : 'Current file preview'
+)
+const activePreviewEmptyLabel = computed(() =>
+  selectedReplacementFile.value
+    ? 'This file type does not support an image preview.'
+    : selectedFileToReplace.value
+      ? 'No image preview is available for this file type.'
+      : 'Pick a file to start a replacement preview.'
+)
+
+const isImageFile = (file) => {
+  if (!file) {
+    return false
+  }
+
+  if (typeof file.type === 'string' && file.type.startsWith('image/')) {
+    return true
+  }
+
+  return file.category === 'image'
+}
+
+const revokeObjectUrl = (url) => {
+  if (url && typeof window !== 'undefined') {
+    window.URL.revokeObjectURL(url)
+  }
+}
+
+const clearCurrentFilePreview = () => {
+  revokeObjectUrl(currentFilePreviewUrl.value)
+  currentFilePreviewUrl.value = ''
+}
+
+const clearSelectedReplacementPreview = () => {
+  if (selectedReplacementPreviewUrl.value) {
+    revokeObjectUrl(selectedReplacementPreviewUrl.value)
+    selectedReplacementPreviewUrl.value = ''
+  }
+}
+
+watch(
+  selectedReplacementFile,
+  async (file) => {
+    clearSelectedReplacementPreview()
+
+    if (file && isImageFile(file) && typeof window !== 'undefined') {
+      selectedReplacementPreviewUrl.value = window.URL.createObjectURL(file)
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  selectedFileToReplace,
+  async (file, previousFile) => {
+    clearCurrentFilePreview()
+
+    if (previousFile && previewToken) {
+      previewToken += 1
+    }
+
+    if (!file || file.category !== 'image') {
+      return
+    }
+
+    const token = ++previewToken
+
+    try {
+      const response = await fetchFilePreview(file.file_id)
+      if (token !== previewToken || typeof window === 'undefined') {
+        return
+      }
+
+      currentFilePreviewUrl.value = window.URL.createObjectURL(response.data)
+    } catch {
+      currentFilePreviewUrl.value = ''
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  clearCurrentFilePreview()
+  clearSelectedReplacementPreview()
+})
 
 const getFileCardPalette = (category) => {
   const variants = {
@@ -73,7 +172,10 @@ const ensureValidFolder = () => {
   }
 }
 
-const openUploadPanel = () => {
+const openUploadPanel = (file = null) => {
+  selectedFileToReplace.value = file
+  selectedFiles.value = []
+  uploadError.value = ''
   showUploadPanel.value = true
 }
 
@@ -82,8 +184,11 @@ const isDragging = ref(false)
 const handleFileSelect = (event) => {
   const files = Array.from(event.target.files ?? [])
   if (files.length) {
-    selectedFiles.value = [...selectedFiles.value, ...files]
+    selectedFiles.value = isReplacingFile.value ? [files[0]] : [...selectedFiles.value, ...files]
     uploadError.value = ''
+    if (isReplacingFile.value && files.length > 1) {
+      uploadError.value = 'Choose a single replacement file.'
+    }
   }
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
@@ -94,8 +199,11 @@ const handleFileDrop = (event) => {
   isDragging.value = false
   const files = Array.from(event.dataTransfer.files ?? [])
   if (files.length) {
-    selectedFiles.value = [...selectedFiles.value, ...files]
+    selectedFiles.value = isReplacingFile.value ? [files[0]] : [...selectedFiles.value, ...files]
     uploadError.value = ''
+    if (isReplacingFile.value && files.length > 1) {
+      uploadError.value = 'Choose a single replacement file.'
+    }
   }
 }
 
@@ -110,22 +218,29 @@ const submitUpload = async () => {
 
   uploadError.value = ''
 
-  for (const file of selectedFiles.value) {
-    try {
-      await workspace.handleUploadFile(file, selectedFolder.value.id)
-    } catch {
-      // error is surfaced by the dashboard-level error state
+  try {
+    if (selectedFileToReplace.value) {
+      await workspace.handleReplaceFile(selectedFiles.value[0], selectedFolder.value.id, selectedFileToReplace.value.file_id)
+    } else {
+      for (const file of selectedFiles.value) {
+        await workspace.handleUploadFile(file, selectedFolder.value.id)
+      }
     }
-  }
 
-  selectedFiles.value = []
-  showUploadPanel.value = false
+    selectedFiles.value = []
+    selectedFileToReplace.value = null
+    showUploadPanel.value = false
+  } catch (err) {
+    uploadError.value = err?.response?.data?.message ?? 'Unable to complete the file upload.'
+  }
 }
 
 const closeUploadPanel = () => {
   selectedFiles.value = []
+  selectedFileToReplace.value = null
   uploadError.value = ''
   showUploadPanel.value = false
+  clearSelectedReplacementPreview()
 }
 
 watch(selectedFolder, ensureValidFolder)
@@ -275,16 +390,17 @@ onMounted(() => {
                   <div class="mt-4 flex translate-y-2 gap-2 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
                     <button
                       class="pm-gradient-primary flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="workspace.downloadingFileId.value === file.file_id"
+                      :disabled="workspace.downloadingFileId.value === file.file_id || workspace.updatingFileId.value === file.file_id"
                       @click="workspace.handleDownloadFile(file)"
                     >
                       {{ workspace.downloadingFileId.value === file.file_id ? 'Preparing...' : 'Download' }}
                     </button>
                     <button
                       class="rounded-xl border border-border bg-white/80 px-3 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
-                      @click="openUploadPanel"
+                      :disabled="workspace.updatingFileId.value === file.file_id"
+                      @click="openUploadPanel(file)"
                     >
-                      Upload
+                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Update' }}
                     </button>
                   </div>
                 </div>
@@ -340,16 +456,17 @@ onMounted(() => {
                   <div class="flex justify-end gap-3">
                     <button
                       class="pm-gradient-primary rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="workspace.downloadingFileId.value === file.file_id"
+                      :disabled="workspace.downloadingFileId.value === file.file_id || workspace.updatingFileId.value === file.file_id"
                       @click="workspace.handleDownloadFile(file)"
                     >
                       {{ workspace.downloadingFileId.value === file.file_id ? 'Preparing...' : 'Download' }}
                     </button>
                     <button
                       class="rounded-xl border border-border bg-white/80 px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
-                      @click="openUploadPanel"
+                      :disabled="workspace.updatingFileId.value === file.file_id"
+                      @click="openUploadPanel(file)"
                     >
-                      Update
+                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Update' }}
                     </button>
                   </div>
                 </div>
@@ -418,17 +535,25 @@ onMounted(() => {
       />
     </section>
 
+  <div
+    v-if="showUploadPanel"
+    class="fixed inset-0 z-50 isolate overflow-y-auto"
+  >
     <div
-      v-if="showUploadPanel"
-      class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm sm:items-center"
-      @click.self="closeUploadPanel"
-    >
-      <div class="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,237,252,0.96))] shadow-[0_28px_80px_rgba(34,18,68,0.18)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgb(45,36,69)_0%,rgb(26,22,37)_100%)] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+      class="fixed inset-0 bg-slate-950/75 backdrop-blur-xl"
+      @click="closeUploadPanel"
+    />
+    <div class="relative flex min-h-screen items-start justify-center px-4 py-8 sm:items-center sm:py-10" @click.self="closeUploadPanel">
+      <div class="w-full max-w-3xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[2rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,237,252,0.96))] shadow-[0_28px_80px_rgba(34,18,68,0.18)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgb(45,36,69)_0%,rgb(26,22,37)_100%)] dark:shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
         <div class="border-b border-border/80 px-6 py-5 dark:border-white/10">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <p class="text-[10px] uppercase tracking-[0.34em] text-brand-700 dark:text-brand-100">Upload files</p>
-              <h3 class="mt-2 text-2xl font-semibold text-ink dark:text-white">{{ selectedFolder?.workspace ?? 'Assigned folder' }}</h3>
+              <p class="text-[10px] uppercase tracking-[0.34em] text-brand-700 dark:text-brand-100">
+                {{ isReplacingFile ? 'Replace file' : 'Upload files' }}
+              </p>
+              <h3 class="mt-2 text-2xl font-semibold text-ink dark:text-white">
+                {{ isReplacingFile ? selectedFileToReplace?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
+              </h3>
               <p class="mt-2 text-sm text-muted dark:text-zinc-400">{{ selectedFolder?.clientName ?? 'Assigned client' }}</p>
             </div>
 
@@ -444,8 +569,12 @@ onMounted(() => {
 
           <div class="mt-5 grid gap-3 sm:grid-cols-3">
             <div class="rounded-2xl border border-border bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/20">
-              <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">Destination</p>
-              <p class="mt-2 truncate text-sm font-semibold text-ink dark:text-white">{{ selectedFolder?.workspace ?? 'Assigned folder' }}</p>
+              <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">
+                {{ isReplacingFile ? 'Replacement target' : 'Destination' }}
+              </p>
+              <p class="mt-2 truncate text-sm font-semibold text-ink dark:text-white">
+                {{ isReplacingFile ? selectedFileToReplace?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
+              </p>
             </div>
             <div class="rounded-2xl border border-border bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/20">
               <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">Client</p>
@@ -475,7 +604,7 @@ onMounted(() => {
               <input
                 ref="fileInputRef"
                 type="file"
-                multiple
+                :multiple="!isReplacingFile"
                 accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,application/pdf"
                 class="hidden"
                 @change="handleFileSelect"
@@ -485,9 +614,11 @@ onMounted(() => {
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
                 </svg>
               </div>
-              <h4 class="mt-4 text-lg font-semibold text-ink dark:text-white">Select client assets</h4>
+              <h4 class="mt-4 text-lg font-semibold text-ink dark:text-white">
+                {{ isReplacingFile ? 'Select a replacement file' : 'Select client assets' }}
+              </h4>
               <p class="mt-2 text-sm text-muted dark:text-zinc-400">
-                {{ isDragging ? 'Drop files to add them' : 'Drag files here or click to browse' }}
+                {{ isReplacingFile ? (isDragging ? 'Drop one file to replace the current asset' : 'Drag one file here or click to browse') : (isDragging ? 'Drop files to add them' : 'Drag files here or click to browse') }}
               </p>
             </section>
 
@@ -497,6 +628,25 @@ onMounted(() => {
           </div>
 
           <aside class="rounded-[1.6rem] border border-border bg-white/80 p-4 dark:border-white/10 dark:bg-black/20">
+            <section class="rounded-2xl border border-border bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+              <p class="text-[10px] uppercase tracking-[0.28em] text-brand-700 dark:text-[#9cdcfe]">Image preview</p>
+              <div class="mt-3 rounded-2xl border border-border bg-white/85 p-3 dark:border-white/10 dark:bg-black/20">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted dark:text-zinc-400">{{ activePreviewLabel }}</p>
+                <div v-if="activePreviewUrl" class="mt-3 overflow-hidden rounded-xl border border-border bg-black/5 dark:border-white/10">
+                  <img
+                    :src="activePreviewUrl"
+                    :alt="selectedReplacementFile?.name ?? selectedFileToReplace?.file_name ?? 'File preview'"
+                    class="aspect-video w-full object-cover"
+                  />
+                </div>
+                <div v-else class="mt-3 flex min-h-32 items-center justify-center rounded-xl border border-dashed border-border bg-white/70 px-4 py-6 text-center dark:border-white/10 dark:bg-white/5">
+                  <p class="text-sm text-muted dark:text-zinc-400">
+                    {{ activePreviewEmptyLabel }}
+                  </p>
+                </div>
+              </div>
+            </section>
+
             <p class="text-[10px] uppercase tracking-[0.28em] text-brand-700 dark:text-[#9cdcfe]">Upload summary</p>
             <div class="mt-4 space-y-4">
               <div class="rounded-2xl border border-border bg-slate-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
@@ -519,11 +669,6 @@ onMounted(() => {
                   </li>
                 </ul>
                 <p v-else class="mt-2 text-sm text-muted dark:text-zinc-500">No files selected yet.</p>
-              </div>
-
-              <div class="rounded-2xl border border-border bg-slate-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted dark:text-zinc-400">Visibility</p>
-                <p class="mt-2 text-sm text-muted dark:text-zinc-300">Files will be prepared for this client folder only.</p>
               </div>
 
               <div class="rounded-2xl border border-border bg-slate-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
@@ -556,19 +701,25 @@ onMounted(() => {
             Cancel
           </button>
           <button
-            class="inline-flex items-center gap-2 rounded-xl border border-brand-200/40 bg-[linear-gradient(135deg,rgba(214,191,239,0.34),rgba(95,80,155,0.24))] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:border-brand-200/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="!selectedFiles.length || workspace.uploadingFileId.value === selectedFolder?.id"
+            :class="[
+              'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] transition',
+              canSubmitUpload
+                ? 'border border-brand-700/40 bg-[linear-gradient(135deg,rgba(79,61,129,1),rgba(109,80,162,1))] text-white shadow-[0_18px_30px_rgba(79,61,129,0.22)] hover:-translate-y-0.5 hover:brightness-110'
+                : 'border border-brand-200/40 bg-[linear-gradient(135deg,rgba(214,191,239,0.28),rgba(95,80,155,0.18))] text-white/70 shadow-none cursor-not-allowed opacity-100',
+            ]"
+            :disabled="!canSubmitUpload"
             @click="submitUpload"
           >
-            <svg v-if="workspace.uploadingFileId.value === selectedFolder?.id" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <svg v-if="workspace.uploadingFileId.value === selectedFolder?.id || (isReplacingFile && workspace.updatingFileId.value === selectedFileToReplace?.file_id)" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
             </svg>
             <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
             </svg>
-            {{ workspace.uploadingFileId.value === selectedFolder?.id ? 'Uploading...' : 'Upload files' }}
+            {{ workspace.uploadingFileId.value === selectedFolder?.id || (isReplacingFile && workspace.updatingFileId.value === selectedFileToReplace?.file_id) ? 'Replacing...' : (isReplacingFile ? 'Replace file' : 'Upload files') }}
           </button>
         </div>
+      </div>
       </div>
     </div>
   </section>
