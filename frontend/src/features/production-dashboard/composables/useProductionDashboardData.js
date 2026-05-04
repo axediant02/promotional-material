@@ -1,9 +1,5 @@
 import { ref } from 'vue'
-import { fetchRecycleBin } from '../../../services/activityLogService'
-import { fetchDashboard } from '../../../services/dashboardService'
-import { fetchFiles } from '../../../services/fileService'
-import { fetchFolders } from '../../../services/folderService'
-import { fetchProductionRequests } from '../../../services/requestService'
+import { fetchProductionWorkspace } from '../../../services/productionWorkspaceService'
 
 export const useProductionDashboardData = () => {
   const loading = ref(true)
@@ -27,19 +23,14 @@ export const useProductionDashboardData = () => {
     error.value = ''
 
     try {
-      const [dashboardResponse, folderResponse, requestsResponse, filesResponse, recycleResponse] = await Promise.all([
-        fetchDashboard(),
-        fetchFolders(),
-        fetchProductionRequests(),
-        fetchFiles(),
-        fetchRecycleBin(),
-      ])
+      const workspaceResponse = await fetchProductionWorkspace()
+      const workspace = workspaceResponse.data.data ?? {}
 
-      dashboardData.value = dashboardResponse.data.data
-      folders.value = folderResponse.data.data.folders ?? []
-      productionRequests.value = requestsResponse.data.data.requests ?? []
-      files.value = filesResponse.data.data.files ?? []
-      recycleBinFiles.value = recycleResponse.data.data.files ?? []
+      dashboardData.value = workspace.dashboard ?? dashboardData.value
+      folders.value = workspace.folders ?? []
+      productionRequests.value = workspace.requests ?? []
+      files.value = workspace.files ?? []
+      recycleBinFiles.value = workspace.recycleBinFiles ?? []
     } catch (err) {
       error.value = err?.response?.data?.message ?? 'Unable to load the production dashboard.'
     } finally {

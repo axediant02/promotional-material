@@ -3,6 +3,7 @@
 namespace Tests\Feature\Production;
 
 use App\Models\AssignedClient;
+use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Models\User;
@@ -33,6 +34,62 @@ class ProductionWorkspaceRoutesTest extends TestCase
             ->assertJsonCount(1, 'data.recentFiles')
             ->assertJsonPath('data.folders.0.folder_id', $assignedFolder->folder_id)
             ->assertJsonPath('data.recentFiles.0.file_id', $assignedFile->file_id);
+
+        $response->assertJsonMissing([
+            'folder_id' => $unassignedFolder->folder_id,
+        ]);
+
+        $response->assertJsonMissing([
+            'file_id' => $unassignedFile->file_id,
+        ]);
+    }
+
+    public function test_production_can_fetch_the_composed_workspace_payload(): void
+    {
+        [$production, $assignedFolder, $unassignedFolder, $assignedFile, $unassignedFile] = $this->createProductionWorkspaceFixtures();
+        $recycleBinFile = MediaFile::query()->create([
+            'folder_id' => $assignedFolder->folder_id,
+            'uploaded_by' => $production->user_id,
+            'file_name' => 'deleted.pdf',
+            'storage_disk' => 'local',
+            'storage_path' => 'clients/'.$assignedFolder->folder_id.'/deleted.pdf',
+            'category' => 'pdf',
+        ]);
+        $recycleBinFile->delete();
+
+        $unassignedFile->delete();
+
+        $request = ClientRequest::query()->create([
+            'client_id' => $assignedFolder->client_id,
+            'folder_id' => $assignedFolder->folder_id,
+            'title' => 'Assigned request',
+            'description' => 'Request included in the workspace payload.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => now()->addWeek(),
+        ]);
+
+        Sanctum::actingAs($production);
+
+        $response = $this->getJson('/api/production/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Production workspace fetched.')
+            ->assertJsonPath('data.dashboard.stats.folders', 1)
+            ->assertJsonPath('data.dashboard.stats.files', 1)
+            ->assertJsonCount(1, 'data.dashboard.folders')
+            ->assertJsonCount(1, 'data.dashboard.recentFiles')
+            ->assertJsonCount(1, 'data.folders')
+            ->assertJsonCount(1, 'data.requests')
+            ->assertJsonCount(1, 'data.files')
+            ->assertJsonCount(1, 'data.recycleBinFiles')
+            ->assertJsonPath('data.dashboard.folders.0.folder_id', $assignedFolder->folder_id)
+            ->assertJsonPath('data.dashboard.recentFiles.0.file_id', $assignedFile->file_id)
+            ->assertJsonPath('data.folders.0.folder_id', $assignedFolder->folder_id)
+            ->assertJsonPath('data.requests.0.request_id', $request->request_id)
+            ->assertJsonPath('data.files.0.file_id', $assignedFile->file_id)
+            ->assertJsonPath('data.recycleBinFiles.0.file_id', $recycleBinFile->file_id);
 
         $response->assertJsonMissing([
             'folder_id' => $unassignedFolder->folder_id,
