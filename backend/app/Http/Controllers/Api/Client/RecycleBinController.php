@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Client;
 use App\Http\Controllers\Controller;
 use App\Models\MediaFile;
 use App\Services\ActivityLogService;
+use App\Services\ClientWorkspaceBroadcastService;
 use App\Services\FileService;
 use Illuminate\Http\JsonResponse;
 
@@ -13,6 +14,7 @@ class RecycleBinController extends Controller
     public function __construct(
         private readonly ActivityLogService $activityLogService,
         private readonly FileService $fileService,
+        private readonly ClientWorkspaceBroadcastService $clientWorkspaceBroadcastService,
     )
     {
     }
@@ -39,6 +41,7 @@ class RecycleBinController extends Controller
         $file = MediaFile::withTrashed()->findOrFail($id);
         $this->authorize('restore', $file);
         $file->restore();
+        $this->clientWorkspaceBroadcastService->broadcastFileUpserted($file, $user);
 
         $this->activityLogService->log(
             $user,

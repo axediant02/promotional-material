@@ -8,6 +8,7 @@ use App\Models\AssignedClient;
 use App\Models\User;
 use App\Services\AssignmentChatService;
 use App\Services\AdminAssignmentService;
+use App\Services\ProductionWorkspaceBroadcastService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
@@ -17,6 +18,7 @@ class AdminAssignmentController extends Controller
         private readonly WorkflowNotificationService $workflowNotificationService,
         private readonly AssignmentChatService $assignmentChatService,
         private readonly AdminAssignmentService $adminAssignmentService,
+        private readonly ProductionWorkspaceBroadcastService $productionWorkspaceBroadcastService,
     ) {
     }
 
@@ -56,6 +58,7 @@ class AdminAssignmentController extends Controller
         $assignment->save();
 
         $this->assignmentChatService->syncForAssignment($assignment, $previousProductionId, $previousStatus);
+        $this->productionWorkspaceBroadcastService->broadcastAssignmentSaved($assignment, $previousProductionId);
 
         if ($isNew || $previousProductionId !== $productionId) {
             $users = User::query()
@@ -89,6 +92,7 @@ class AdminAssignmentController extends Controller
         $this->authorize('admin', User::class);
 
         $this->assignmentChatService->archiveForAssignmentDeletion($assignment);
+        $this->productionWorkspaceBroadcastService->broadcastAssignmentDeleted($assignment);
         $assignment->delete();
 
         return response()->json([

@@ -7,14 +7,17 @@ use App\Http\Requests\ClientRequest\StoreClientRequestRequest;
 use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\User;
+use App\Services\ProductionWorkspaceBroadcastService;
 use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class ClientRequestController extends Controller
 {
-    public function __construct(private readonly WorkflowNotificationService $workflowNotificationService)
-    {
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly ProductionWorkspaceBroadcastService $productionWorkspaceBroadcastService,
+    ) {
     }
 
     public function store(StoreClientRequestRequest $request): JsonResponse
@@ -68,6 +71,8 @@ class ClientRequestController extends Controller
             'target' => 'requests',
             'request_id' => $clientRequest->request_id,
         ]);
+
+        $this->productionWorkspaceBroadcastService->broadcastRequestCreated($clientRequest);
 
         return response()->json([
             'message' => 'Request created.',

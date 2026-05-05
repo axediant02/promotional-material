@@ -9,6 +9,7 @@ use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Services\FileService;
 use App\Services\FolderService;
+use App\Services\ClientWorkspaceBroadcastService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
@@ -17,6 +18,7 @@ class FileController extends Controller
     public function __construct(
         private readonly FileService $fileService,
         private readonly FolderService $folderService,
+        private readonly ClientWorkspaceBroadcastService $clientWorkspaceBroadcastService,
     ) {
     }
 
@@ -45,6 +47,7 @@ class FileController extends Controller
         $folder = Folder::query()->findOrFail($request->input('folder_id'));
         $this->folderService->authorizeAccess($folder, $user);
         $file = $this->fileService->store($user, $folder, $request->file('file'));
+        $this->clientWorkspaceBroadcastService->broadcastFileUpserted($file, $user);
 
         return response()->json([
             'message' => 'File uploaded.',
@@ -66,6 +69,7 @@ class FileController extends Controller
     {
         $user = $request->user();
         $this->authorize('update', $file);
+        $previousFolderId = $file->folder_id;
 
         $validated = $request->validated();
         if (array_key_exists('folder_id', $validated)) {
@@ -74,6 +78,7 @@ class FileController extends Controller
         }
 
         $file = $this->fileService->update($user, $file, $validated, $request->file('file'));
+        $this->clientWorkspaceBroadcastService->broadcastFileUpserted($file, $user, $previousFolderId);
 
         return response()->json([
             'message' => 'File updated.',
@@ -86,6 +91,7 @@ class FileController extends Controller
         $user = request()->user();
         $this->authorize('delete', $file);
         $this->fileService->delete($user, $file);
+        $this->clientWorkspaceBroadcastService->broadcastFileRemoved($file, $user);
 
         return response()->json([
             'message' => 'File moved to recycle bin.',

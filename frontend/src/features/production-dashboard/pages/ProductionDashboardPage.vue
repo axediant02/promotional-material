@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import AssignmentChatWidget from '../../chat/components/AssignmentChatWidget.vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
@@ -19,15 +19,18 @@ import { useProductionDerivedData } from '../composables/useProductionDerivedDat
 import { useProductionFilters } from '../composables/useProductionFilters'
 import { useProductionFileActions } from '../composables/useProductionFileActions'
 import { useProductionRequestActions } from '../composables/useProductionRequestActions'
+import { useProductionRealtimeRefresh } from '../composables/useProductionRealtimeRefresh'
 import { useProductionRouting } from '../composables/useProductionRouting'
 import { useProductionSidebarState } from '../composables/useProductionSidebarState'
 import { useAuthStore } from '../../../stores/auth'
 import { useNotificationStore } from '../../../stores/notifications'
+import { useProductionRealtimeStore } from '../../../stores/productionRealtime'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const productionRealtimeStore = useProductionRealtimeStore()
 
 const activeSection = ref('files')
 const selectedOverviewRequestId = ref('')
@@ -115,6 +118,15 @@ const restoreRecycleFile = fileActions.restoreRecycleFile
 const updateRequestStatus = requestActions.updateRequestStatus
 const openFolder = routingState.openFolder
 const goToFolderIndex = routingState.goToFolderIndex
+useProductionRealtimeRefresh({
+  realtimeStore: productionRealtimeStore,
+  refreshAction: loadData,
+  syncFolderAction: dashboardState.syncFolderWorkspace,
+  removeFolderAction: dashboardState.removeFolderState,
+  setError: (message) => {
+    error.value = message
+  },
+})
 
 provideProductionWorkspace({
   loading,
@@ -178,8 +190,13 @@ const viewOverviewRequestFolder = (folderId) => {
   openFolder(folderId)
 }
 
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await productionRealtimeStore.initializeForUser(authStore.user)
+  await loadData()
+})
+
+onBeforeUnmount(() => {
+  productionRealtimeStore.reset()
 })
 </script>
 

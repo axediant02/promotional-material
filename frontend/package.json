@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:production-workspace": "node tests/productionWorkspaceSync.test.js",
+    "test:client-workspace": "node tests/clientWorkspaceSync.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
