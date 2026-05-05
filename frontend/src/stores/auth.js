@@ -1,10 +1,14 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { currentUser, login, logout, register } from '../services/authService'
+import { useClientRealtimeStore } from './clientRealtime'
 import { useNotificationStore } from './notifications'
+import { useProductionRealtimeStore } from './productionRealtime'
 
 export const useAuthStore = defineStore('auth', () => {
   const notificationStore = useNotificationStore()
+  const productionRealtimeStore = useProductionRealtimeStore()
+  const clientRealtimeStore = useClientRealtimeStore()
   const token = ref(localStorage.getItem('pm_token'))
   const user = ref(null)
   const isReady = ref(false)
@@ -41,6 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (!token.value) {
       notificationStore.reset()
+      productionRealtimeStore.reset()
       isReady.value = true
       return null
     }
@@ -50,6 +55,8 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await currentUser()
         user.value = response.data.data.user
         await notificationStore.initializeForUser(user.value)
+        await productionRealtimeStore.initializeForUser(user.value)
+        await clientRealtimeStore.initializeForUser(user.value)
         return user.value
       } catch {
         clearSession()
@@ -69,6 +76,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = response.data.data.user
     localStorage.setItem('pm_token', token.value)
     await notificationStore.initializeForUser(user.value)
+    await productionRealtimeStore.initializeForUser(user.value)
+    await clientRealtimeStore.initializeForUser(user.value)
     isReady.value = true
   }
 
@@ -84,6 +93,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearSession = () => {
     notificationStore.reset()
+    productionRealtimeStore.reset()
+    clientRealtimeStore.reset()
     token.value = null
     user.value = null
     isReady.value = true
