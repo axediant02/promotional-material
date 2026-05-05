@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { downloadFile, restoreFile, updateFile, uploadFile } from '../../../services/fileService'
-import { formatDateLabel, formatShortId } from '../utils/productionDashboardHelpers'
+import { formatDateLabel, formatShortId, getFileId, getFolderId } from '../utils/productionDashboardHelpers'
 
 export const useProductionFileActions = ({ files, recycleBinFiles, error, currentUser }) => {
   const uploadingFileId = ref('')
@@ -19,13 +19,20 @@ export const useProductionFileActions = ({ files, recycleBinFiles, error, curren
   })
 
   const handleUploadFile = async (file, folderId) => {
-    uploadingFileId.value = folderId
+    const resolvedFolderId = getFolderId({ folder_id: folderId }) ?? folderId
+
+    if (!resolvedFolderId) {
+      error.value = 'Unable to identify the destination folder.'
+      return
+    }
+
+    uploadingFileId.value = resolvedFolderId
     error.value = ''
 
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('folder_id', folderId)
+      formData.append('folder_id', resolvedFolderId)
 
       const response = await uploadFile(formData)
       const newFile = response.data.data.file
@@ -39,17 +46,30 @@ export const useProductionFileActions = ({ files, recycleBinFiles, error, curren
     }
   }
 
-  const handleReplaceFile = async (file, folderId, fileId) => {
-    updatingFileId.value = fileId
+  const handleEditFile = async (file, folderId, fileId) => {
+    const resolvedFileId = getFileId({ file_id: fileId }) ?? fileId
+    const resolvedFolderId = getFolderId({ folder_id: folderId }) ?? folderId
+
+    if (!resolvedFileId) {
+      error.value = 'Unable to identify the file to replace.'
+      return
+    }
+
+    if (!resolvedFolderId) {
+      error.value = 'Unable to identify the destination folder.'
+      return
+    }
+
+    updatingFileId.value = resolvedFileId
     error.value = ''
 
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('folder_id', folderId)
+      formData.append('folder_id', resolvedFolderId)
       formData.append('_method', 'PATCH')
 
-      const response = await updateFile(fileId, formData)
+      const response = await updateFile(resolvedFileId, formData)
       const updatedFile = response.data.data.file
       const enrichedFile = enrichFile(updatedFile)
 
@@ -63,11 +83,18 @@ export const useProductionFileActions = ({ files, recycleBinFiles, error, curren
   }
 
   const handleDownloadFile = async (file) => {
-    downloadingFileId.value = file.file_id
+    const fileId = getFileId(file)
+
+    if (!fileId) {
+      error.value = 'Unable to identify the file to download.'
+      return
+    }
+
+    downloadingFileId.value = fileId
     error.value = ''
 
     try {
-      await downloadFile(file)
+      await downloadFile({ ...file, file_id: fileId })
     } catch (err) {
       error.value = err?.response?.data?.message ?? 'Unable to download the file.'
     } finally {
@@ -76,14 +103,21 @@ export const useProductionFileActions = ({ files, recycleBinFiles, error, curren
   }
 
   const restoreRecycleFile = async (fileId) => {
-    restoringFileId.value = fileId
+    const resolvedFileId = getFileId({ file_id: fileId }) ?? fileId
+
+    if (!resolvedFileId) {
+      error.value = 'Unable to identify the file to restore.'
+      return
+    }
+
+    restoringFileId.value = resolvedFileId
     error.value = ''
 
     try {
-      const response = await restoreFile(fileId)
+      const response = await restoreFile(resolvedFileId)
       const restoredFile = response.data.data.file
 
-      recycleBinFiles.value = recycleBinFiles.value.filter((file) => (file.file_id ?? file.id) !== fileId)
+      recycleBinFiles.value = recycleBinFiles.value.filter((file) => getFileId(file) !== resolvedFileId)
       files.value = [restoredFile, ...files.value]
     } catch (err) {
       error.value = err?.response?.data?.message ?? 'Unable to restore the file.'
@@ -98,7 +132,7 @@ export const useProductionFileActions = ({ files, recycleBinFiles, error, curren
     downloadingFileId,
     restoringFileId,
     handleUploadFile,
-    handleReplaceFile,
+    handleEditFile,
     handleDownloadFile,
     restoreRecycleFile,
   }

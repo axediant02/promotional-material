@@ -1,5 +1,6 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { fetchFilePreview } from '../../../services/fileService'
+import { getFileId, getFolderId } from '../utils/productionDashboardHelpers'
 
 const isImageFile = (file) => {
   if (!file) {
@@ -22,31 +23,40 @@ const revokeObjectUrl = (url) => {
 export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
   const showUploadPanel = ref(false)
   const selectedFiles = ref([])
-  const selectedFileToReplace = ref(null)
+  const uploadMode = ref('upload')
+  const selectedFileToEdit = ref(null)
+  const selectedFileToEditId = ref('')
   const uploadError = ref('')
   const fileInputRef = ref(null)
   const isDragging = ref(false)
+  const isSubmittingUpload = ref(false)
   const selectedReplacementPreviewUrl = ref('')
   const currentFilePreviewUrl = ref('')
   let previewToken = 0
 
-  const isReplacingFile = computed(() => Boolean(selectedFileToReplace.value))
+  const isEditingFile = computed(() => uploadMode.value === 'edit' && Boolean(selectedFileToEdit.value))
   const selectedReplacementFile = computed(() => selectedFiles.value[0] ?? null)
   const canSubmitUpload = computed(() =>
     Boolean(selectedFiles.value.length)
-      && workspace.uploadingFileId.value !== selectedFolder.value?.id
-      && (!isReplacingFile.value || workspace.updatingFileId.value !== selectedFileToReplace.value?.file_id),
+      && Boolean(getFolderId(selectedFolder.value))
+      && !isSubmittingUpload.value,
   )
   const activePreviewUrl = computed(() => selectedReplacementPreviewUrl.value || currentFilePreviewUrl.value)
   const activePreviewLabel = computed(() =>
-    selectedReplacementFile.value ? 'New file preview' : 'Current file preview'
+    selectedReplacementFile.value
+      ? isEditingFile.value
+        ? 'Edited file preview'
+        : 'New file preview'
+      : isEditingFile.value
+        ? 'Current file preview'
+        : 'New file preview'
   )
   const activePreviewEmptyLabel = computed(() =>
     selectedReplacementFile.value
       ? 'This file type does not support an image preview.'
-      : selectedFileToReplace.value
+      : isEditingFile.value
         ? 'No image preview is available for this file type.'
-        : 'Pick a file to start a replacement preview.'
+        : 'Pick a file to preview.'
   )
 
   const clearCurrentFilePreview = () => {
@@ -74,7 +84,7 @@ export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
   )
 
   watch(
-    selectedFileToReplace,
+    selectedFileToEdit,
     async (file) => {
       clearCurrentFilePreview()
 
@@ -85,7 +95,12 @@ export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
       const token = ++previewToken
 
       try {
-        const response = await fetchFilePreview(file.file_id)
+        const fileId = getFileId(file)
+        if (!fileId) {
+          return
+        }
+
+        const response = await fetchFilePreview(fileId)
         if (token !== previewToken || typeof window === 'undefined') {
           return
         }
@@ -103,18 +118,33 @@ export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
     clearSelectedReplacementPreview()
   })
 
-  const openUploadPanel = (file = null) => {
-    selectedFileToReplace.value = file
+  const resetUploadSelection = () => {
     selectedFiles.value = []
     uploadError.value = ''
+    isDragging.value = false
+  }
+
+  const openNewUploadPanel = () => {
+    uploadMode.value = 'upload'
+    selectedFileToEdit.value = null
+    selectedFileToEditId.value = ''
+    resetUploadSelection()
+    showUploadPanel.value = true
+  }
+
+  const openEditFilePanel = (file = null) => {
+    uploadMode.value = 'edit'
+    selectedFileToEdit.value = file
+    selectedFileToEditId.value = getFileId(file) ?? ''
+    resetUploadSelection()
     showUploadPanel.value = true
   }
 
   const setSelectedFiles = (files) => {
-    selectedFiles.value = isReplacingFile.value ? [files[0]] : [...selectedFiles.value, ...files]
+    selectedFiles.value = isEditingFile.value ? [files[0]] : [...selectedFiles.value, ...files]
     uploadError.value = ''
 
-    if (isReplacingFile.value && files.length > 1) {
+    if (isEditingFile.value && files.length > 1) {
       uploadError.value = 'Choose a single replacement file.'
     }
   }
@@ -145,37 +175,51 @@ export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
   }
 
   const submitUpload = async () => {
-    if (!selectedFolder.value?.id || !selectedFiles.value.length) {
+    const folderId = getFolderId(selectedFolder.value)
+    const replacementFileId = selectedFileToEditId.value
+
+    if (!folderId || !selectedFiles.value.length || isSubmittingUpload.value) {
       return
     }
 
     uploadError.value = ''
+    isSubmittingUpload.value = true
 
     try {
-      if (selectedFileToReplace.value) {
-        await workspace.handleReplaceFile(
+      if (isEditingFile.value) {
+        if (!replacementFileId) {
+          uploadError.value = 'Unable to identify the file to replace.'
+          return
+        }
+
+        await workspace.handleEditFile(
           selectedFiles.value[0],
-          selectedFolder.value.id,
-          selectedFileToReplace.value.file_id,
+          folderId,
+          replacementFileId,
         )
       } else {
         for (const file of selectedFiles.value) {
-          await workspace.handleUploadFile(file, selectedFolder.value.id)
+          await workspace.handleUploadFile(file, folderId)
         }
       }
 
       selectedFiles.value = []
-      selectedFileToReplace.value = null
+      selectedFileToEdit.value = null
+      selectedFileToEditId.value = ''
       showUploadPanel.value = false
     } catch (err) {
       uploadError.value = err?.response?.data?.message ?? 'Unable to complete the file upload.'
+    } finally {
+      isSubmittingUpload.value = false
     }
   }
 
   const closeUploadPanel = () => {
-    selectedFiles.value = []
-    selectedFileToReplace.value = null
-    uploadError.value = ''
+    selectedFileToEdit.value = null
+    selectedFileToEditId.value = ''
+    uploadMode.value = 'upload'
+    resetUploadSelection()
+    isSubmittingUpload.value = false
     showUploadPanel.value = false
     clearSelectedReplacementPreview()
   }
@@ -183,17 +227,20 @@ export const useProductionFolderUpload = ({ workspace, selectedFolder }) => {
   return {
     showUploadPanel,
     selectedFiles,
-    selectedFileToReplace,
+    selectedFileToEdit,
+    selectedFileToEditId,
     uploadError,
     fileInputRef,
     isDragging,
-    isReplacingFile,
+    isSubmittingUpload,
+    isEditingFile,
     selectedReplacementFile,
     canSubmitUpload,
     activePreviewUrl,
     activePreviewLabel,
     activePreviewEmptyLabel,
-    openUploadPanel,
+    openNewUploadPanel,
+    openEditFilePanel,
     handleFileSelect,
     handleFileDrop,
     removeSelectedFile,

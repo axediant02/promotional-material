@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ProductionFileCardPreview from '../components/ProductionFileCardPreview.vue'
 import { useProductionFolderUpload } from '../composables/useProductionFolderUpload'
+import { useProductionFileCardPreviews } from '../composables/useProductionFileCardPreviews'
 import ProductionFolderDetailPanel from '../components/ProductionFolderDetailPanel.vue'
 import { useProductionWorkspace } from '../productionWorkspace'
 
@@ -72,16 +74,18 @@ const ensureValidFolder = () => {
 const {
   showUploadPanel,
   selectedFiles,
-  selectedFileToReplace,
+  selectedFileToEdit,
   uploadError,
   fileInputRef,
   isDragging,
-  isReplacingFile,
+  isSubmittingUpload,
+  isEditingFile,
   canSubmitUpload,
   activePreviewUrl,
   activePreviewLabel,
   activePreviewEmptyLabel,
-  openUploadPanel,
+  openNewUploadPanel,
+  openEditFilePanel,
   handleFileSelect,
   handleFileDrop,
   removeSelectedFile,
@@ -91,6 +95,7 @@ const {
   workspace,
   selectedFolder,
 })
+const { previewUrls } = useProductionFileCardPreviews(folderFiles)
 
 watch(selectedFolder, ensureValidFolder)
 watch(() => workspace.loading.value, ensureValidFolder)
@@ -181,48 +186,11 @@ onMounted(() => {
                   <span class="text-[11px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">{{ file.shortId }}</span>
                 </div>
 
-                <div class="flex flex-1 items-center justify-center px-4 py-4">
-                  <div :class="['flex h-20 w-20 items-center justify-center rounded-2xl border', getFileCardPalette(file.category).frame]">
-                    <svg
-                      v-if="file.category === 'image'"
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M4 16.5 8.5 12l3 3 4.5-4.5L20 14" />
-                      <path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
-                      <circle cx="9" cy="9" r="1.4" />
-                    </svg>
-                    <svg
-                      v-else-if="file.category === 'video'"
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 4h10l4 4v12H5z" />
-                      <path d="M10 9.5v5l4-2.5-4-2.5Z" />
-                    </svg>
-                    <svg
-                      v-else
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                      <path d="M14 3v5h5" />
-                      <path d="M8 13h8" />
-                      <path d="M8 17h8" />
-                    </svg>
-                  </div>
+                <div class="px-4 py-4">
+                  <ProductionFileCardPreview
+                    :file="file"
+                    :preview-url="previewUrls[file.file_id] ?? ''"
+                  />
                 </div>
 
                 <div class="border-t border-border/70 px-4 py-4 dark:border-white/10">
@@ -247,9 +215,9 @@ onMounted(() => {
                     <button
                       class="rounded-xl border border-border bg-white/80 px-3 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
                       :disabled="workspace.updatingFileId.value === file.file_id"
-                      @click="openUploadPanel(file)"
+                      @click="openEditFilePanel(file)"
                     >
-                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Update' }}
+                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Edit' }}
                     </button>
                   </div>
                 </div>
@@ -259,7 +227,7 @@ onMounted(() => {
             <button
               type="button"
               class="flex min-h-[20rem] w-full flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-border-strong bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(247,241,252,0.92))] px-5 py-5 text-center transition hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/70 dark:border-white/18 dark:bg-[#10131c] dark:hover:border-white/30 dark:hover:bg-[#131827]"
-              @click="openUploadPanel"
+              @click="openNewUploadPanel"
             >
               <span class="flex h-10 w-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -286,9 +254,16 @@ onMounted(() => {
               class="border-b border-border/70 px-5 py-4 last:border-b-0 dark:border-white/8"
             >
               <div class="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_8rem_9rem] md:items-center md:gap-4">
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-ink dark:text-white">{{ file.file_name }}</p>
-                  <p class="mt-1 text-xs text-muted dark:text-zinc-500">{{ file.shortId }} / {{ getFileSizeLabel(file) }}</p>
+                <div class="flex min-w-0 items-center gap-4">
+                  <ProductionFileCardPreview
+                    :file="file"
+                    :preview-url="previewUrls[file.file_id] ?? ''"
+                    compact
+                  />
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-ink dark:text-white">{{ file.file_name }}</p>
+                    <p class="mt-1 text-xs text-muted dark:text-zinc-500">{{ file.shortId }} / {{ getFileSizeLabel(file) }}</p>
+                  </div>
                 </div>
                 <p class="truncate text-sm text-muted dark:text-zinc-300">{{ file.updatedLabel }}</p>
                 <div>
@@ -313,9 +288,9 @@ onMounted(() => {
                     <button
                       class="rounded-xl border border-border bg-white/80 px-4 py-2.5 text-sm font-semibold text-muted transition hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
                       :disabled="workspace.updatingFileId.value === file.file_id"
-                      @click="openUploadPanel(file)"
+                      @click="openEditFilePanel(file)"
                     >
-                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Update' }}
+                      {{ workspace.updatingFileId.value === file.file_id ? 'Updating...' : 'Edit' }}
                     </button>
                   </div>
                 </div>
@@ -326,7 +301,7 @@ onMounted(() => {
               <button
                 type="button"
                 class="flex min-h-[14rem] w-full flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-border-strong bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(247,241,252,0.92))] px-5 py-5 text-center transition hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/70 dark:border-white/18 dark:bg-[#10131c] dark:hover:border-white/30 dark:hover:bg-[#131827]"
-                @click="openUploadPanel"
+                @click="openNewUploadPanel"
               >
                 <span class="flex h-10 w-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200">
                   <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -355,7 +330,7 @@ onMounted(() => {
               <button
                 type="button"
                 class="flex min-h-[14rem] w-full max-w-md flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-border-strong bg-white/85 px-5 py-5 text-center transition hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/70 dark:border-white/18 dark:bg-[#131827] dark:hover:border-white/30 dark:hover:bg-[#161c2d]"
-                @click="openUploadPanel"
+                @click="openNewUploadPanel"
               >
                 <span class="flex h-10 w-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/35 dark:bg-violet-500/10 dark:text-violet-200">
                   <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -398,10 +373,10 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <p class="text-[10px] uppercase tracking-[0.34em] text-brand-700 dark:text-brand-100">
-                {{ isReplacingFile ? 'Replace file' : 'Upload files' }}
+                {{ isEditingFile ? 'Edit file' : 'Upload files' }}
               </p>
               <h3 class="mt-2 text-2xl font-semibold text-ink dark:text-white">
-                {{ isReplacingFile ? selectedFileToReplace?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
+                {{ isEditingFile ? selectedFileToEdit?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
               </h3>
               <p class="mt-2 text-sm text-muted dark:text-zinc-400">{{ selectedFolder?.clientName ?? 'Assigned client' }}</p>
             </div>
@@ -419,10 +394,10 @@ onMounted(() => {
           <div class="mt-5 grid gap-3 sm:grid-cols-3">
             <div class="rounded-2xl border border-border bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/20">
               <p class="text-[10px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">
-                {{ isReplacingFile ? 'Replacement target' : 'Destination' }}
+                {{ isEditingFile ? 'Edit target' : 'Destination' }}
               </p>
               <p class="mt-2 truncate text-sm font-semibold text-ink dark:text-white">
-                {{ isReplacingFile ? selectedFileToReplace?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
+                {{ isEditingFile ? selectedFileToEdit?.file_name ?? 'Selected file' : selectedFolder?.workspace ?? 'Assigned folder' }}
               </p>
             </div>
             <div class="rounded-2xl border border-border bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/20">
@@ -453,7 +428,7 @@ onMounted(() => {
               <input
                 ref="fileInputRef"
                 type="file"
-                :multiple="!isReplacingFile"
+                :multiple="!isEditingFile"
                 accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,application/pdf"
                 class="hidden"
                 @change="handleFileSelect"
@@ -464,10 +439,10 @@ onMounted(() => {
                 </svg>
               </div>
               <h4 class="mt-4 text-lg font-semibold text-ink dark:text-white">
-                {{ isReplacingFile ? 'Select a replacement file' : 'Select client assets' }}
+                {{ isEditingFile ? 'Select an edited file' : 'Select client assets' }}
               </h4>
               <p class="mt-2 text-sm text-muted dark:text-zinc-400">
-                {{ isReplacingFile ? (isDragging ? 'Drop one file to replace the current asset' : 'Drag one file here or click to browse') : (isDragging ? 'Drop files to add them' : 'Drag files here or click to browse') }}
+                {{ isEditingFile ? (isDragging ? 'Drop one file to save changes' : 'Drag one file here or click to browse') : (isDragging ? 'Drop files to add them' : 'Drag files here or click to browse') }}
               </p>
             </section>
 
@@ -484,7 +459,7 @@ onMounted(() => {
                 <div v-if="activePreviewUrl" class="mt-3 overflow-hidden rounded-xl border border-border bg-black/5 dark:border-white/10">
                   <img
                     :src="activePreviewUrl"
-                    :alt="selectedReplacementFile?.name ?? selectedFileToReplace?.file_name ?? 'File preview'"
+                    :alt="selectedReplacementFile?.name ?? selectedFileToEdit?.file_name ?? 'File preview'"
                     class="aspect-video w-full object-cover"
                   />
                 </div>
@@ -559,13 +534,13 @@ onMounted(() => {
             :disabled="!canSubmitUpload"
             @click="submitUpload"
           >
-            <svg v-if="workspace.uploadingFileId.value === selectedFolder?.id || (isReplacingFile && workspace.updatingFileId.value === selectedFileToReplace?.file_id)" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <svg v-if="isSubmittingUpload" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
             </svg>
             <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V7m0 0l-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />
             </svg>
-            {{ workspace.uploadingFileId.value === selectedFolder?.id || (isReplacingFile && workspace.updatingFileId.value === selectedFileToReplace?.file_id) ? 'Replacing...' : (isReplacingFile ? 'Replace file' : 'Upload files') }}
+            {{ isSubmittingUpload ? 'Saving...' : (isEditingFile ? 'Save changes' : (selectedFiles.length > 1 ? 'Upload files' : 'Upload file')) }}
           </button>
         </div>
       </div>

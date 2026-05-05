@@ -48,6 +48,10 @@ export const getDueSoonState = (value, dueSoonDays = 3) => {
 
 export const getFileFolderId = (file) => file.folder?.folder_id ?? file.folder_id ?? null
 
+export const getFileId = (file) => file?.file_id ?? file?.id ?? null
+
+export const getFolderId = (folder) => folder?.folder_id ?? folder?.id ?? null
+
 export const getFileFolderName = (file, folderLookup) =>
   file.folder?.folder_name ?? folderLookup.get(getFileFolderId(file))?.folder_name ?? 'Workspace'
 
