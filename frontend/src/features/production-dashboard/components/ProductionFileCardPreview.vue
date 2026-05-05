@@ -36,6 +36,7 @@ const getFallbackClasses = () =>
 
 const isVideo = () => props.file?.category === 'video'
 const isImage = () => props.file?.category === 'image'
+const isPdf = () => props.file?.category === 'pdf'
 </script>
 
 <template>
@@ -64,9 +65,16 @@ const isImage = () => props.file?.category === 'image'
       preload="metadata"
     />
 
+    <iframe
+      v-else-if="previewUrl && isPdf() && !compact"
+      :src="previewUrl"
+      :title="file?.file_name ?? 'Preview document'"
+      class="h-full w-full border-0 bg-white"
+    />
+
     <div
       v-else
-      class="flex h-full w-full items-center justify-center"
+      class="flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center"
     >
       <svg
         v-if="file?.category === 'image'"
@@ -94,6 +102,20 @@ const isImage = () => props.file?.category === 'image'
         <path d="M10 9.5v5l4-2.5-4-2.5Z" />
       </svg>
       <svg
+        v-else-if="isPdf()"
+        class="h-6 w-6 text-current"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+        <path d="M14 3v5h5" />
+        <path d="M8 12h8" />
+        <path d="M8 16h5" />
+      </svg>
+      <svg
         v-else
         class="h-6 w-6 text-current"
         viewBox="0 0 24 24"
@@ -107,6 +129,14 @@ const isImage = () => props.file?.category === 'image'
         <path d="M8 13h8" />
         <path d="M8 17h8" />
       </svg>
+      <div class="space-y-0.5">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-current/80">
+          {{ (file?.category ?? 'file').toUpperCase() }}
+        </p>
+        <p class="text-[10px] leading-4 text-current/70">
+          {{ isPdf() ? 'PDF preview unavailable in compact view' : 'Preview unavailable' }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
