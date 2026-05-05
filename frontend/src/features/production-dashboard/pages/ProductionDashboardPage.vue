@@ -110,7 +110,7 @@ const restoringFileId = fileActions.restoringFileId
 const updatingRequestId = requestActions.updatingRequestId
 const handleDownloadFile = fileActions.handleDownloadFile
 const handleUploadFile = fileActions.handleUploadFile
-const handleReplaceFile = fileActions.handleReplaceFile
+const handleEditFile = fileActions.handleEditFile
 const restoreRecycleFile = fileActions.restoreRecycleFile
 const updateRequestStatus = requestActions.updateRequestStatus
 const openFolder = routingState.openFolder
@@ -138,7 +138,7 @@ provideProductionWorkspace({
   goToFolderIndex,
   handleDownloadFile,
   handleUploadFile,
-  handleReplaceFile,
+  handleEditFile,
   updateRequestStatus,
 })
 
