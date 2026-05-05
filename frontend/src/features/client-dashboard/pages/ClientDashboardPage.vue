@@ -1,18 +1,18 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import { useNotificationStore } from '../../../stores/notifications'
-import { fetchClientWorkspace } from '../../../services/clientWorkspaceService'
 import ClientDashboardWorkspace from '../components/ClientDashboardWorkspace.vue'
+import { useClientDashboardData } from '../composables/useClientDashboardData'
+import { useClientRealtimeRefresh } from '../composables/useClientRealtimeRefresh'
+import { useClientRealtimeStore } from '../../../stores/clientRealtime'
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const clientRealtimeStore = useClientRealtimeStore()
+const dashboardState = useClientDashboardData()
 
-const payload = ref({ user: null, stats: {}, folders: [], recentFiles: [] })
-const files = ref([])
-const requests = ref([])
-const loading = ref(false)
 const requestsLoading = ref(false)
 const searchQuery = ref('')
 const viewMode = ref('grid')
@@ -20,7 +20,11 @@ const selectedFile = ref(null)
 const isRequestDrawerOpen = ref(false)
 const requestMode = ref('new_asset')
 
-const assignedFolder = computed(() => payload.value.folders?.[0] ?? null)
+const loading = dashboardState.loading
+const error = dashboardState.error
+const files = dashboardState.files
+const requests = dashboardState.requests
+const assignedFolder = dashboardState.assignedFolder
 
 const latestUpdatedAt = computed(() => {
   const timestamps = files.value
@@ -154,23 +158,51 @@ const handleRequestCreated = (request) => {
   ]
 }
 
+useClientRealtimeRefresh({
+  realtimeStore: clientRealtimeStore,
+  getAssignedFolderId: () => dashboardState.assignedFolderId.value,
+  refreshAction: dashboardState.loadData,
+  syncFileAction: async (fileId) => {
+    const file = await dashboardState.syncFileWorkspace(fileId)
+
+    if (!file || file.folder_id !== dashboardState.assignedFolderId.value) {
+      selectedFile.value = null
+      return file
+    }
+
+    if (selectedFile.value?.file_id === file.file_id) {
+      selectedFile.value = file
+    }
+
+    return file
+  },
+  removeFileAction: (fileId) => {
+    dashboardState.removeFileState(fileId)
+
+    if (selectedFile.value?.file_id === fileId) {
+      selectedFile.value = null
+    }
+  },
+  setError: (message) => {
+    dashboardState.error.value = message
+  },
+})
+
 onMounted(async () => {
-  loading.value = true
   requestsLoading.value = true
 
   try {
-    const response = await fetchClientWorkspace()
-    const workspace = response.data.data ?? {}
-
-    payload.value = workspace.dashboard ?? payload.value
-    files.value = workspace.files || []
-    requests.value = workspace.requests || []
+    await clientRealtimeStore.initializeForUser(authStore.user)
+    await dashboardState.loadData()
   } catch (error) {
     console.error('Failed to load client dashboard:', error)
   } finally {
-    loading.value = false
     requestsLoading.value = false
   }
+})
+
+onBeforeUnmount(() => {
+  clientRealtimeStore.reset()
 })
 
 </script>
