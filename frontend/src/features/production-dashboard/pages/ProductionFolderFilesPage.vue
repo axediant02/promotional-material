@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ProductionFileCardPreview from '../components/ProductionFileCardPreview.vue'
 import { useProductionFolderUpload } from '../composables/useProductionFolderUpload'
+import { useProductionFileCardPreviews } from '../composables/useProductionFileCardPreviews'
 import ProductionFolderDetailPanel from '../components/ProductionFolderDetailPanel.vue'
 import { useProductionWorkspace } from '../productionWorkspace'
 
@@ -93,6 +95,7 @@ const {
   workspace,
   selectedFolder,
 })
+const { previewUrls } = useProductionFileCardPreviews(folderFiles)
 
 watch(selectedFolder, ensureValidFolder)
 watch(() => workspace.loading.value, ensureValidFolder)
@@ -183,48 +186,11 @@ onMounted(() => {
                   <span class="text-[11px] uppercase tracking-[0.22em] text-muted dark:text-zinc-500">{{ file.shortId }}</span>
                 </div>
 
-                <div class="flex flex-1 items-center justify-center px-4 py-4">
-                  <div :class="['flex h-20 w-20 items-center justify-center rounded-2xl border', getFileCardPalette(file.category).frame]">
-                    <svg
-                      v-if="file.category === 'image'"
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M4 16.5 8.5 12l3 3 4.5-4.5L20 14" />
-                      <path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
-                      <circle cx="9" cy="9" r="1.4" />
-                    </svg>
-                    <svg
-                      v-else-if="file.category === 'video'"
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 4h10l4 4v12H5z" />
-                      <path d="M10 9.5v5l4-2.5-4-2.5Z" />
-                    </svg>
-                    <svg
-                      v-else
-                      :class="['h-10 w-10', getFileCardPalette(file.category).accent]"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      aria-hidden="true"
-                    >
-                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                      <path d="M14 3v5h5" />
-                      <path d="M8 13h8" />
-                      <path d="M8 17h8" />
-                    </svg>
-                  </div>
+                <div class="px-4 py-4">
+                  <ProductionFileCardPreview
+                    :file="file"
+                    :preview-url="previewUrls[file.file_id] ?? ''"
+                  />
                 </div>
 
                 <div class="border-t border-border/70 px-4 py-4 dark:border-white/10">
@@ -288,9 +254,16 @@ onMounted(() => {
               class="border-b border-border/70 px-5 py-4 last:border-b-0 dark:border-white/8"
             >
               <div class="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_8rem_9rem] md:items-center md:gap-4">
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-ink dark:text-white">{{ file.file_name }}</p>
-                  <p class="mt-1 text-xs text-muted dark:text-zinc-500">{{ file.shortId }} / {{ getFileSizeLabel(file) }}</p>
+                <div class="flex min-w-0 items-center gap-4">
+                  <ProductionFileCardPreview
+                    :file="file"
+                    :preview-url="previewUrls[file.file_id] ?? ''"
+                    compact
+                  />
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-ink dark:text-white">{{ file.file_name }}</p>
+                    <p class="mt-1 text-xs text-muted dark:text-zinc-500">{{ file.shortId }} / {{ getFileSizeLabel(file) }}</p>
+                  </div>
                 </div>
                 <p class="truncate text-sm text-muted dark:text-zinc-300">{{ file.updatedLabel }}</p>
                 <div>
