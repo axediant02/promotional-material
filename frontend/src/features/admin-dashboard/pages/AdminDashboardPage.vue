@@ -1,6 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverviewSkeleton.vue'
 import AdminDashboardAttentionPanel from '../components/AdminDashboardAttentionPanel.vue'
 import AdminDashboardHeader from '../components/AdminDashboardHeader.vue'
@@ -36,46 +35,8 @@ const AdminDashboardSignalsTab = defineAsyncComponent(() => import('../component
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
-const route = useRoute()
-const router = useRouter()
 
-const sectionIds = new Set(['overview', 'requests', 'users', 'assignments', 'folders', 'signals'])
-
-const normalizeSection = (section) => {
-  const value = Array.isArray(section) ? section[0] : section
-
-  return sectionIds.has(value) ? value : 'overview'
-}
-
-const activeItem = ref(normalizeSection(route.query.section))
-
-watch(
-  () => route.query.section,
-  (section) => {
-    const nextSection = normalizeSection(section)
-
-    if (activeItem.value !== nextSection) {
-      activeItem.value = nextSection
-    }
-  },
-  { immediate: true }
-)
-
-const handleSectionNavigate = async (section) => {
-  const nextSection = normalizeSection(section)
-
-  activeItem.value = nextSection
-
-  const query = { ...route.query }
-
-  if (nextSection === 'overview') {
-    delete query.section
-  } else {
-    query.section = nextSection
-  }
-
-  await router.replace({ query })
-}
+const activeItem = ref('overview')
 
 const currentUser = computed(() => authStore.user ?? {})
 
@@ -140,15 +101,6 @@ const attentionItems = computed(() => mapAttentionItems({
   assignedClientIds: assignedClientIds.value,
 }))
 
-const overviewSummary = computed(() => {
-  const actionNeeded = stats.value[0]?.value ?? 0
-  const blocked = stats.value[1]?.value ?? 0
-  const unassigned = stats.value[2]?.value ?? 0
-  const inProgress = stats.value[3]?.value ?? 0
-
-  return `${actionNeeded} need action | ${blocked} blocked | ${unassigned} unassigned | ${inProgress} in progress`
-})
-
 const adminInsights = computed(() => {
   if (!activityLogs.value.length) {
     return adminDashboardFallbacks.adminInsights
@@ -188,46 +140,6 @@ const assignmentsTabRows = computed(() => mapAssignmentsTabRows({
   productionUserLookup: productionUserLookup.value,
   requests: requestsPayload.value ?? [],
 }))
-
-const overviewActions = computed(() => {
-  const attentionLookup = new Map(attentionItems.value.map((item) => [item.id, item]))
-
-  return [
-    {
-      id: 'review-unassigned',
-      label: 'Review unassigned requests',
-      detail: `${stats.value[2]?.value ?? 0} requests still need a production owner.`,
-      actionLabel: 'Queue focus',
-      count: stats.value[2]?.value ?? 0,
-      tone: 'danger',
-      onClick: () => {
-        activeItem.value = 'requests'
-      },
-    },
-    {
-      id: 'set-due-dates',
-      label: 'Set missing due dates',
-      detail: `${attentionLookup.get('due-dates')?.value ?? 0} requests are waiting on a schedule decision.`,
-      actionLabel: 'Queue focus',
-      count: attentionLookup.get('due-dates')?.value ?? 0,
-      tone: 'warning',
-      onClick: () => {
-        activeItem.value = 'requests'
-      },
-    },
-    {
-      id: 'inspect-assignments',
-      label: 'Inspect assignments',
-      detail: `${assignmentsTabRows.value.length} live assignment records are visible in the admin workspace.`,
-      actionLabel: 'Role action',
-      count: assignmentsTabRows.value.length,
-      tone: 'success',
-      onClick: () => {
-        activeItem.value = 'assignments'
-      },
-    },
-  ]
-})
 
 const {
   assignmentsSaving,
@@ -282,7 +194,7 @@ onMounted(() => {
 <template>
   <div class="pm-page text-ink transition-colors dark:text-zinc-100">
     <div class="min-h-screen xl:grid xl:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <AdminDashboardSidebar :current-user="currentUser" :active-item="activeItem" @navigate="handleSectionNavigate" />
+      <AdminDashboardSidebar :current-user="currentUser" :active-item="activeItem" @navigate="activeItem = $event" />
 
       <main class="min-w-0">
         <AdminDashboardHeader
@@ -292,11 +204,9 @@ onMounted(() => {
           :unread-count="notificationStore.unreadCount"
           :mark-read-action="notificationStore.markAsRead"
           :mark-all-read-action="notificationStore.markAllAsRead"
-          :overview-summary="overviewSummary"
-          :overview-actions="overviewActions"
         />
 
-        <div class="px-5 py-6 sm:px-6 lg:px-8 xl:px-10">
+        <div class="px-6 py-8 sm:px-8 lg:px-10">
           <p v-if="error" class="mb-6 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">
             {{ error }}
           </p>
@@ -307,13 +217,13 @@ onMounted(() => {
             <template v-if="activeItem === 'overview'">
               <AdminDashboardStatGrid :stats="stats" />
 
-              <div class="mt-5">
+              <div class="mt-6">
                 <AdminDashboardAttentionPanel :items="attentionItems" />
               </div>
 
-              <div class="mt-5 space-y-6">
+              <div class="mt-8 space-y-8">
                 <AdminDashboardRequestsSection
-                  :requests="queueRows.slice(0, 5)"
+                  :requests="queueRows.slice(0, 6)"
                   :editing-request-id="editingRequestId"
                   :due-date-drafts="dueDateDrafts"
                   :saving-request-id="requestDueDateSavingId"

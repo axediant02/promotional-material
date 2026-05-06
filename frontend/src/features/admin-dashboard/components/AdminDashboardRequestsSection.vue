@@ -66,8 +66,8 @@ defineProps({
   <section>
     <div v-if="showHeader" class="mb-4">
       <DashboardSectionHeader
-        eyebrow="Queue preview"
-        title="Request triage."
+        eyebrow="Priority queue"
+        title="All requests"
         description="Fresh queue items that need due dates, assignment, or admin review."
         :badge="`${requests.length} entries`"
         compact

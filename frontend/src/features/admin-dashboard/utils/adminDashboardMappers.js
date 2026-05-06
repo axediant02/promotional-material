@@ -14,54 +14,6 @@ export const getOpenRequests = (requests = []) =>
 export const isUnassignedRequest = (request, assignedClientIds) =>
   Boolean(request?.client_id) && !assignedClientIds.has(request.client_id)
 
-const getAttentionState = (request, assignedClientIds) => {
-  if (!request || request.status === 'done') {
-    return null
-  }
-
-  const isUnassigned = isUnassignedRequest(request, assignedClientIds)
-  const isMissingDueDate = !request.due_date
-  const isInProgress = request.status === 'in_progress'
-
-  if (isUnassigned) {
-    return {
-      key: 'needs_assignment',
-      label: 'Needs assignment',
-      tone: 'danger',
-      detail: 'No production owner is linked yet.',
-    }
-  }
-
-  if (isInProgress && isMissingDueDate) {
-    return {
-      key: 'blocked',
-      label: 'Blocked',
-      tone: 'danger',
-      detail: 'Work is moving, but the due date is still missing.',
-    }
-  }
-
-  if (isMissingDueDate) {
-    return {
-      key: 'missing_due_date',
-      label: 'Missing due date',
-      tone: 'warning',
-      detail: 'Schedule still needs to be set before delivery can move.',
-    }
-  }
-
-  if (request.status === 'pending') {
-    return {
-      key: 'needs_review',
-      label: 'Needs review',
-      tone: 'neutral',
-      detail: 'Waiting for admin review before production starts.',
-    }
-  }
-
-  return null
-}
-
 export const mapFolderLookup = (folders = []) => {
   const map = new Map()
 
@@ -168,26 +120,9 @@ export const mapQueueRows = ({ requests = [], folderLookup, assignedClientIds, a
     const clientName = folder?.client?.name ?? folder?.folder_name ?? `Client ${index + 1}`
     const folderName = folder?.folder_name ?? folder?.name ?? request.folder_id ?? 'Unassigned folder'
     const requestTypeLabel = request.request_type === 'new_asset' ? 'New asset' : 'Update asset'
-    const attentionState = getAttentionState(request, assignedClientIds)
-    const isUnassigned = attentionState?.key === 'needs_assignment'
-    const isMissingDueDate = attentionState?.key === 'missing_due_date' || attentionState?.key === 'blocked'
-    const isBlocked = attentionState?.key === 'blocked'
-    const needsAttention = Boolean(attentionState)
-    const workflowStatusLabel = {
-      pending: 'Pending',
-      in_progress: 'In progress',
-      done: 'Completed',
-    }[request.status ?? 'pending'] ?? 'Pending'
-    const workflowStatusTone = {
-      pending: 'neutral',
-      in_progress: 'brand',
-      done: 'success',
-    }[request.status ?? 'pending'] ?? 'neutral'
-    const assignmentName = assignedProduction?.name ?? ''
-    const assignmentLabel = assignment?.production_id
-      ? `Assigned to ${assignmentName || formatIdLabel(assignment.production_id, 'Production')}`
-      : 'Needs assignment'
-    const assignmentTone = assignment?.production_id ? 'neutral' : 'danger'
+    const isUnassigned = isUnassignedRequest(request, assignedClientIds)
+    const isMissingDueDate = !request.due_date
+    const needsAttention = isUnassigned || isMissingDueDate || request.status === 'pending'
 
     return {
       id: requestId,
@@ -197,20 +132,12 @@ export const mapQueueRows = ({ requests = [], folderLookup, assignedClientIds, a
       folderName,
       requestTypeLabel,
       status: request.status ?? 'pending',
-      workflowStatusLabel,
-      workflowStatusTone,
       dueDate: request.due_date ?? '',
       dueLabel: formatShortMonthDay(request.due_date),
       isUnassigned,
-      isBlocked,
-      assignedProductionName: assignmentName,
-      assignmentLabel,
-      assignmentTone,
+      assignedProductionName: assignedProduction?.name ?? '',
       isMissingDueDate,
       needsAttention,
-      attentionLabel: attentionState?.label ?? '',
-      attentionTone: attentionState?.tone ?? 'neutral',
-      attentionDetail: attentionState?.detail ?? '',
     }
   })
 
@@ -230,24 +157,21 @@ export const mapFolderCards = ({ folders = [], recentFiles = [] }) =>
 
 export const mapStats = ({ requests = [], assignedClientIds }) => {
   const openRequests = getOpenRequests(requests)
-  const attentionStates = openRequests
-    .map((request) => getAttentionState(request, assignedClientIds))
-    .filter(Boolean)
-  const blockedRequests = attentionStates.filter((state) => state.key === 'blocked')
-  const unassignedRequests = attentionStates.filter((state) => state.key === 'needs_assignment')
-  const inProgressRequests = openRequests.filter((request) => request.status === 'in_progress')
+  const awaitingDueDate = openRequests.filter((request) => !request.due_date)
+  const unassignedRequests = openRequests.filter((request) => isUnassignedRequest(request, assignedClientIds))
+  const requestingClients = new Set(openRequests.map((request) => request.client_id).filter(Boolean))
 
   return [
-    { label: 'Action needed', value: attentionStates.length, help: 'Requests that still need an admin decision or update', emphasis: true, tone: 'warning' },
-    { label: 'Blocked', value: blockedRequests.length, help: 'In progress but waiting on a due date', tone: 'danger' },
-    { label: 'Unassigned', value: unassignedRequests.length, help: 'Requests without a production owner', tone: 'danger' },
-    { label: 'In progress', value: inProgressRequests.length, help: 'Requests currently moving through delivery', tone: 'success' },
+    { label: 'Open Requests', value: openRequests.length, help: 'Pending admin review', emphasis: true },
+    { label: 'Awaiting Due Date', value: awaitingDueDate.length, help: 'Need admin review' },
+    { label: 'Unassigned Requests', value: unassignedRequests.length, help: 'Need assignment context' },
+    { label: 'Requesting Clients', value: requestingClients.size, help: 'Currently in queue' },
   ]
 }
 
 export const mapAttentionItems = ({ requests = [], assignedClientIds }) => {
   const openRequests = getOpenRequests(requests)
-  const awaitingDueDate = openRequests.filter((request) => !request.due_date && request.status !== 'in_progress')
+  const awaitingDueDate = openRequests.filter((request) => !request.due_date)
   const unassignedRequests = openRequests.filter((request) => isUnassignedRequest(request, assignedClientIds))
   const pendingReview = openRequests.filter((request) => request.status === 'pending')
 
@@ -256,7 +180,7 @@ export const mapAttentionItems = ({ requests = [], assignedClientIds }) => {
       id: 'due-dates',
       label: 'Missing due dates',
       value: awaitingDueDate.length,
-      badge: 'Schedule',
+      badge: 'Review',
       tone: awaitingDueDate.length ? 'warning' : 'default',
       detail: 'Requests still waiting for schedule decisions before production can plan delivery.',
     },
@@ -264,7 +188,7 @@ export const mapAttentionItems = ({ requests = [], assignedClientIds }) => {
       id: 'assignments',
       label: 'Unassigned requests',
       value: unassignedRequests.length,
-      badge: 'Assign',
+      badge: 'Action',
       tone: unassignedRequests.length ? 'danger' : 'default',
       detail: 'Requests missing enough context to confirm assignment or routing.',
     },
@@ -272,8 +196,8 @@ export const mapAttentionItems = ({ requests = [], assignedClientIds }) => {
       id: 'pending-review',
       label: 'Pending admin review',
       value: pendingReview.length,
-      badge: 'Review',
-      tone: pendingReview.length ? 'neutral' : 'default',
+      badge: 'Queue',
+      tone: pendingReview.length ? 'warning' : 'default',
       detail: 'Queue items still waiting on an admin decision, due date, or admin follow-through.',
     },
   ]
