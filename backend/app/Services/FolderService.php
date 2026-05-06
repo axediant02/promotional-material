@@ -11,6 +11,14 @@ class FolderService
     public function accessibleFoldersQuery(User $user): Builder
     {
         return Folder::query()
+            ->select([
+                'folder_id',
+                'folder_name',
+                'client_id',
+                'created_by',
+                'created_at',
+                'updated_at',
+            ])
             ->with('client:user_id,name,email')
             ->accessibleTo($user);
     }

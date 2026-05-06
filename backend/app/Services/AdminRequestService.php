@@ -9,6 +9,19 @@ class AdminRequestService
 {
     public function requestsQuery(): Builder
     {
-        return ClientRequest::query()->latest('created_at');
+        return ClientRequest::query()
+            ->select([
+                'request_id',
+                'client_id',
+                'folder_id',
+                'title',
+                'description',
+                'request_type',
+                'status',
+                'due_date',
+                'created_at',
+                'updated_at',
+            ])
+            ->latest('created_at');
     }
 }
