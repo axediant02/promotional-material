@@ -57,19 +57,50 @@ const props = defineProps({
 })
 
 const statusStyles = {
-  pending: 'border border-[#d4d0dc] bg-[#f8f6fb] text-[#6b5f7a] dark:border-white/15 dark:bg-white/[0.08] dark:text-zinc-200',
-  in_progress: 'border border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-400/60 dark:bg-brand-500/15 dark:text-brand-100',
+  pending: 'border border-slate-200 bg-slate-50 text-slate-700 dark:border-white/15 dark:bg-white/[0.06] dark:text-slate-200',
+  in_progress: 'border border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/40 dark:bg-sky-500/15 dark:text-sky-100',
   done: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/50 dark:bg-emerald-500/15 dark:text-emerald-100',
 }
 
-const attentionStyle = 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-100'
+const attentionStyles = {
+  danger: 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-100',
+  warning: 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/50 dark:bg-amber-500/15 dark:text-amber-100',
+  neutral: 'border border-slate-200 bg-slate-50 text-slate-700 dark:border-white/15 dark:bg-white/[0.06] dark:text-slate-200',
+  default: 'border border-slate-200 bg-white text-slate-700 dark:border-white/15 dark:bg-white/[0.05] dark:text-slate-200',
+}
 
 const assignmentStyles = {
-  assigned: 'border border-[#d4d0dc] bg-white text-[#6b5f7a] dark:border-white/15 dark:bg-white/[0.05] dark:text-zinc-200',
+  assigned: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-100',
   unassigned: 'border border-red-200 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-100',
 }
 
-const formatStatus = (status) => (status ?? 'pending').replaceAll('_', ' ')
+const formatStatus = (status) => {
+  const labels = {
+    pending: 'Pending',
+    in_progress: 'In progress',
+    done: 'Completed',
+  }
+
+  return labels[status ?? 'pending'] ?? 'Pending'
+}
+
+const getAssignmentLabel = (row) => {
+  if (row.isUnassigned) {
+    return 'Needs assignment'
+  }
+
+  if (row.assignedProductionName) {
+    return `Assigned to ${row.assignedProductionName}`
+  }
+
+  return 'Assignment pending'
+}
+
+const rowToneStyles = {
+  danger: 'border-red-200/90 hover:shadow-[0_12px_26px_rgba(220,38,38,0.12)] dark:border-red-400/35',
+  warning: 'border-amber-200/90 hover:shadow-[0_12px_26px_rgba(217,119,6,0.12)] dark:border-amber-400/35',
+  neutral: 'border-slate-200 hover:border-slate-300 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] dark:border-white/10 dark:hover:border-white/20',
+}
 
 const selectedAssignmentRowId = ref('')
 
@@ -85,27 +116,15 @@ const closeAssignmentModal = () => {
   selectedAssignmentRowId.value = ''
 }
 
-const hoveredRowId = ref('')
-
-const isHovered = (id) => hoveredRowId.value === id
-
-const setHovered = (id) => {
-  hoveredRowId.value = id
-}
-
-const clearHovered = () => {
-  hoveredRowId.value = ''
-}
 </script>
 
 <template>
   <section class="rounded-[1.4rem] border border-zinc-200/90 bg-white p-3 shadow-[0_14px_36px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.03]">
-    <header class="hidden gap-4 px-3 pb-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400 lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_minmax(10rem,10.5rem)]">
+    <header class="hidden gap-4 px-3 pb-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(13rem,1fr)_minmax(10rem,0.85fr)_minmax(9rem,0.8fr)_minmax(10rem,10rem)]">
       <span>Request</span>
-      <span>Client</span>
-      <span>Type</span>
-      <span>Due Date</span>
-      <span>State</span>
+      <span>Attention</span>
+      <span>Due date</span>
+      <span>Workflow</span>
       <span class="text-right">Action</span>
     </header>
 
@@ -113,12 +132,12 @@ const clearHovered = () => {
       v-for="row in rows"
       :key="row.id"
       :class="[
-        'group mb-3 rounded-[1.15rem] border bg-white px-5 py-5 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition duration-180 last:mb-0 lg:grid lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(7rem,0.8fr)_minmax(10rem,10.5rem)] lg:items-center lg:gap-4',
-        row.needsAttention || row.isUnassigned
-          ? 'border-red-200/90 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(239,68,68,0.12)] dark:border-red-400/40 dark:bg-white/[0.04]'
-          : row.isMissingDueDate
-            ? 'border-brand-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(109,80,162,0.12)] dark:border-brand-400/40 dark:bg-white/[0.04]'
-            : 'border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20 dark:hover:shadow-[0_16px_32px_rgba(0,0,0,0.26)]',
+        'group mb-2.5 rounded-[1.1rem] border bg-white px-4 py-4 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition duration-180 last:mb-0 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(13rem,1fr)_minmax(10rem,0.85fr)_minmax(9rem,0.8fr)_minmax(10rem,10rem)] lg:items-start lg:gap-4',
+        row.isUnassigned
+          ? `${rowToneStyles.danger} hover:-translate-y-0.5 dark:bg-white/[0.04]`
+          : row.isBlocked
+            ? `${rowToneStyles.warning} hover:-translate-y-0.5 dark:bg-white/[0.04]`
+            : `${rowToneStyles.neutral} hover:-translate-y-0.5 dark:bg-white/[0.04]`,
       ]"
     >
       <div class="min-w-0 lg:pr-4">
@@ -134,39 +153,75 @@ const clearHovered = () => {
           </span>
           <span
             v-if="row.needsAttention"
-            :class="['inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]', attentionStyle]"
+            :class="[
+              'inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]',
+              row.attentionTone === 'danger'
+                ? attentionStyles.danger
+                : row.attentionTone === 'warning'
+                  ? attentionStyles.warning
+                  : attentionStyles.neutral,
+            ]"
           >
-            Needs attention
+            {{ row.attentionLabel || 'Needs attention' }}
           </span>
         </div>
 
-        <h3 class="mt-3 line-clamp-1 text-[1.05rem] font-semibold text-zinc-950 dark:text-white">{{ row.title }}</h3>
-        <div class="mt-2 flex min-w-0 items-center gap-2 text-sm">
-          <span class="shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">Assigned folder</span>
-          <span class="min-w-0 truncate text-zinc-500 dark:text-zinc-300">{{ row.folderName }}</span>
+        <h3 class="mt-3 line-clamp-1 text-[1.02rem] font-semibold text-zinc-950 dark:text-white">{{ row.title }}</h3>
+        <div class="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <span class="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            Client
+            <span class="normal-case tracking-normal text-zinc-700 dark:text-zinc-200">{{ row.clientName }}</span>
+          </span>
+          <span class="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            Folder
+            <span class="max-w-[16rem] truncate normal-case tracking-normal text-zinc-700 dark:text-zinc-200">{{ row.folderName }}</span>
+          </span>
+        </div>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <span
+            :class="[
+              'inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]',
+              assignmentStyles[row.assignmentTone] ?? assignmentStyles.assigned,
+            ]"
+          >
+            {{ getAssignmentLabel(row) }}
+          </span>
+          <button
+            v-if="!row.isUnassigned && row.assignedProductionName"
+            type="button"
+            class="inline-flex min-h-[1.7rem] items-center rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700 transition duration-180 hover:border-emerald-400 hover:text-emerald-800 dark:border-emerald-400/40 dark:bg-white/[0.04] dark:text-emerald-200 dark:hover:border-emerald-300 dark:hover:text-white"
+            @click="openAssignmentModal(row)"
+          >
+            View assignment
+          </button>
+          <span class="text-sm text-zinc-500 dark:text-zinc-400">
+            {{ row.requestTypeLabel }}
+          </span>
         </div>
       </div>
 
-      <div class="mt-5 grid gap-4 text-sm lg:mt-0 lg:contents">
-        <div class="lg:block lg:min-w-0">
-          <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Client</p>
-          <p class="leading-6 font-medium text-zinc-800 dark:text-zinc-100">{{ row.clientName }}</p>
+      <div class="mt-4 text-sm lg:mt-0 lg:min-w-0">
+        <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Attention</p>
+        <div class="rounded-[1rem] border border-zinc-200 bg-white px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+            {{ row.attentionLabel || 'No attention state' }}
+          </p>
+          <p :class="['mt-2 leading-6', row.attentionTone === 'danger' ? 'text-red-700 dark:text-red-200' : row.attentionTone === 'warning' ? 'text-amber-700 dark:text-amber-200' : 'text-slate-700 dark:text-slate-200']">
+            {{ row.attentionDetail || 'Workflow state is clear.' }}
+          </p>
         </div>
+      </div>
 
-        <div class="lg:block lg:min-w-0">
-          <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Request type</p>
-          <p class="leading-6 text-zinc-600 dark:text-zinc-300">{{ row.requestTypeLabel }}</p>
-        </div>
-
-        <div class="lg:block lg:min-w-0">
-          <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Due date</p>
+      <div class="mt-4 text-sm lg:mt-0 lg:min-w-0">
+        <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Due date</p>
+        <div class="rounded-[1rem] border border-zinc-200 bg-white px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
           <template v-if="editingRequestId === row.id">
             <label class="block">
               <span class="sr-only">Due date</span>
               <input
                 :value="dueDateDrafts[row.id] ?? ''"
                 type="date"
-                class="pm-input w-full rounded-xl border-zinc-300 bg-white px-3 py-2.5 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                class="pm-input w-full rounded-xl border-zinc-300 bg-white px-3 py-2 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
                 :disabled="savingRequestId === row.id"
                 @input="updateDraftAction(row.id, $event.target.value)"
               />
@@ -179,7 +234,7 @@ const clearHovered = () => {
             </p>
           </template>
           <template v-else>
-            <p :class="['leading-6', row.isMissingDueDate ? 'font-semibold text-red-700 dark:text-red-200' : 'text-zinc-600 dark:text-zinc-300']">{{ row.dueLabel }}</p>
+            <p :class="['leading-6 font-medium', row.isMissingDueDate ? 'text-amber-700 dark:text-amber-200' : 'text-slate-700 dark:text-slate-200']">{{ row.dueLabel }}</p>
             <p v-if="row.isMissingDueDate" class="text-xs font-semibold uppercase tracking-[0.16em] text-red-700 dark:text-red-200">
               Needs due date
             </p>
@@ -188,70 +243,60 @@ const clearHovered = () => {
             </p>
           </template>
         </div>
+      </div>
 
-        <div class="lg:block">
-          <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Assignment state</p>
-          <div>
-            <button
-              v-if="!row.isUnassigned && row.assignedProductionName"
-              type="button"
-              :class="[
-                'relative inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] transition duration-180 hover:border-brand-300 hover:text-brand-700 dark:hover:border-brand-400 dark:hover:text-white',
-                assignmentStyles.assigned,
-              ]"
-              @click="openAssignmentModal(row)"
-              @mouseenter="setHovered(row.id)"
-              @mouseleave="clearHovered"
-            >
-              <span :class="{ hidden: isHovered(row.id) }">Assigned</span>
-              <span :class="{ hidden: !isHovered(row.id) }">View details</span>
-            </button>
-            <span
-              v-else
-              :class="[
-                'inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]',
-                assignmentStyles.unassigned,
-              ]"
-            >
-              Unassigned
-            </span>
-          </div>
-        </div>
-
-        <div class="pt-1 lg:flex lg:justify-end lg:border-l lg:border-zinc-200 lg:pl-5 lg:pt-0 dark:lg:border-white/10">
-          <div v-if="editingRequestId === row.id" class="flex flex-wrap items-center justify-end gap-2">
-            <button
-              type="button"
-              class="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl border border-zinc-300 bg-white px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-180 hover:scale-[1.01] hover:border-zinc-400 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/[0.04] dark:text-zinc-100 dark:hover:border-white/25 dark:hover:bg-white/[0.08]"
-              :disabled="savingRequestId === row.id"
-              @click="cancelEditAction(row.id)"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl border border-brand-600 bg-brand-600 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_8px_18px_rgba(109,80,162,0.22)] transition duration-180 hover:scale-[1.01] hover:bg-brand-700 hover:shadow-[0_12px_22px_rgba(109,80,162,0.28)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-brand-400 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400"
-              :disabled="savingRequestId === row.id"
-              @click="saveDueDateAction(row.id)"
-            >
-              {{ savingRequestId === row.id ? 'Saving...' : 'Save due' }}
-            </button>
-          </div>
-          <button
-            v-else
-            type="button"
+      <div class="mt-4 text-sm lg:mt-0 lg:min-w-0">
+        <p class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:hidden">Workflow</p>
+        <div class="rounded-[1rem] border border-zinc-200 bg-white px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <span
             :class="[
-              'inline-flex min-h-[2.75rem] w-full min-w-[9rem] items-center justify-center rounded-xl px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition duration-180 disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto',
-              row.isMissingDueDate
-                ? 'border border-brand-600 bg-brand-600 text-white shadow-[0_8px_18px_rgba(109,80,162,0.22)] hover:scale-[1.01] hover:bg-brand-700 hover:shadow-[0_12px_22px_rgba(109,80,162,0.28)] dark:border-brand-400 dark:bg-brand-500 dark:hover:bg-brand-400'
-                : 'border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:scale-[1.01] hover:border-brand-300 hover:text-brand-700 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)] dark:border-white/15 dark:bg-white/[0.04] dark:text-zinc-100 dark:hover:border-brand-400 dark:hover:bg-white/[0.08]',
+              'inline-flex min-h-[1.7rem] items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]',
+              statusStyles[row.status] ?? statusStyles.pending,
             ]"
-            :disabled="Boolean(savingRequestId)"
-            @click="startEditAction(row)"
           >
-            {{ row.isMissingDueDate ? 'Set due' : 'Update due' }}
+            {{ formatStatus(row.status) }}
+          </span>
+          <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            {{ row.workflowStatusLabel }}
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-1 lg:flex lg:justify-end lg:border-l lg:border-zinc-200 lg:pl-5 lg:pt-0 dark:lg:border-white/10">
+        <div v-if="editingRequestId === row.id" class="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            class="inline-flex min-h-[2.6rem] items-center justify-center rounded-xl border border-zinc-300 bg-white px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-180 hover:scale-[1.01] hover:border-zinc-400 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/[0.04] dark:text-zinc-100 dark:hover:border-white/25 dark:hover:bg-white/[0.08]"
+            :disabled="savingRequestId === row.id"
+            @click="cancelEditAction(row.id)"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="inline-flex min-h-[2.6rem] items-center justify-center rounded-xl border border-brand-600 bg-brand-600 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_8px_18px_rgba(109,80,162,0.22)] transition duration-180 hover:scale-[1.01] hover:bg-brand-700 hover:shadow-[0_12px_22px_rgba(109,80,162,0.28)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-brand-400 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400"
+            :disabled="savingRequestId === row.id"
+            @click="saveDueDateAction(row.id)"
+          >
+            {{ savingRequestId === row.id ? 'Saving...' : 'Save due' }}
           </button>
         </div>
+        <button
+          v-else
+          type="button"
+          :class="[
+            'inline-flex min-h-[2.6rem] w-full min-w-[9rem] items-center justify-center rounded-xl px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition duration-180 disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto',
+            row.isMissingDueDate
+              ? 'border border-amber-500 bg-amber-500 text-white shadow-[0_8px_18px_rgba(217,119,6,0.22)] hover:scale-[1.01] hover:bg-amber-600 hover:shadow-[0_12px_22px_rgba(217,119,6,0.28)] dark:border-amber-400 dark:bg-amber-500 dark:hover:bg-amber-400'
+              : row.assignedProductionName
+                ? 'border border-emerald-300 bg-white text-emerald-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:scale-[1.01] hover:border-emerald-400 hover:text-emerald-800 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)] dark:border-emerald-400/40 dark:bg-white/[0.04] dark:text-emerald-200 dark:hover:border-emerald-300 dark:hover:bg-white/[0.08]'
+                : 'border border-slate-300 bg-white text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:scale-[1.01] hover:border-slate-400 hover:text-slate-900 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)] dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-100 dark:hover:border-white/25 dark:hover:bg-white/[0.08]',
+          ]"
+          :disabled="Boolean(savingRequestId)"
+          @click="startEditAction(row)"
+        >
+          {{ row.isMissingDueDate ? 'Set due date' : row.assignedProductionName ? 'View assignment' : 'Review row' }}
+        </button>
       </div>
     </article>
 

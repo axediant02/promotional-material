@@ -30,7 +30,7 @@ const initials = (props.currentUser?.name ?? 'Admin User')
 </script>
 
 <template>
-  <aside class="pm-dashboard-sidebar">
+  <aside class="pm-dashboard-sidebar relative z-20">
     <div class="flex min-h-full flex-col">
       <div class="border-b border-white/10 px-7 py-6">
         <p class="text-[10px] font-medium uppercase tracking-[0.38em] text-white/50">Nexus Archive</p>
