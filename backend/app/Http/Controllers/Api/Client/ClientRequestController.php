@@ -37,7 +37,7 @@ class ClientRequestController extends Controller
                     ]
                 );
 
-                $user->forceFill([
+                $user->fill([
                     'assigned_folder_id' => $folder->folder_id,
                 ])->save();
 

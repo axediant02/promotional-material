@@ -37,7 +37,7 @@ class AdminRequestController extends Controller
     {
         $this->authorize('admin', User::class);
 
-        $clientRequest->forceFill([
+        $clientRequest->fill([
             'due_date' => $request->date('due_date'),
         ])->save();
 

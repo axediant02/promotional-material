@@ -32,7 +32,7 @@ class AdminUserController extends Controller
     {
         $this->authorize('admin', User::class);
 
-        $user->forceFill([
+        $user->fill([
             'role' => $request->string('role')->toString(),
         ])->save();
 

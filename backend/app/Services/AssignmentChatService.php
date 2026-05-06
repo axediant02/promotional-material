@@ -97,7 +97,7 @@ class AssignmentChatService
     {
         $column = $user->isClient() ? 'client_last_read_at' : 'production_last_read_at';
 
-        $thread->forceFill([
+        $thread->fill([
             $column => now(),
         ])->save();
 

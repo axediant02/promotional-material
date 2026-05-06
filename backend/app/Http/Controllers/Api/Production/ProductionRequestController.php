@@ -40,7 +40,7 @@ class ProductionRequestController extends Controller
         $newStatus = $request->string('status')->toString();
         $previousStatus = $clientRequest->status;
 
-        $clientRequest->forceFill([
+        $clientRequest->fill([
             'status' => $newStatus,
         ])->save();
 
