@@ -30,7 +30,7 @@ class AssignmentChatMessageController extends Controller
             'body' => $body,
         ]);
 
-        $thread->forceFill([
+        $thread->fill([
             'last_message_at' => $message->created_at,
             'last_message_by' => $user->user_id,
             $user->isClient() ? 'client_last_read_at' : 'production_last_read_at' => now(),

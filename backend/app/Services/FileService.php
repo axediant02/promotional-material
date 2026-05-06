@@ -68,7 +68,7 @@ class FileService
                 $storageDisk
             );
 
-            $file->forceFill([
+            $file->fill([
                 'folder_id' => $targetFolderId,
                 'uploaded_by' => $user->user_id,
                 'file_name' => $replacementFile->getClientOriginalName(),
