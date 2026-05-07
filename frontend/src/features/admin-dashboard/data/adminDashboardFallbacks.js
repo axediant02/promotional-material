@@ -1,22 +1,22 @@
 export const adminDashboardFallbacks = {
-  governanceInsights: [
+  adminInsights: [
     {
       id: 'role-changes',
-      label: 'Role Changes Today',
+      label: 'Role updates today',
       value: '2',
-      detail: 'Temporary fallback until role-change snapshots are exposed by the backend.',
+      detail: 'Users whose role was changed today.',
     },
     {
       id: 'production-load',
-      label: 'Production Teams',
+      label: 'Active production teams',
       value: '3 active',
-      detail: 'Fallback load summary used to keep the admin overview operational while team-balancing APIs are incomplete.',
+      detail: 'Teams currently handling assigned client requests.',
     },
     {
       id: 'audit-trail',
-      label: 'Recent Admin Actions',
+      label: 'Recent admin actions',
       value: '7 entries',
-      detail: 'Fallback governance signal until a dedicated admin activity widget is available.',
+      detail: 'Latest admin actions recorded in the activity log.',
     },
   ],
   users: [
@@ -26,7 +26,7 @@ export const adminDashboardFallbacks = {
       email: 'arthur@proweaver.com',
       role: 'admin',
       status: 'active',
-      note: 'Governance owner for role updates and due date review.',
+      note: 'Admin owner for role updates and due date review.',
     },
     {
       id: 'usr-002',

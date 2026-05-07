@@ -1,4 +1,6 @@
 <script setup>
+import SkeletonBlock from './SkeletonBlock.vue'
+
 defineProps({
   columns: { type: Array, required: true },
   data: { type: Array, default: () => [] },
@@ -35,7 +37,7 @@ defineEmits(['action'])
                 :key="col.key"
                 class="px-4 py-3"
               >
-                <div class="h-4 w-3/4 animate-pulse rounded bg-slate-200"></div>
+                <SkeletonBlock width="w-3/4" height="h-4" tone="bg-slate-200" />
               </td>
             </tr>
           </template>

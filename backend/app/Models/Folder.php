@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +45,21 @@ class Folder extends Model
     public function clientRequests(): HasMany
     {
         return $this->hasMany(ClientRequest::class, 'folder_id', 'folder_id');
+    }
+
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isClient()) {
+            return $query->whereKey($user->assigned_folder_id);
+        }
+
+        if ($user->isProduction()) {
+            return $query->whereIn('client_id', AssignedClient::query()
+                ->select('client_id')
+                ->where('production_id', $user->user_id));
+        }
+
+        return $query;
     }
 
     protected function name(): Attribute

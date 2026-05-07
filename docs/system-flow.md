@@ -1,82 +1,106 @@
 # System Flow
 
-This document describes the agreed system flow for onboarding, governance, file delivery, and request handling.
+This document describes the current onboarding, admin management, request, assignment chat, and file-delivery flow across the portal.
+
+## Status
+- Current live flow unless a step is explicitly labeled planned elsewhere.
+- Backend authorization is the source of truth.
+- Frontend route guards and hidden UI are UX only.
 
 ## 1. Registration
-1. User opens `/register`.
-2. User submits registration form.
-3. Backend creates the account with default role `client`.
-4. User can sign in immediately.
+1. A guest opens `/register`.
+2. The user submits the registration form.
+3. The backend creates a user with the `client` role.
+4. The account can sign in immediately.
+5. No folder is created during registration.
 
 ## 2. Login and role routing
-1. User submits login credentials.
-2. Backend validates credentials.
-3. Backend returns token and user payload.
-4. Frontend stores the token in local storage.
-5. Frontend redirects by role:
-   - `production` -> `/production`
-   - `agent` -> `/agent-new`
-   - `admin` -> `/admin-new`
+1. A user submits login credentials.
+2. The backend validates the account and returns a Sanctum token plus the user payload.
+3. The frontend stores the token in local storage as `pm_token`.
+4. The frontend routes the user by role:
+   - `production` -> `/production/folders`
+   - `agent` -> `/agent`
+   - `admin` -> `/admin`
    - `client` -> `/client`
+5. Guests opening `/` land on the public landing page.
 
-## 3. Request creation
-1. Client signs in.
-2. If the client has no assigned folder yet, the backend creates one and sets `assigned_folder_id`.
-3. Client submits a request.
-4. The request is linked to the client's assigned folder.
-5. The request starts as `pending`.
+## 3. Client request creation
+1. A client signs in.
+2. The client opens the dashboard and submits a request through `POST /requests`.
+3. If the client does not have an assigned folder yet, the backend creates the folder and links it during this first request flow.
+4. The request is stored against the client and the assigned folder.
+5. New requests begin with `pending` status.
 
-## 4. Governance and assignment
-1. Admin reviews all client requests.
-2. Admin sets or updates `due_date` when needed.
-3. Admin assigns clients to production through `assigned_clients`.
-4. Admin manages user-role changes when access needs change.
+## 4. Admin management
+1. Admin opens `/admin`.
+2. The dashboard loads admin data from:
+   - `GET /dashboard`
+   - `GET /admin/requests`
+   - `GET /admin/activity-logs`
+   - `GET /admin/assignments`
+   - `GET /admin/users`
+3. Admin reviews the request queue and identifies missing due dates or missing assignment coverage.
+4. Admin sets or updates request due dates inline in the request queue through `PATCH /admin/requests/{clientRequest}`.
+5. Admin creates or updates client-to-production assignments through `POST /admin/assignments`.
+6. Admin can remove an assignment through `DELETE /admin/assignments/{assignment}`.
+7. Admin reviews the full platform account list through the live users endpoint instead of inferred dashboard data.
+8. Admin can update user roles through `PATCH /admin/users/{user}`.
 
-## 5. Production execution
-1. Production reviews assigned-client requests only.
-2. Production works requests through operational status updates.
-3. Production uploads files to the assigned client folder.
-4. Upload activity is logged.
+## 5. Assignment chat
+1. When admin saves a client-to-production assignment, the backend ensures an active assignment chat thread exists for that client and production pair.
+2. Clients and production users open the shared assignment chat widget from their dashboards.
+3. Either side can send messages in the active thread.
+4. Messages are delivered in realtime to the active thread and the other participant's user channel.
+5. If the assignment changes, is marked done, or is removed, the active thread is archived and remains available as read-only history.
 
-## 6. File access and delivery
-1. Client can view, preview, and download files from the assigned folder only.
-2. Agent can browse and download allowed files only.
-3. Production can access files needed for assigned-client execution.
-4. Admin does not use the file portal directly by default.
+## 6. Production execution
+1. Production opens `/production`.
+2. The production shell redirects into `/production/folders`.
+3. The nested workspace swaps between:
+   - `/production/folders`
+   - `/production/folders/:folderId`
+4. Production sees requests for assigned clients through `GET /production/requests`.
+5. Production updates operational request status through `PATCH /production/requests/{clientRequest}`.
+6. Production uploads new files into assigned client folders, replaces existing files in place when needed, and manages recycle-bin recovery.
 
-## 7. Recycle bin
+## 7. File access and delivery
+1. Clients can view, preview, and download files from their assigned folder only.
+2. Agents can browse and download files allowed by backend authorization.
+3. Production can browse assigned-client folders and deliver files through the production workspace.
+4. Admin management is centered on requests, assignments, activity, and role oversight rather than direct file-portal operation.
+
+## 8. Recycle bin
 1. Production deletes a file.
-2. Backend sets `last_deleted_at` and soft deletes the record.
-3. File appears in recycle bin.
-4. Production can restore it.
-5. Scheduled purge later removes expired deleted files.
+2. The backend soft deletes the record and tracks deletion timing.
+3. The file appears in the recycle bin list.
+4. Production can restore the file.
+5. Scheduled purge logic handles expired deleted files later.
 
 ## Role ownership
 - `admin`
-  - client-to-production assignment
-  - due dates
-  - user-role changes
   - request oversight
+  - request due dates
+  - client-to-production assignments
+  - user-role changes
 - `production`
-  - file uploads
-  - assigned-client folders
   - assigned-client requests
-  - operational request execution
+  - request status execution
+  - assigned-client folders
+  - file uploads and recovery
+  - assignment chat with assigned clients
 - `agent`
-  - browse/download allowed files only
+  - browse and download allowed files
 - `client`
   - create requests
   - view own request history
-  - access and download own assigned-folder files
-
-## Foundations already present
-- the backend already contains `client_requests` and `assigned_clients`
-- the backend schema uses target-style keys such as `user_id`, `folder_id`, `file_id`, `folder_name`, and `file_name`
-- backend request-management routes are now present for client history, production status handling, and admin due-date management
-- UI and assignment-management implementation are still being aligned fully to this role model
+  - access and download files from the assigned folder
+  - assignment chat with assigned production users
 
 ## Guardrails
-- Agents do not enter the request workflow.
+- Backend authorization is the source of truth.
+- Agents do not enter request management.
 - Clients do not set due dates.
-- Admin does not use the file portal directly by default.
-- Authorization must always be enforced by the backend.
+- Production does not set admin due dates.
+- Assignment ownership stays at the client level through `assigned_clients`.
+- Assignment chat stays limited to the client and production users linked to the assignment.

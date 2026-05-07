@@ -6,24 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminAssignmentRequest;
 use App\Models\AssignedClient;
 use App\Models\User;
+use App\Services\AssignmentChatService;
+use App\Services\AdminAssignmentService;
+use App\Services\ProductionWorkspaceBroadcastService;
+use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 
 class AdminAssignmentController extends Controller
 {
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly AssignmentChatService $assignmentChatService,
+        private readonly AdminAssignmentService $adminAssignmentService,
+        private readonly ProductionWorkspaceBroadcastService $productionWorkspaceBroadcastService,
+    ) {
+    }
+
     public function index(): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
-        $assignments = AssignedClient::query()
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->get();
-
-        $productionUsers = User::query()
-            ->where('role', User::ROLE_PRODUCTION)
-            ->orderBy('name')
-            ->orderBy('email')
-            ->get(['user_id', 'name', 'email']);
+        $assignments = $this->adminAssignmentService->assignmentsQuery()->get();
+        $productionUsers = $this->adminAssignmentService->productionUsersQuery()->get();
 
         return response()->json([
             'message' => 'Assignments fetched.',
@@ -36,19 +40,44 @@ class AdminAssignmentController extends Controller
 
     public function store(StoreAdminAssignmentRequest $request): JsonResponse
     {
-        abort_unless($request->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
         $assignment = AssignedClient::query()->firstOrNew([
             'client_id' => $request->string('client_id')->toString(),
         ]);
 
         $isNew = ! $assignment->exists;
+        $previousProductionId = $assignment->production_id;
+        $previousStatus = $assignment->status;
+        $productionId = $request->string('production_id')->toString();
 
         $assignment->fill([
-            'production_id' => $request->string('production_id')->toString(),
+            'production_id' => $productionId,
             'status' => $request->string('status')->toString(),
         ]);
         $assignment->save();
+
+        $this->assignmentChatService->syncForAssignment($assignment, $previousProductionId, $previousStatus);
+        $this->productionWorkspaceBroadcastService->broadcastAssignmentSaved($assignment, $previousProductionId);
+
+        if ($isNew || $previousProductionId !== $productionId) {
+            $users = User::query()
+                ->whereIn('user_id', [$productionId, $assignment->client_id])
+                ->get()
+                ->keyBy('user_id');
+
+            $productionUser = $users->get($productionId);
+            $clientUser = $users->get($assignment->client_id);
+
+            if ($productionUser && $clientUser) {
+                $this->workflowNotificationService->sendToUser($productionUser, [
+                    'kind' => 'client_assigned',
+                    'title' => 'New client assignment',
+                    'body' => sprintf('%s was assigned to you for production work.', $clientUser->name),
+                    'target' => 'queue',
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'Client assignment saved.',
@@ -60,8 +89,10 @@ class AdminAssignmentController extends Controller
 
     public function destroy(AssignedClient $assignment): JsonResponse
     {
-        abort_unless(request()->user()?->isAdmin(), 403);
+        $this->authorize('admin', User::class);
 
+        $this->assignmentChatService->archiveForAssignmentDeletion($assignment);
+        $this->productionWorkspaceBroadcastService->broadcastAssignmentDeleted($assignment);
         $assignment->delete();
 
         return response()->json([

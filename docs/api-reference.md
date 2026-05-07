@@ -1,12 +1,16 @@
 # API Reference
 
-This document describes the currently implemented backend API in `backend/routes/api.php`.
+This document describes the current backend API in `backend/routes/api.php`.
+
+## Status
+- Current live backend route behavior unless a route is explicitly marked compatibility or future-only.
+- When a route has both product ownership and compatibility behavior, call that out directly instead of collapsing the difference.
 
 ## Base URL
 - Local API base: `http://127.0.0.1:8000/api`
 
 ## Auth model
-- Token auth uses Laravel Sanctum.
+- Authentication uses Laravel Sanctum.
 - Protected routes require `Authorization: Bearer <token>`.
 
 ## Response shape
@@ -30,26 +34,28 @@ Most endpoints return:
   - `password_confirmation`
 - Success:
   - creates a `client` user
-  - does not create the folder yet
+  - does not create a folder yet
   - returns the created user payload
 
 ### `POST /auth/login`
-- Purpose: login for registered users
+- Purpose: log in any registered user
 - Body:
   - `email`
   - `password`
 - Success:
-  - returns a token and user payload
-- Notes:
+  - returns a Sanctum token
+  - returns the authenticated user payload
+- Error:
   - returns `422` for invalid credentials
-  - returns `403` for `admin` users because dedicated live admin portal access is not enabled yet
 
 ## Protected auth routes
 
-### `GET /auth/me`
+### `GET /auth/currentUser`
 - Purpose: fetch the authenticated user
+- Returns:
+  - `user`
 - Includes:
-  - assigned folder relation when present
+  - `assignedFolder` when present
 
 ### `POST /auth/logout`
 - Purpose: revoke the current access token
@@ -57,32 +63,109 @@ Most endpoints return:
 ## Shared dashboard route
 
 ### `GET /dashboard`
-- Purpose: fetch dashboard data for the current user
+- Purpose: fetch dashboard data for the authenticated user
 - Returns:
   - `user`
   - `stats`
   - `folders`
   - `recentFiles`
 - Scope:
-  - client sees the assigned folder only
-  - agent sees allowed folders/files for download work
-  - production sees production-owned operational stats
-  - admin should see governance-oriented stats once the dedicated surface is implemented
+  - client sees the assigned folder context
+  - agent sees browse/download workspace context allowed by backend rules
+  - production sees operational workspace data
+- admin uses the dashboard payload alongside dedicated admin management endpoints
+
+## Notification routes
+
+### `GET /notifications`
+- Purpose: fetch recent notifications for the authenticated user
+- Access:
+  - authenticated users only
+- Returns:
+  - `notifications`
+  - `unread_count`
 - Notes:
-  - folder payloads now use backend naming such as `folder_id` and `folder_name`
-  - file payloads are in a contract-transition period while frontend consumers catch up
+  - each notification includes read state, type metadata, and optional workflow target fields
+  - results are scoped strictly to the current authenticated user
+
+### `PATCH /notifications/{notification}`
+- Purpose: mark one notification as read
+- Access:
+  - authenticated users only
+- Returns:
+  - `notification`
+  - `unread_count`
+- Notes:
+  - users may mark only their own notifications
+  - the live code also accepts `PATCH /notifications/{notification}/read`
+
+### `POST /notifications/read-all`
+- Purpose: mark all of the authenticated user's unread notifications as read
+- Access:
+  - authenticated users only
+- Returns:
+  - `unread_count`
+- Notes:
+  - the live code also accepts `PATCH /notifications/read-all`
+
+## Chat routes
+
+### `GET /chat/thread`
+- Purpose: fetch the active assignment chat thread for the authenticated client or production user
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `thread`
+- Notes:
+  - returns `null` when no active assignment chat exists
+
+### `GET /chat/threads`
+- Purpose: fetch all assignment chat threads visible to the authenticated user
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `threads`
+
+### `GET /chat/threads/{thread}`
+- Purpose: fetch one assignment chat thread and its message history
+- Access:
+  - client only
+  - production only
+- Returns:
+  - `thread`
+- Notes:
+  - only the linked client or production user can access the thread
+
+### `POST /chat/threads/{thread}/messages`
+- Purpose: send a message in an assignment chat thread
+- Access:
+  - client only
+  - production only
+- Body:
+  - `body`
+- Notes:
+  - the message body must be present and non-empty
+  - archived threads are read-only
+
+### `POST /chat/threads/{thread}/read`
+- Purpose: mark an assignment chat thread as read for the authenticated user
+- Access:
+  - client only
+  - production only
 
 ## Folder routes
 
 ### `GET /folders`
-- Purpose: list folders visible to the current user
+- Purpose: list folders visible to the authenticated user
 - Query params:
-  - `q` for folder-name search
+  - `q`
 
 ### `POST /folders`
 - Purpose: create a folder
 - Access:
-  - production only in the current codebase
+  - production only
 - Body:
   - `folder_name`
   - `client_id`
@@ -90,11 +173,11 @@ Most endpoints return:
 ### `GET /folders/{folder}`
 - Purpose: fetch one folder and its files
 - Access:
-  - client can only access assigned folder
-  - other authenticated roles follow the current backend authorization rules
+  - client is limited to the assigned folder
+  - other roles follow backend authorization rules
 
 ### `PUT|PATCH /folders/{folder}`
-- Purpose: update a folder
+- Purpose: update folder metadata
 - Access:
   - production only
 - Body may include:
@@ -104,7 +187,7 @@ Most endpoints return:
 ## File routes
 
 ### `GET /files`
-- Purpose: list files visible to the current user
+- Purpose: list files visible to the authenticated user
 - Query params:
   - `folder_id`
   - `q`
@@ -116,39 +199,35 @@ Most endpoints return:
 - Body:
   - `folder_id`
   - `file` multipart upload
-- Notes:
-  - backend now categorizes files into `image`, `video`, or `pdf`
 
 ### `GET /files/{file}`
 - Purpose: fetch one file record
-- Notes:
-  - backend records now persist `file_name`, `storage_disk`, `storage_path`, and `category`
-  - compatibility fields may still appear while the frontend contract is being aligned
 
 ### `PUT|PATCH /files/{file}`
-- Purpose: update a file record
+- Purpose: update file metadata or replace the stored file in place
 - Access:
   - production only
 - Body may include:
   - `folder_id`
   - `file_name`
   - `category`
+  - `file` multipart upload to replace the current file blob
 
 ### `DELETE /files/{file}`
-- Purpose: soft delete a file and move it to recycle bin
+- Purpose: soft delete a file
 - Access:
   - production only
 
 ### `GET /files/{file}/download`
-- Purpose: download a stored file
+- Purpose: download a file
 
 ### `GET /files/{file}/preview`
-- Purpose: stream a previewable file response
+- Purpose: preview a supported file
 
 ## Request routes
 
 ### `GET /requests`
-- Purpose: fetch the authenticated client's own request history
+- Purpose: fetch the authenticated client's request history
 - Access:
   - client only
 - Returns:
@@ -157,10 +236,13 @@ Most endpoints return:
 ### `POST /requests`
 - Purpose: create a client request
 - Access:
-  - client
-- Notes:
-  - if the client has no assigned folder yet, request creation creates and assigns it first
-  - the request is then stored against that folder with `pending` status
+  - client only
+- Body:
+  - request creation fields used by the client request form
+- Behavior:
+  - creates and assigns the client folder if one does not exist yet
+  - stores the request with `pending` status
+  - notifies admin users in-app about the new request
 
 ### `GET /production/requests`
 - Purpose: fetch requests for clients assigned to the authenticated production user
@@ -170,56 +252,103 @@ Most endpoints return:
   - `requests`
 
 ### `PATCH /production/requests/{clientRequest}`
-- Purpose: update operational request status for an assigned client request
+- Purpose: update operational request status
 - Access:
   - production only
 - Body:
   - `status`
-- Allowed status values:
+- Allowed values:
   - `pending`
   - `in_progress`
   - `done`
 - Notes:
   - `due_date` is prohibited on this route
-  - production may only update requests for assigned clients
+  - production can update only requests for assigned clients
+  - changing status to `in_progress` or `done` creates a client notification
 
 ### `GET /admin/requests`
-- Purpose: fetch all requests for administrative review
+- Purpose: fetch all requests for admin management
 - Access:
   - admin only
 - Returns:
   - `requests`
 
+### `GET /admin/users`
+- Purpose: fetch the complete backend-driven user list for admin management
+- Access:
+  - admin only
+- Returns:
+  - `users`
+- Notes:
+  - each user record includes stable identifiers such as `user_id`
+  - the admin users tab uses this route instead of deriving users from requests, assignments, or activity logs
+
 ### `PATCH /admin/requests/{clientRequest}`
-- Purpose: update request due date
+- Purpose: set or update a request due date
 - Access:
   - admin only
 - Body:
   - `due_date`
 - Notes:
   - `status` is prohibited on this route
+  - the admin dashboard uses this route for inline due-date editing
+  - due-date saves notify the target client
 
-## Agreed Role Ownership
+## Admin management routes
 
-The role model this project is implementing is:
-- `admin`
-  - assigns clients to production
-  - sets and updates request due dates
-  - manages user-role changes
-  - oversees request workflow
-  - does not use the file portal directly by default
-- `production`
-  - uploads files
-  - views assigned-client folders
-  - views assigned-client requests
-  - updates operational request status
-- `agent`
-  - browses and downloads allowed files only
-  - does not participate in request management
-- `client`
-  - creates requests
-  - views own requests
-  - downloads files from own assigned folder only
+### `GET /admin/assignments`
+- Purpose: fetch current client-to-production assignments and production user options
+- Access:
+  - admin only
+- Returns:
+  - `assignments`
+  - `production_users`
+
+### `POST /admin/assignments`
+- Purpose: create or update the assignment for a client
+- Access:
+  - admin only
+- Body:
+  - `client_id`
+  - `production_id`
+  - `status`
+- Notes:
+  - the selected client must already have at least one request
+  - returns `201` for a new assignment and `200` for an update
+  - new or changed assignments notify the selected production user
+
+### `DELETE /admin/assignments/{assignment}`
+- Purpose: remove a client assignment
+- Access:
+  - admin only
+
+### `PATCH /admin/users/{user}`
+- Purpose: update a user's role
+- Access:
+  - admin only
+- Body:
+  - `role`
+- Notes:
+  - the acting admin cannot change their own role
+
+## Activity and agent routes
+
+### `GET /admin/activity-logs`
+- Purpose: fetch recent activity logs
+- Access:
+  - authenticated users can reach the route in the current code
+  - admin is the intended management audience in the current product flow
+- Returns:
+  - `logs`
+
+### `POST /admin/agents`
+- Purpose: create an agent account
+- Body:
+  - `name`
+  - `email`
+  - `password`
+- Returns:
+  - `agent`
 
 ## Recycle bin routes
 
@@ -233,24 +362,25 @@ The role model this project is implementing is:
 - Access:
   - production only
 
-## Legacy Admin-Prefixed Routes
+## Role ownership
+- `admin`
+  - request oversight
+  - request due dates
+  - client assignments
+  - user-role changes
+- `production`
+  - assigned-client requests
+  - operational status updates
+  - file uploads
+- `agent`
+  - browse and download only
+- `client`
+  - request creation
+  - request history
+  - own-folder downloads
 
-Important:
-- These routes still exist alongside the dedicated request-management routes.
-- They remain operational for agent creation and activity logs.
-
-### `POST /admin/agents`
-- Current codebase purpose: create an agent account
-- Body:
-  - `name`
-  - `email`
-  - `password`
-
-### `GET /admin/activity-logs`
-- Current codebase purpose: fetch recent activity logs
-
-## Backend foundations present
-- backend role enum now includes `admin`
-- `client_requests` schema and model now exist in backend
-- `assigned_clients` schema and model now exist in backend
-- assignment-management and user-role-management routes are still not complete
+## Realtime delivery
+- In-app notifications are stored in the database and broadcast over Laravel Reverb private channels.
+- Frontend subscriptions use Echo on user-scoped channels in the form `users.{user_id}.notifications`.
+- Assignment chat uses private thread channels in the form `assignment-chat.{thread_id}` and private user channels in the form `assignment-chat-user.{user_id}`.
+- The broadcast auth endpoint used by Echo is `POST /broadcasting/auth`.

@@ -6,16 +6,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ClientRequest\StoreClientRequestRequest;
 use App\Models\ClientRequest;
 use App\Models\Folder;
+use App\Models\User;
+use App\Services\ProductionWorkspaceBroadcastService;
+use App\Services\WorkflowNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class ClientRequestController extends Controller
 {
+    public function __construct(
+        private readonly WorkflowNotificationService $workflowNotificationService,
+        private readonly ProductionWorkspaceBroadcastService $productionWorkspaceBroadcastService,
+    ) {
+    }
+
     public function store(StoreClientRequestRequest $request): JsonResponse
     {
         $user = $request->user();
-
-        abort_unless($user->isClient(), 403);
+        $this->authorize('create', ClientRequest::class);
 
         $clientRequest = DB::transaction(function () use ($request, $user): ClientRequest {
             $assignedFolderId = $user->assigned_folder_id;
@@ -29,7 +37,7 @@ class ClientRequestController extends Controller
                     ]
                 );
 
-                $user->forceFill([
+                $user->fill([
                     'assigned_folder_id' => $folder->folder_id,
                 ])->save();
 
@@ -46,6 +54,25 @@ class ClientRequestController extends Controller
                 'due_date' => null,
             ]);
         });
+
+        $adminUsers = User::query()
+            ->where('role', User::ROLE_ADMIN)
+            ->get();
+
+        $this->workflowNotificationService->sendToUsers($adminUsers, [
+            'kind' => 'client_request_created',
+            'title' => 'New client request',
+            'body' => sprintf(
+                '%s submitted a %s request: %s.',
+                $user->name,
+                $clientRequest->request_type === ClientRequest::TYPE_UPDATE_ASSET ? 'request update' : 'new asset',
+                $clientRequest->title
+            ),
+            'target' => 'requests',
+            'request_id' => $clientRequest->request_id,
+        ]);
+
+        $this->productionWorkspaceBroadcastService->broadcastRequestCreated($clientRequest);
 
         return response()->json([
             'message' => 'Request created.',

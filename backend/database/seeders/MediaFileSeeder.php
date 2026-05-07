@@ -6,6 +6,7 @@ use App\Models\Folder;
 use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class MediaFileSeeder extends Seeder
 {
@@ -57,6 +58,10 @@ class MediaFileSeeder extends Seeder
         ];
 
         foreach ($samples as $sample) {
+            $storagePath = $folder->folder_id.'/'.$sample['file_name'];
+
+            $this->ensureSampleFileExists($sample['storage_disk'], $storagePath, $sample['category'], $sample['file_name']);
+
             $exists = MediaFile::where('folder_id', $folder->folder_id)
                 ->where('file_name', $sample['file_name'])
                 ->exists();
@@ -67,11 +72,26 @@ class MediaFileSeeder extends Seeder
                     'uploaded_by' => $uploader->user_id,
                     'file_name' => $sample['file_name'],
                     'storage_disk' => $sample['storage_disk'],
-                    'storage_path' => $folder->folder_id . '/' . $sample['file_name'],
+                    'storage_path' => $storagePath,
                     'category' => $sample['category'],
                     'last_deleted_at' => null,
                 ]);
             }
         }
+    }
+
+    private function ensureSampleFileExists(string $disk, string $path, string $category, string $fileName): void
+    {
+        if (Storage::disk($disk)->exists($path)) {
+            return;
+        }
+
+        $content = match ($category) {
+            'pdf' => "%PDF-1.4\n% Sample promotional material: {$fileName}\n",
+            'video' => "Sample video placeholder for {$fileName}\n",
+            default => "Sample image placeholder for {$fileName}\n",
+        };
+
+        Storage::disk($disk)->put($path, $content);
     }
 }

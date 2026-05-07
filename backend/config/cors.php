@@ -3,10 +3,14 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
-    'allowed_origins_patterns' => [],
+    'allowed_origins' => [
+        'https://promotional-material-khf5.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:8000',
+    ],
+    'allowed_origins_patterns' => [
+        '#^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$#',
+    ],
     'allowed_headers' => ['*'],
-    'exposed_headers' => [],
-    'max_age' => 0,
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];

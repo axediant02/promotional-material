@@ -1,81 +1,110 @@
 # Frontend Routes
 
-This document describes the current Vue frontend routing in `frontend/src/router/index.js`.
+This document describes the current Vue router configuration in `frontend/src/router/index.js`.
+
+## Status
+- Current live router behavior unless a route is explicitly labeled compatibility or planned.
+- Backend authorization remains the source of truth.
+- Route guards are UX only.
 
 ## Route table
 
 | Path | Name | Access | Component | Notes |
 |---|---|---|---|---|
-| `/` | redirect | public | redirect to `/login` | Default entry path |
+| `/` | `landing` | guest only | `LandingPage.vue` | Public landing page |
 | `/login` | `login` | guest only | `LoginPage.vue` | Login form |
 | `/register` | `register` | guest only | `RegisterPage.vue` | Client registration form |
 | `/client` | `client-dashboard` | `client` only | `ClientDashboardPage.vue` | Client dashboard |
-| `/agent` | `agent-workspace` | `agent` only | `AgentWorkspacePage.vue` | Agent dashboard |
-| `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Temporary production dashboard route |
-| `/agent-new` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Temporary agent dashboard route |
-| `/admin-new` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Temporary admin dashboard scaffold |
-| `/admin` | `admin-overview` | legacy | `AdminOverviewPage.vue` | Legacy transition route that should not be treated as the final admin surface |
+| `/agent` | `agent-dashboard` | `agent` only | `AgentDashboardPage.vue` | Canonical agent dashboard route |
+| `/production` | `production-dashboard` | `production` only | `ProductionDashboardPage.vue` | Production shell parent route |
+| `/production/folders` | `production-folder-index` | `production` only | `ProductionFolderIndexPage.vue` | Assigned-folder browser inside the production shell |
+| `/production/folders/:folderId` | `production-folder-detail` | `production` only | `ProductionFolderFilesPage.vue` | Selected-folder file view inside the production shell |
+| `/admin` | `admin-dashboard` | `admin` only | `AdminDashboardPage.vue` | Canonical admin management dashboard route |
+| `/agent-new` | redirect | `agent` only | n/a | Legacy redirect to `/agent` |
+| `/admin-new` | redirect | `admin` only | n/a | Legacy redirect to `/admin` |
 
 ## Guard behavior
-- If a route requires auth and there is no authenticated user, redirect to `login`.
-- If a route is guest-only and a user is already logged in, redirect to the role default route.
-- If a route requires a role and the user has a different role, redirect to the role default route.
+- Auth-required routes redirect guests to `login`.
+- Guest-only routes redirect authenticated users to their role default route.
+- Role-locked routes redirect authenticated users with the wrong role to their default route.
 
 ## Default route logic
-- `production` -> `production-dashboard` (`/production`)
-- `agent` -> `agent-dashboard` (`/agent-new`)
-- `admin` -> `admin-dashboard` (`/admin-new`)
+- `production` -> `production-folder-index` (`/production/folders`)
+- `agent` -> `agent-dashboard` (`/agent`)
+- `admin` -> `admin-dashboard` (`/admin`)
 - any other authenticated user -> `client-dashboard` (`/client`)
 
-## Current frontend page coverage
+## Production workspace routing
+- `/production` is the production shell route.
+- It redirects to `/production/folders`.
+- The nested workspace swaps only the folder area between:
+  - `/production/folders`
+  - `/production/folders/:folderId`
+- Query params preserve workspace state for:
+  - `view`
+  - `filter`
+  - `sort`
+  - `q`
 
-### Auth pages
+## Current page coverage
+
+### Public pages
+- `LandingPage.vue`
 - `LoginPage.vue`
 - `RegisterPage.vue`
 
-### Role pages
+### Authenticated pages
 - `ClientDashboardPage.vue`
-- `AgentWorkspacePage.vue`
-- `AdminOverviewPage.vue`
 - `ProductionDashboardPage.vue`
+- `ProductionFolderIndexPage.vue`
+- `ProductionFolderFilesPage.vue`
 - `AgentDashboardPage.vue`
 - `AdminDashboardPage.vue`
 
-## Current data dependencies
+## Current route-linked data usage
+
+### Landing page
+- public entry surface for guests
 
 ### Login page
-- uses auth store
+- uses the auth store
 - calls `POST /auth/login`
 
 ### Register page
-- uses auth store
+- uses the auth store
 - calls `POST /auth/register`
-- successful registration creates the client account only
 
 ### Client dashboard
 - calls `GET /dashboard`
-- calls `GET /files` for the media grid
-- request submission calls `POST /requests`
-- the first request creates and assigns the client's folder when needed
+- calls `GET /files`
+- submits requests through `POST /requests`
+- shows request history through the client request routes
+- mounts the assignment chat widget and loads chat threads for the active assignment
 
-### Agent workspace
+### Agent dashboard
 - calls `GET /dashboard`
-- agent file access is browse/download only
+- supports browse/download file access only
 
-### Legacy admin overview
-- calls:
-  - `GET /dashboard`
-  - `GET /recycle-bin`
-  - `GET /admin/activity-logs`
+### Production workspace
+- calls `GET /dashboard`
+- calls `GET /production/requests`
+- uses nested folder routes for assigned-client file operations
+- mounts the assignment chat widget and loads chat threads for the active assignment
 
-### Temporary dashboard scaffolding
-- `/production`, `/agent-new`, and `/admin-new` currently exist in the router as temporary role-dashboard routes.
-- These routes are the current UI transition layer while the backend route surface is being aligned to the agreed role model.
+### Admin dashboard
+- calls `GET /dashboard`
+- calls `GET /admin/requests`
+- calls `PATCH /admin/requests/{clientRequest}` for due-date editing
+- calls `GET /admin/assignments`
+- calls `POST /admin/assignments`
+- calls `DELETE /admin/assignments/{assignment}`
+- calls `GET /admin/activity-logs`
 
 ## Notes
-- The agreed role model is:
-  - `admin` for assignments, due dates, and user-role administration
-  - `production` for uploads and assigned-client execution
-  - `agent` for browse/download-only operational access
-  - `client` for own requests and own-folder downloads
-- Any remaining legacy `/admin` route usage should be treated as transition drift, not final architecture.
+- `/admin` and `/agent` are the canonical role entry routes.
+- `/admin-new` and `/agent-new` remain as compatibility redirects.
+- The agreed role model in the frontend is:
+  - `admin` for admin management
+  - `production` for execution
+  - `agent` for browse/download access
+  - `client` for requests, own-folder access, and assignment chat

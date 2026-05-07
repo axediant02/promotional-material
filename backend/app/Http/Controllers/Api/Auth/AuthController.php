@@ -42,10 +42,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function me(): JsonResponse
+    public function currentUser(): JsonResponse
     {
         return response()->json([
-            'message' => 'Authenticated user fetched.',
+            'message' => 'Current user fetched.',
             'data' => ['user' => request()->user()->load('assignedFolder')],
         ]);
     }

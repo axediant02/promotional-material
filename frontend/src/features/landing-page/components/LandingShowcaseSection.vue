@@ -38,7 +38,7 @@ const { element, isVisible } = useScrollReveal()
     >
       <div>
         <p class="text-[11px] uppercase tracking-[0.42em] text-brand-600">Project Gallery</p>
-        <h2 class="mt-4 text-4xl font-semibold tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <h2 class="mt-4 text-4xl font-semibold tracking-[-0.03em] text-ink dark:text-white ">
           Our works, presented as deliverable systems.
         </h2>
       </div>
@@ -58,7 +58,7 @@ const { element, isVisible } = useScrollReveal()
           <p class="text-[11px] uppercase tracking-[0.42em] text-brand-500">{{ item.category }}</p>
           <span class="text-xl text-muted transition group-hover:text-ink dark:group-hover:text-white">&nearr;</span>
         </div>
-        <h3 class="mt-6 max-w-md text-3xl font-semibold leading-tight tracking-[-0.03em] text-ink dark:text-white [font-family:'Iowan_Old_Style','Palatino_Linotype','Book_Antiqua',Palatino,serif]">
+        <h3 class="mt-6 max-w-md text-3xl font-semibold leading-tight tracking-[-0.03em] text-ink dark:text-white ">
           {{ item.title }}
         </h3>
         <p class="mt-4 max-w-xl text-lg leading-8 text-muted dark:text-zinc-400">

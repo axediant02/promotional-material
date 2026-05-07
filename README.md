@@ -17,6 +17,7 @@ This system is designed to solve that. It gives everyone a clear place to work, 
 - Gives each client a dedicated space for their files
 - Allows clients to request new materials when needed
 - Helps teams stay informed about file activity and updates
+- Keeps assignment conversations tied to the work they belong to
 - Makes it possible to recover files removed by mistake
 
 ## Who It Is For
@@ -43,6 +44,7 @@ This system is built for four types of users:
 3. The system prepares the client's file space when needed.
 4. Production staff upload the needed files.
 5. The client and approved users can access and download the finished materials.
+6. Assigned clients and production can keep project messages in the assignment chat.
 
 ## Access And Privacy
 

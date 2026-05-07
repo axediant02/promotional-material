@@ -16,7 +16,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - `client`
 
 ## Current Truth
-- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, and client requests.
+- Core flows are file delivery, folder access, downloads, recycle-bin recovery, activity logging, client requests, assignment chat, and in-app notifications.
 - Backend foundations now exist for:
   - `client_requests`
   - `assigned_clients`
@@ -24,26 +24,37 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - One client maps to one assigned folder.
 - Registration creates a default `client` account immediately.
 - The client's folder is created and assigned when the first request is submitted.
-- Admin owns governance:
+- Admin owns admin management:
   - client-to-production assignment
   - due dates
   - user-role changes
+  - notification visibility for new client requests
 - Production owns execution:
   - file uploads
   - assigned-client folders
   - assigned-client requests
+  - notification-triggering status updates for client-facing request progress
 - Agents can browse and download allowed files but do not participate in request management.
 - Clients can create requests and download files from their own assigned folder.
+- Realtime in-app notifications use Laravel Reverb on the backend and Echo on the frontend for `admin`, `production`, and `client`.
+- Assignment chat is live for client-to-production communication on assignment-linked threads.
 
 ## Target Direction
 - Complete backend and frontend implementation so the code fully matches the role model above.
-- Replace legacy route and UI naming that still blurs `admin` and `production`.
+- Keep assignment chat, request, and notification workflows aligned across both apps.
+- Keep route and UI naming aligned with the canonical role surfaces:
+  - `/admin`
+  - `/agent`
+  - `/production`
+  - `/client`
+- Document `/admin-new` and `/agent-new` only as compatibility redirects while any remaining legacy references are cleaned up.
 - Keep the file portal stable while the request, assignment, and role-management workflows are completed.
 
 ## Shared Rules
 - Backend authorization is the source of truth.
 - Frontend guards and hidden UI are UX only.
 - Keep terminology aligned across backend, frontend, tests, and docs.
+- When adding or refactoring features, keep code small, single-purpose, and testable. Prefer separation of concerns, DRY reuse, and focused helpers/services/resources for repeated or complex logic, but avoid speculative abstraction or extra layers that do not clearly reduce duplication, risk, or complexity.
 - When working test-first, treat approved tests as fixed acceptance criteria.
 - If a newly added test fails, fix the implementation or supporting setup instead of rewriting the test just to make it pass.
 - Distinguish clearly between:
@@ -65,14 +76,16 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 1. `AGENTS.md` at repo root
 2. `backend/AGENTS.md`
 3. `frontend/AGENTS.md`
-4. `docs/system-flow.md`
-5. `docs/request-workflow.md`
-6. remaining references in `docs/`
+4. `docs/ui-ux-design-policy.md` for UI/UX design work
+5. `docs/system-flow.md`
+6. `docs/request-workflow.md`
+7. remaining references in `docs/`
 
 ## Workflow
 - Clarify only when access rules, contracts, or docs conflict in a risky way.
 - For cross-stack changes, keep backend and frontend behavior aligned.
 - Preserve one-client-one-folder access unless requirements change.
+- For frontend UI/UX prompts, route implementation through `docs/ui-ux-design-policy.md` in addition to the frontend guide.
 - For TDD work, write or approve the test first, then keep the test stable while adapting the code to satisfy it.
 - Verify:
   - backend changes: `cd backend && php artisan test`
@@ -84,8 +97,11 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-20: Requests and assignments now exist as backend foundations, but the full workflow is still incomplete.
 - 2026-04-20: Backend naming is actively migrating toward `user_id` / `folder_id` / `file_id` / `folder_name` / `file_name` / `category`.
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
-- 2026-04-22: Agreed role ownership is now explicit: admin handles governance and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
+- 2026-04-22: Agreed role ownership is now explicit: admin handles admin management and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
+- 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
+- 2026-04-24: In-app notifications are now persisted in the database and delivered in realtime through Reverb/Echo for admin request intake, production assignments, and client due-date or status changes.
+- 2026-05-04: Assignment chat is now part of the live workflow for assigned client/production pairs and should be documented as a current feature, not planned work.
 
 ## Success Criteria
 - Secure file delivery

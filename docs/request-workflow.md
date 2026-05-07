@@ -1,15 +1,20 @@
 # Request Workflow
 
-This document defines the agreed request workflow and role ownership for the portal.
+This document describes the current request lifecycle, ownership model, assignment chat, and route responsibilities.
+
+## Status
+- Current live request workflow unless a section is labeled planned or target.
+- Requests and assignment chat are live backend features.
+- If this doc and the code disagree, treat the live backend as the source of truth and mark the mismatch explicitly in future updates.
 
 ## Purpose
-Allow clients to request:
+Clients can request:
 - new assets
 - updates to existing assets
 
-Requests are governed by admin and executed by production.
+Admin governs due dates and assignment context. Production executes the work.
 
-## Core Request Data
+## Core request data
 
 ### `client_requests`
 - `request_id`
@@ -20,9 +25,10 @@ Requests are governed by admin and executed by production.
 - `request_type`
 - `status`
 - `due_date`
-- timestamps and soft-delete fields
+- timestamps
+- soft-delete fields
 
-### Expected values
+### Supported values
 - `request_type`
   - `new_asset`
   - `update_asset`
@@ -31,7 +37,7 @@ Requests are governed by admin and executed by production.
   - `in_progress`
   - `done`
 
-## Ownership Model
+## Ownership model
 
 ### `assigned_clients`
 - `id`
@@ -40,61 +46,98 @@ Requests are governed by admin and executed by production.
 - `status`
 - timestamps
 
-Client ownership is intended to live at the client level, not through per-request assignment.
+Assignments live at the client level, not the individual request level.
 
-## Access Rules
+### `assignment_chat_threads`
+- `thread_id`
+- `assignment_id`
+- `client_id`
+- `production_id`
+- `status`
+- `started_at`
+- `closed_at`
+- `last_message_at`
+- `last_message_by`
+- `client_last_read_at`
+- `production_last_read_at`
+- timestamps
+
+### `assignment_chat_messages`
+- `message_id`
+- `thread_id`
+- `sender_user_id`
+- `body`
+- timestamps
+
+## Access rules
 
 ### Client
 - can create requests
-- can view own requests
+- can view own request history
 - cannot set due dates
 - cannot view other clients' requests
 
 ### Admin
 - can view all client requests
-- can assign production ownership to clients
-- can set `due_date`
-- can manage user-role changes
-- does not use the file portal directly by default
+- can set and update `due_date`
+- can assign a client to a production owner
+- can remove a client assignment
+- can update user roles
 
 ### Production
 - can view requests for assigned clients
-- can work requests through completion
-- can upload files for client requests
+- can update request status
+- can upload files for assigned-client work
+- can use the assignment chat on active assignment threads
 
 ### Agent
-- no request module access in v1
-- can browse and download allowed files only
+- does not access request routes
+- can browse and download files allowed by backend authorization
 
-## Current Workflow
-1. User registers with default role `client`.
-2. User can sign in immediately.
-3. If the client has no assigned folder yet, the first submitted request creates and assigns it automatically.
-4. Client submits a request.
-5. Request is linked to the client and assigned folder.
-6. Client can fetch request history through the client request listing route.
-7. Admin can review all requests and set or update `due_date`.
-8. Admin assigns the client to production when operational ownership is needed.
-9. Production fetches requests for assigned clients only.
-10. Production works the request through `pending`, `in_progress`, and `done`.
+## Assignment chat
+1. Saving an assignment creates or reuses the active chat thread for the client and production pair.
+2. Client and production users can fetch the active thread, the full thread list, and message history through the chat routes.
+3. Either side can post messages while the thread status is `active`.
+4. When the assignment is changed, marked done, or removed, the active thread is archived and remains read-only.
+5. Realtime delivery uses private `assignment-chat.{thread_id}` and `assignment-chat-user.{user_id}` channels.
 
-## Operational Notes
-- Registration does not create the folder.
-- The first request creates the assigned folder, and future requests reuse it.
-- Production uploads files for assigned-client work.
-- Agents can download allowed files for operational use.
-- Clients can download files in their assigned folder only.
+## Current workflow
+1. A user registers and receives the `client` role.
+2. The client signs in.
+3. The client submits a request through `POST /requests`.
+4. If the client does not yet have an assigned folder, the backend creates and assigns it during that first request.
+5. The request is stored with `pending` status.
+6. The client can review request history through `GET /requests`.
+7. Admin reviews the full queue through `GET /admin/requests`.
+8. Admin sets or updates the due date through `PATCH /admin/requests/{clientRequest}`.
+9. Admin links the client to production through `POST /admin/assignments`.
+10. The backend creates or reuses the active assignment chat thread for that assignment.
+11. Production fetches requests for assigned clients through `GET /production/requests`.
+12. Production updates operational status through `PATCH /production/requests/{clientRequest}`.
 
-## TDD Rule
+## Admin management UI
+- The admin dashboard at `/admin` shows admin stats, the request queue, assignments, activity logs, and user-role context.
+- The request queue supports inline due-date editing.
+- Saving a due date updates the request queue and admin counts from the live API response.
+- Assignment management uses the live admin assignment routes instead of static placeholder data.
+- `/admin-new` remains only as a compatibility redirect to `/admin`.
+
+## Operational notes
+- Registration does not create a folder.
+- The first request creates the client's assigned folder.
+- Future requests reuse the existing assigned folder.
+- Production status updates and admin due-date updates are separate routes with separate validation rules.
+- The admin due-date route prohibits `status`.
+- The production status route prohibits `due_date`.
+- Assignment chat becomes read-only when the assignment is archived or removed.
+- Assignment chat is part of the current workflow, not future work.
+
+## TDD rule
 - New backend request-workflow changes should be written test-first.
-- Once the expected behavior test is written and accepted, treat it as fixed acceptance criteria.
-- If the test fails, adjust the implementation or fixtures instead of weakening the test to manufacture a pass.
+- Once an approval test is accepted, treat it as fixed acceptance criteria.
+- If that test fails, fix the implementation or setup instead of weakening the test.
 
-## Implementation Note
-- Backend schema and models for requests and assignments already exist.
-- The backend route surface now covers client history, admin due-date management, and production status handling.
-- Assignment-management routes and full frontend alignment are still incomplete.
-- Read this file with:
-  - [system-flow.md](./system-flow.md)
-  - [api-reference.md](./api-reference.md)
-  - [schemas-relationship.md](./schemas-relationship.md)
+## Related docs
+- [system-flow.md](./system-flow.md)
+- [api-reference.md](./api-reference.md)
+- [schemas-relationship.md](./schemas-relationship.md)

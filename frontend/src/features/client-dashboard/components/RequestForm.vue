@@ -231,11 +231,11 @@ const submitRequest = async () => {
     </div>
 
     <!-- Actions -->
-    <div class="flex gap-3 pt-2">
+    <div class="flex flex-col gap-3 pt-2 sm:flex-row">
       <button
         type="button"
         @click="resetForm(); emit('close')"
-        class="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/10"
+        class="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:border-brand-300 hover:bg-brand-50 dark:border-white/10 dark:text-white dark:hover:border-white/20 dark:hover:bg-white/10 sm:flex-1"
       >
         Clear
       </button>
@@ -243,7 +243,7 @@ const submitRequest = async () => {
         type="submit"
         :disabled="isSubmitting"
         :class="[
-          'pm-gradient-primary flex-1 rounded-xl px-4 py-3 text-sm font-medium transition',
+          'pm-gradient-primary w-full rounded-xl px-4 py-3 text-sm font-medium transition sm:flex-1',
           isSubmitting
             ? 'cursor-not-allowed opacity-50'
             : 'hover:brightness-110'

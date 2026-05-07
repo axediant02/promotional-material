@@ -3,10 +3,14 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\AssignedClient;
+use App\Models\ActivityLog;
 use App\Models\ClientRequest;
 use App\Models\Folder;
+use App\Models\MediaFile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -293,6 +297,114 @@ class AdminManagementRoutesTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_fetch_the_composed_workspace_payload(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $folder = $this->assignFolderToClient($client, $production);
+
+        $request = ClientRequest::query()->create([
+            'client_id' => $client->user_id,
+            'folder_id' => $folder->folder_id,
+            'title' => 'Client User Request',
+            'description' => 'Request for the admin workspace bootstrap.',
+            'request_type' => ClientRequest::TYPE_NEW_ASSET,
+            'status' => ClientRequest::STATUS_PENDING,
+            'due_date' => null,
+        ]);
+
+        $assignment = AssignedClient::query()->create([
+            'production_id' => $production->user_id,
+            'client_id' => $client->user_id,
+            'status' => AssignedClient::STATUS_PENDING,
+        ]);
+
+        $file = MediaFile::query()->create([
+            'folder_id' => $folder->folder_id,
+            'uploaded_by' => $production->user_id,
+            'file_name' => 'bootstrap.pdf',
+            'storage_disk' => 'local',
+            'storage_path' => 'clients/'.$folder->folder_id.'/bootstrap.pdf',
+            'category' => 'pdf',
+        ]);
+
+        ActivityLog::query()->create([
+            'user_id' => $admin->user_id,
+            'action' => 'dashboard_bootstrap',
+            'subject_type' => User::class,
+            'subject_id' => $client->user_id,
+            'description' => 'Bootstrap test log',
+            'metadata' => [],
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Admin workspace fetched.')
+            ->assertJsonPath('data.dashboard.stats.folders', 1)
+            ->assertJsonPath('data.dashboard.stats.files', 1)
+            ->assertJsonCount(1, 'data.dashboard.folders')
+            ->assertJsonCount(1, 'data.dashboard.recentFiles')
+            ->assertJsonCount(1, 'data.requests')
+            ->assertJsonCount(1, 'data.activityLogs')
+            ->assertJsonCount(1, 'data.assignments')
+            ->assertJsonCount(1, 'data.productionUsers')
+            ->assertJsonCount(3, 'data.users')
+            ->assertJsonPath('data.dashboard.folders.0.folder_id', $folder->folder_id)
+            ->assertJsonPath('data.dashboard.recentFiles.0.file_id', $file->file_id)
+            ->assertJsonPath('data.requests.0.request_id', $request->request_id)
+            ->assertJsonPath('data.assignments.0.id', $assignment->id)
+            ->assertJsonPath('data.productionUsers.0.user_id', $production->user_id)
+            ->assertJsonPath('data.users.0.user_id', $admin->user_id);
+    }
+
+    public function test_admin_activity_logs_are_paginated_without_breaking_the_log_list_shape(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $subject = $this->createUser('Subject User', 'subject@example.com', User::ROLE_CLIENT);
+
+        for ($index = 1; $index <= 16; $index++) {
+            DB::table('activity_logs')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => $admin->user_id,
+                'action' => 'activity_'.$index,
+                'subject_type' => User::class,
+                'subject_id' => $subject->user_id,
+                'description' => 'Activity log '.$index,
+                'metadata' => json_encode(['index' => $index], JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        Sanctum::actingAs($admin);
+
+        $firstPage = $this->getJson('/api/admin/activity-logs');
+
+        $firstPage
+            ->assertOk()
+            ->assertJsonPath('message', 'Activity logs fetched.')
+            ->assertJsonCount(15, 'data.logs')
+            ->assertJsonPath('pagination.current_page', 1)
+            ->assertJsonPath('pagination.per_page', 15)
+            ->assertJsonPath('pagination.last_page', 2)
+            ->assertJsonPath('pagination.total', 16);
+
+        $secondPage = $this->getJson('/api/admin/activity-logs?page=2&per_page=15');
+
+        $secondPage
+            ->assertOk()
+            ->assertJsonCount(1, 'data.logs')
+            ->assertJsonPath('pagination.current_page', 2)
+            ->assertJsonPath('pagination.per_page', 15)
+            ->assertJsonPath('pagination.last_page', 2)
+            ->assertJsonPath('pagination.total', 16);
+    }
+
     public function test_non_admin_users_cannot_fetch_admin_request_listing(): void
     {
         $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
@@ -304,6 +416,59 @@ class AdminManagementRoutesTest extends TestCase
 
             $this->getJson('/api/admin/requests')->assertForbidden();
         }
+    }
+
+    public function test_admin_can_fetch_a_complete_backend_driven_user_list(): void
+    {
+        $admin = $this->createUser('Admin User', 'admin@example.com', User::ROLE_ADMIN);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+        $agent = $this->createUser('Agent User', 'agent@example.com', User::ROLE_AGENT);
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $hiddenClient = $this->createUser('Hidden Client', 'hidden-client@example.com', User::ROLE_CLIENT);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->getJson('/api/admin/users');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Users fetched.')
+            ->assertJsonCount(5, 'data.users');
+
+        $response->assertJsonFragment([
+            'user_id' => $admin->user_id,
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $production->user_id,
+            'name' => $production->name,
+            'email' => $production->email,
+            'role' => User::ROLE_PRODUCTION,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $agent->user_id,
+            'name' => $agent->name,
+            'email' => $agent->email,
+            'role' => User::ROLE_AGENT,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $client->user_id,
+            'name' => $client->name,
+            'email' => $client->email,
+            'role' => User::ROLE_CLIENT,
+        ]);
+
+        $response->assertJsonFragment([
+            'user_id' => $hiddenClient->user_id,
+            'name' => $hiddenClient->name,
+            'email' => $hiddenClient->email,
+            'role' => User::ROLE_CLIENT,
+        ]);
     }
 
     public function test_admin_can_update_another_users_role(): void

@@ -4,20 +4,21 @@ namespace App\Http\Controllers\Api\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientRequest;
+use App\Services\ClientRequestService;
 use Illuminate\Http\JsonResponse;
 
 class ClientRequestHistoryController extends Controller
 {
+    public function __construct(private readonly ClientRequestService $clientRequestService)
+    {
+    }
+
     public function index(): JsonResponse
     {
         $user = request()->user();
+        $this->authorize('viewHistory', ClientRequest::class);
 
-        abort_unless($user?->isClient(), 403);
-
-        $requests = ClientRequest::query()
-            ->where('client_id', $user->user_id)
-            ->latest('created_at')
-            ->get();
+        $requests = $this->clientRequestService->requestsQuery($user)->get();
 
         return response()->json([
             'message' => 'Requests fetched.',

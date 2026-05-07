@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:production-workspace": "node tests/productionWorkspaceSync.test.js",
+    "test:client-workspace": "node tests/clientWorkspaceSync.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
     "axios": "^1.15.0",
+    "laravel-echo": "^2.3.4",
     "pinia": "^3.0.4",
+    "pusher-js": "^8.5.0",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },

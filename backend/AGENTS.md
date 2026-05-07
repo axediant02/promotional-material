@@ -10,6 +10,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - Laravel 12
   - PHP 8.2+
   - Laravel Sanctum
+  - Laravel Reverb
   - MySQL or MariaDB
   - PHPUnit
 - Working roles:
@@ -28,6 +29,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - `client_requests` and `assigned_clients` tables/models exist.
 - Registration creates the client account immediately.
 - The first client request creates and assigns the client's folder.
+- Assignment chat threads and messages exist for client-to-production communication.
 - Role ownership:
   - `admin` manages client assignment, due dates, and user roles
   - `production` uploads files and executes work for assigned clients
@@ -49,6 +51,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Reuse model constants for roles, statuses, request types, and categories.
 - Keep validation in Form Requests where practical.
 - Keep controllers thin; extract shared logic into helpers or services as needed.
+- When adding or refactoring backend features or functions, keep methods focused and small, separate orchestration from business rules, reuse shared logic instead of duplicating it, and avoid speculative abstraction that adds layers without clear reuse or complexity reduction.
 - Extend `ActivityLogService` instead of duplicating lifecycle logging.
 - Be explicit about UUID compatibility in migrations, relations, route model binding, and Sanctum integration.
 - Preserve soft-delete and recycle-bin behavior when touching file lifecycle code.
@@ -68,7 +71,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Auth:
   - register
   - login
-  - `/auth/me`
+  - `/auth/currentUser`
   - logout
 - Dashboard aggregation
 - Folder list/create/show/update
@@ -76,22 +79,25 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - Recycle bin and purge command
 - Agent creation
 - Activity log listing
+- Notification listing and read actions
 - Client request creation and request history
 - Production request listing for assigned clients
 - Production request status updates
 - Admin request listing and due-date updates
 - Backend assignment foundations
+- Assignment chat thread listing, history, message posting, and read tracking
 
 ## Planned Areas Still Incomplete
 - Full assignment-management workflow
-- Admin user-management and role-management route surface
-- Legacy route naming cleanup where paths still blur `admin` and `production`
+- End-to-end assignment workflow polish across admin management, execution, and docs
+- Compatibility cleanup for legacy route references that previously blurred `admin` and `production`
 
 ## Workflow
 - Check `routes/api.php`, related Form Requests, controllers, models, and migrations before changing behavior.
 - Use `docs/system-flow.md`, `docs/request-workflow.md`, and `docs/api-reference.md` as the current docs baseline.
 - If docs and code disagree, code against the live backend unless the task is an intentional migration.
 - Preserve role boundaries for uploads, downloads, request visibility, due-date ownership, and assignment ownership.
+- Keep notification writes scoped to the directly affected users; do not broadcast broadly by role.
 - When writing tests first, treat the initial approved test as the acceptance target and adapt implementation to satisfy it unless the requirement itself is corrected explicitly.
 
 ## Verification
@@ -100,7 +106,7 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - For auth changes, verify:
   - register
   - login
-  - `/auth/me`
+  - `/auth/currentUser`
   - logout
 - For access changes, verify:
   - production access
@@ -116,6 +122,16 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
   - client download scoping
   - agent download access
   - assignment linkage
+- For assignment chat changes, verify:
+  - thread listing and history access
+  - message posting rules
+  - read tracking
+  - broadcast channel authorization
+- For notification changes, verify:
+  - database notification creation
+  - user-scoped notification read endpoints
+  - broadcast channel authorization
+  - Reverb config alignment with frontend Echo settings
 
 ## Compounding Knowledge
 - 2026-04-17: Core models use UUIDs, so auth and token schema compatibility need extra care.
@@ -127,6 +143,9 @@ The backend owns authentication, authorization, file and folder lifecycle rules,
 - 2026-04-20: Recycle-bin behavior still depends on both soft deletes and storage cleanup.
 - 2026-04-22: Admin owns assignment, due dates, and role changes. Production owns uploads and assigned-client execution. Agents and clients can download files, but agents stay outside the request workflow.
 - 2026-04-23: Backend TDD work keeps newly written failing tests fixed as acceptance criteria; implementation must move to the test, not the other way around.
+- 2026-04-24: Admin user listing and role update routes are part of the live backend surface; remaining incompleteness is centered on broader assignment workflow fit-and-finish rather than missing admin role-management endpoints.
+- 2026-04-24: In-app notifications now use Laravel database notifications plus Reverb-backed private user channels for admin request intake, production assignment alerts, and client due-date or status alerts.
+- 2026-05-04: Assignment chat threads are created from assignment state and archived when assignments change, complete, or are removed.
 
 ## Success Criteria
 - Correct authorization
