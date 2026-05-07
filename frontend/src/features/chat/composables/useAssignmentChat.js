@@ -4,7 +4,7 @@
  */
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import {
   fetchChatThread,
   fetchChatThreads,
@@ -16,6 +16,7 @@ const DEFAULT_REVERB_APP_KEY = 'promotional-materials-key'
 const DEFAULT_REVERB_HOST = '127.0.0.1'
 const DEFAULT_REVERB_PORT = 8080
 const DEFAULT_REVERB_SCHEME = 'http'
+const SCROLL_BOTTOM_THRESHOLD = 48
 
 export function useAssignmentChat(props, options = {}) {
   const {
@@ -33,6 +34,11 @@ export function useAssignmentChat(props, options = {}) {
   const selectedThreadId = ref('')
   const messageDraft = ref('')
   const sending = ref(false)
+  const stickToBottom = ref(false)
+  const isNearBottom = ref(true)
+  const scrollContainerElement = ref(null)
+  const resizeObserver = ref(null)
+  const scrollFrameId = ref(null)
   const echoInstance = ref(null)
   const activeChannel = ref(null)
   const activeChannelName = ref('')
@@ -109,6 +115,125 @@ export function useAssignmentChat(props, options = {}) {
     if (echoInstance.value) {
       echoInstance.value.disconnect()
       echoInstance.value = null
+    }
+  }
+
+  // Scroll controller
+  const getScrollContainer = () => scrollContainerRef?.value ?? null
+
+  const cancelScrollFrame = () => {
+    if (scrollFrameId.value === null || typeof window === 'undefined') {
+      return
+    }
+
+    window.cancelAnimationFrame(scrollFrameId.value)
+    scrollFrameId.value = null
+  }
+
+  const measureScrollProximity = (container = getScrollContainer()) => {
+    if (!container) {
+      isNearBottom.value = true
+      return true
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.clientHeight - container.scrollTop
+    const nearBottom = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD
+
+    isNearBottom.value = nearBottom
+    return nearBottom
+  }
+
+  const scrollContainerToBottom = (container = getScrollContainer()) => {
+    if (!container) {
+      return false
+    }
+
+    container.scrollTop = container.scrollHeight
+    measureScrollProximity(container)
+    return true
+  }
+
+  const requestScrollToBottom = async ({ force = false } = {}) => {
+    const container = getScrollContainer()
+    const shouldScroll = force || stickToBottom.value || (container ? measureScrollProximity(container) : false)
+
+    if (!shouldScroll) {
+      return
+    }
+
+    if (force) {
+      stickToBottom.value = true
+    }
+
+    await nextTick()
+
+    const applyScroll = () => {
+      const latestContainer = getScrollContainer()
+      if (!latestContainer || (!force && !stickToBottom.value)) {
+        return
+      }
+
+      scrollContainerToBottom(latestContainer)
+    }
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      cancelScrollFrame()
+      scrollFrameId.value = window.requestAnimationFrame(() => {
+        scrollFrameId.value = null
+        applyScroll()
+      })
+      return
+    }
+
+    applyScroll()
+  }
+
+  const handleScroll = () => {
+    const nearBottom = measureScrollProximity()
+    stickToBottom.value = nearBottom
+  }
+
+  const detachScrollTracking = () => {
+    cancelScrollFrame()
+
+    if (scrollContainerElement.value) {
+      scrollContainerElement.value.removeEventListener('scroll', handleScroll)
+      scrollContainerElement.value = null
+    }
+
+    if (resizeObserver.value) {
+      resizeObserver.value.disconnect()
+      resizeObserver.value = null
+    }
+  }
+
+  const attachScrollTracking = (container) => {
+    if (scrollContainerElement.value === container) {
+      return
+    }
+
+    detachScrollTracking()
+
+    if (!container) {
+      return
+    }
+
+    scrollContainerElement.value = container
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    measureScrollProximity(container)
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver.value = new ResizeObserver(() => {
+        if (stickToBottom.value) {
+          void requestScrollToBottom({ force: true })
+        }
+      })
+
+      resizeObserver.value.observe(container)
+    }
+
+    if (stickToBottom.value) {
+      void requestScrollToBottom({ force: true })
     }
   }
 
@@ -222,15 +347,6 @@ export function useAssignmentChat(props, options = {}) {
       ?? ''
   }
 
-  const scrollMessagesToBottom = async () => {
-    await nextTick()
-
-    const container = scrollContainerRef?.value ?? null
-    if (container) {
-      container.scrollTop = container.scrollHeight
-    }
-  }
-
   // API calls
   const loadThreads = async (options = {}) => {
     const { autoSelect = true } = options
@@ -301,6 +417,7 @@ export function useAssignmentChat(props, options = {}) {
 
     const incomingMessage = normalizeMessage(payload.message)
     const threadId = payload.thread_id ?? incomingMessage.thread_id
+    const shouldAutoScroll = stickToBottom.value || isNearBottom.value
     const currentThread = await ensurePayloadThread(threadId)
 
     if (!currentThread) {
@@ -321,8 +438,9 @@ export function useAssignmentChat(props, options = {}) {
       await markSelectedThreadAsRead()
     }
 
-    if (isSelectedThread) {
-      await scrollMessagesToBottom()
+    if (isSelectedThread && shouldAutoScroll) {
+      stickToBottom.value = true
+      await requestScrollToBottom()
     }
   }
 
@@ -376,7 +494,6 @@ export function useAssignmentChat(props, options = {}) {
       const response = await fetchChatThread(threadId)
       upsertThread(response.data.data.thread)
       await markSelectedThreadAsRead()
-      await scrollMessagesToBottom()
     } catch (err) {
       sendError.value = err.response?.data?.message ?? 'Unable to load this conversation.'
       onSendError(err)
@@ -400,6 +517,7 @@ export function useAssignmentChat(props, options = {}) {
       return
     }
 
+    const shouldAutoScroll = stickToBottom.value || isNearBottom.value
     sending.value = true
     sendError.value = ''
 
@@ -415,7 +533,11 @@ export function useAssignmentChat(props, options = {}) {
       upsertThread(currentThread)
 
       messageDraft.value = ''
-      await scrollMessagesToBottom()
+
+      if (shouldAutoScroll) {
+        stickToBottom.value = true
+        await requestScrollToBottom()
+      }
     } catch (err) {
       sendError.value = err.response?.data?.message ?? 'Unable to send the message.'
       onSendError(err)
@@ -431,6 +553,7 @@ export function useAssignmentChat(props, options = {}) {
   }
 
   const cleanup = () => {
+    detachScrollTracking()
     disconnectRealtime()
   }
 
@@ -442,20 +565,43 @@ export function useAssignmentChat(props, options = {}) {
     }
   )
 
-  watch(selectedThreadId, (threadId) => {
-    if (threadId) {
-      void loadSelectedThread(threadId)
-      return
-    }
+  watch(
+    selectedThreadId,
+    (threadId) => {
+      if (threadId) {
+        stickToBottom.value = true
+        void requestScrollToBottom({ force: true })
+        void loadSelectedThread(threadId)
+        return
+      }
 
-    leaveActiveThreadChannel()
-  })
+      stickToBottom.value = false
+      leaveActiveThreadChannel()
+    },
+    { flush: 'post' }
+  )
 
   watch(
-    () => selectedThread.value?.messages?.length,
-    async () => {
-      await scrollMessagesToBottom()
-    }
+    () => scrollContainerRef?.value,
+    (container) => {
+      attachScrollTracking(container)
+    },
+    { immediate: true, flush: 'post' }
+  )
+
+  watch(
+    () => selectedThread.value?.messages?.length ?? 0,
+    (newLength, oldLength) => {
+      if (newLength === oldLength || !selectedThread.value) {
+        return
+      }
+
+      if (stickToBottom.value || isNearBottom.value) {
+        stickToBottom.value = true
+        void requestScrollToBottom({ force: true })
+      }
+    },
+    { flush: 'post' }
   )
 
   // Auto-cleanup on unmount
@@ -485,7 +631,7 @@ export function useAssignmentChat(props, options = {}) {
     openThread,
     sendMessage,
     markSelectedThreadAsRead,
-    scrollMessagesToBottom,
+    scrollMessagesToBottom: requestScrollToBottom,
     initialize,
     cleanup,
     selectBestThread,
