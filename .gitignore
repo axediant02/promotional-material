@@ -6,3 +6,8 @@ _bmad
 .agents/skills
 .cline/skills
 .claude/skills
+
+# Local workspace launcher
+go
+go.cmd
+start-local-workspace.ps1
