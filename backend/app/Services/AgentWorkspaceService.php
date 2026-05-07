@@ -8,18 +8,23 @@ class AgentWorkspaceService
 {
     public function __construct(
         private readonly DashboardService $dashboardService,
-        private readonly FolderService $folderService,
-        private readonly FileService $fileService,
+        private readonly WorkspaceDataService $workspaceDataService,
     ) {
     }
 
     public function getForUser(User $user): array
     {
-        $folders = $this->folderService->accessibleFoldersQuery($user)->latest('updated_at')->get();
-        $files = $this->fileService->accessibleFilesQuery($user)->latest('updated_at')->get();
+        $folders = $this->workspaceDataService->foldersForUser($user);
+        $files = $this->workspaceDataService->filesForUser($user);
 
         return [
-            'dashboard' => $this->dashboardService->getForUser($user),
+            'dashboard' => $this->dashboardService->buildDashboard(
+                $user,
+                $folders,
+                $files,
+                $folders->count(),
+                $files->count(),
+            ),
             'folders' => $folders->values(),
             'files' => $files->values(),
         ];

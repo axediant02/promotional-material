@@ -8,27 +8,27 @@ class ProductionWorkspaceService
 {
     public function __construct(
         private readonly DashboardService $dashboardService,
-        private readonly FolderService $folderService,
-        private readonly FileService $fileService,
+        private readonly WorkspaceDataService $workspaceDataService,
         private readonly ProductionRequestService $productionRequestService,
     ) {
     }
 
     public function getForUser(User $user): array
     {
-        $foldersQuery = $this->folderService->accessibleFoldersQuery($user)->latest('updated_at');
-        $filesQuery = $this->fileService->accessibleFilesQuery($user)->latest('updated_at');
+        $folders = $this->workspaceDataService->foldersForUser($user);
+        $files = $this->workspaceDataService->filesForUser($user);
         $requestsQuery = $this->productionRequestService->accessibleRequestsQuery($user)->latest('created_at');
-        $recycleBinFilesQuery = $this->fileService->accessibleFilesQuery($user, onlyTrashed: true)
-            ->latest('deleted_at');
-
-        $folders = $foldersQuery->get();
-        $files = $filesQuery->get();
+        $recycleBinFiles = $this->workspaceDataService->recycleBinFilesForUser($user);
         $requests = $requestsQuery->get();
-        $recycleBinFiles = $recycleBinFilesQuery->get();
 
         return [
-            'dashboard' => $this->dashboardService->getForUser($user),
+            'dashboard' => $this->dashboardService->buildDashboard(
+                $user,
+                $folders,
+                $files,
+                $folders->count(),
+                $files->count(),
+            ),
             'folders' => $folders->values(),
             'requests' => $requests->values(),
             'files' => $files->values(),

@@ -8,19 +8,26 @@ class ClientWorkspaceService
 {
     public function __construct(
         private readonly DashboardService $dashboardService,
-        private readonly FileService $fileService,
+        private readonly WorkspaceDataService $workspaceDataService,
         private readonly ClientRequestService $clientRequestService,
     ) {
     }
 
     public function getForUser(User $user): array
     {
-        $filesQuery = $this->fileService->accessibleFilesQuery($user)->latest('updated_at');
+        $folders = $this->workspaceDataService->foldersForUser($user);
+        $files = $this->workspaceDataService->filesForUser($user);
         $requestsQuery = $this->clientRequestService->requestsQuery($user);
 
         return [
-            'dashboard' => $this->dashboardService->getForUser($user),
-            'files' => $filesQuery->get(),
+            'dashboard' => $this->dashboardService->buildDashboard(
+                $user,
+                $folders,
+                $files,
+                $folders->count(),
+                $files->count(),
+            ),
+            'files' => $files->values(),
             'requests' => $requestsQuery->get(),
         ];
     }

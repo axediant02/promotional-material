@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class DashboardService
 {
@@ -26,14 +27,37 @@ class DashboardService
             ->limit(8)
             ->get();
 
+        return $this->buildDashboard(
+            $user,
+            $folders,
+            $recentFiles,
+            (clone $foldersQuery)->count(),
+            (clone $filesQuery)->count(),
+        );
+    }
+
+    /**
+     * @param  Collection<int, mixed>  $folders
+     * @param  Collection<int, mixed>  $files
+     * @return array{user: User, stats: array{folders: int, files: int}, folders: Collection<int, mixed>, recentFiles: Collection<int, mixed>}
+     */
+    public function buildDashboard(
+        User $user,
+        Collection $folders,
+        Collection $files,
+        int $folderCount,
+        int $fileCount,
+    ): array {
+        $folderLimit = $user->isClient() ? 1 : 12;
+
         return [
             'user' => $user->loadMissing('assignedFolder'),
             'stats' => [
-                'folders' => (clone $foldersQuery)->count(),
-                'files' => (clone $filesQuery)->count(),
+                'folders' => $folderCount,
+                'files' => $fileCount,
             ],
-            'folders' => $folders,
-            'recentFiles' => $recentFiles,
+            'folders' => $folders->take($folderLimit)->values(),
+            'recentFiles' => $files->take(8)->values(),
         ];
     }
 }
