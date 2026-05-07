@@ -11,14 +11,6 @@ class AdminAssignmentService
     public function assignmentsQuery(): Builder
     {
         return AssignedClient::query()
-            ->select([
-                'id',
-                'production_id',
-                'client_id',
-                'status',
-                'created_at',
-                'updated_at',
-            ])
             ->orderByDesc('created_at')
             ->orderByDesc('id');
     }

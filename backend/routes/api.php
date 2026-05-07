@@ -64,13 +64,13 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('chat/threads/{thread}/messages', [AssignmentChatMessageController::class, 'store']);
     Route::post('chat/threads/{thread}/read', [AssignmentChatController::class, 'markRead']);
 
-    Route::prefix('production')->middleware('role:production')->group(function (): void {
+    Route::prefix('production')->group(function (): void {
         Route::get('dashboard', [ProductionWorkspaceController::class, 'show']);
         Route::get('requests', [ProductionRequestController::class, 'index']);
         Route::patch('requests/{clientRequest}', [ProductionRequestController::class, 'update']);
     });
 
-    Route::prefix('admin')->middleware('role:admin')->group(function (): void {
+    Route::prefix('admin')->group(function (): void {
         Route::get('dashboard', [AdminWorkspaceController::class, 'show']);
         Route::post('agents', [AgentController::class, 'store']);
         Route::get('assignments', [AdminAssignmentController::class, 'index']);
@@ -83,7 +83,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::patch('users/{user}', [AdminUserController::class, 'update']);
     });
 
-    Route::prefix('agent')->middleware('role:agent')->group(function (): void {
+    Route::prefix('agent')->group(function (): void {
         Route::get('dashboard', [AgentWorkspaceController::class, 'show']);
     });
 });
