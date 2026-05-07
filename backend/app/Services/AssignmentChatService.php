@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\AssignedClient;
+use App\Models\AssignmentChatMessage;
 use App\Models\AssignmentChatThread;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class AssignmentChatService
 {
@@ -80,6 +82,47 @@ class AssignmentChatService
         }
 
         return $query->whereRaw('1 = 0');
+    }
+
+    /**
+     * @param  iterable<AssignmentChatThread>  $threads
+     */
+    public function hydrateUnreadCountsForThreads(User $user, iterable $threads): void
+    {
+        $threadCollection = $threads instanceof Collection
+            ? $threads
+            : collect($threads);
+
+        if ($threadCollection->isEmpty()) {
+            return;
+        }
+
+        $threadIds = $threadCollection->pluck('thread_id')->all();
+
+        $countRows = AssignmentChatMessage::query()
+            ->select('assignment_chat_messages.thread_id')
+            ->selectRaw('count(*) as unread_count')
+            ->join('assignment_chat_threads', 'assignment_chat_messages.thread_id', '=', 'assignment_chat_threads.thread_id')
+            ->whereIn('assignment_chat_messages.thread_id', $threadIds)
+            ->when($user->isClient(), function (Builder $query) {
+                $query->whereColumn('assignment_chat_messages.sender_user_id', 'assignment_chat_threads.production_id')
+                    ->where(function (Builder $query) {
+                        $query->whereNull('assignment_chat_threads.client_last_read_at')
+                            ->orWhereColumn('assignment_chat_messages.created_at', '>', 'assignment_chat_threads.client_last_read_at');
+                    });
+            }, function (Builder $query) {
+                $query->whereColumn('assignment_chat_messages.sender_user_id', 'assignment_chat_threads.client_id')
+                    ->where(function (Builder $query) {
+                        $query->whereNull('assignment_chat_threads.production_last_read_at')
+                            ->orWhereColumn('assignment_chat_messages.created_at', '>', 'assignment_chat_threads.production_last_read_at');
+                    });
+            })
+            ->groupBy('assignment_chat_messages.thread_id')
+            ->pluck('unread_count', 'thread_id');
+
+        foreach ($threadCollection as $thread) {
+            $thread->setAttribute('unread_count', (int) ($countRows[$thread->thread_id] ?? 0));
+        }
     }
 
     public function unreadCountForThread(User $user, AssignmentChatThread $thread): int

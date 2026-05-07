@@ -19,18 +19,6 @@ class FileService
     public function accessibleFilesQuery(User $user, bool $onlyTrashed = false, bool $withTrashed = false): Builder
     {
         return MediaFile::query()
-            ->select([
-                'file_id',
-                'folder_id',
-                'uploaded_by',
-                'file_name',
-                'storage_disk',
-                'storage_path',
-                'category',
-                'last_deleted_at',
-                'created_at',
-                'updated_at',
-            ])
             ->accessibleTo($user, $onlyTrashed, $withTrashed)
             ->with('folder:folder_id,folder_name,client_id', 'uploader:user_id,name,email');
     }

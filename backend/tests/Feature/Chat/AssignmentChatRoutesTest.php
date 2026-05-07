@@ -4,10 +4,14 @@ namespace Tests\Feature\Chat;
 
 use App\Events\AssignmentChatMessageCreated;
 use App\Models\AssignedClient;
+use App\Models\AssignmentChatMessage;
 use App\Models\AssignmentChatThread;
 use App\Models\ClientRequest;
 use App\Models\Folder;
 use App\Models\User;
+use App\Services\AssignmentChatService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -87,6 +91,119 @@ class AssignmentChatRoutesTest extends TestCase
         $this->postJson("/api/chat/threads/{$thread->thread_id}/read")
             ->assertOk()
             ->assertJsonPath('data.thread.unread_count', 0);
+    }
+
+    public function test_threads_are_serialized_without_lazy_loading(): void
+    {
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+
+        $thread = AssignmentChatThread::query()->create([
+            'client_id' => $client->user_id,
+            'production_id' => $production->user_id,
+            'status' => AssignmentChatThread::STATUS_ACTIVE,
+            'started_at' => now()->subHour(),
+            'last_message_at' => now(),
+            'last_message_by' => $production->user_id,
+        ]);
+
+        AssignmentChatMessage::query()->create([
+            'thread_id' => $thread->thread_id,
+            'sender_user_id' => $production->user_id,
+            'body' => 'Shared the first draft.',
+        ]);
+
+        Sanctum::actingAs($client);
+        Model::preventLazyLoading();
+
+        try {
+            $this->getJson("/api/chat/threads/{$thread->thread_id}")
+                ->assertOk()
+                ->assertJsonPath('data.thread.thread_id', $thread->thread_id)
+                ->assertJsonPath('data.thread.last_message_preview', 'Shared the first draft.')
+                ->assertJsonPath('data.thread.counterpart.user_id', $production->user_id)
+                ->assertJsonPath('data.thread.messages.0.sender_name', 'Production User')
+                ->assertJsonPath('data.thread.messages.0.is_own_message', false);
+        } finally {
+            Model::preventLazyLoading(false);
+        }
+    }
+
+    public function test_unread_counts_for_thread_collections_are_hydrated_in_bulk(): void
+    {
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+
+        $threadOne = AssignmentChatThread::query()->create([
+            'client_id' => $client->user_id,
+            'production_id' => $production->user_id,
+            'status' => AssignmentChatThread::STATUS_ACTIVE,
+            'started_at' => now()->subDay(),
+            'last_message_at' => now()->subDay(),
+            'last_message_by' => $production->user_id,
+            'client_last_read_at' => null,
+        ]);
+
+        $threadTwo = AssignmentChatThread::query()->create([
+            'client_id' => $client->user_id,
+            'production_id' => $production->user_id,
+            'status' => AssignmentChatThread::STATUS_ACTIVE,
+            'started_at' => now()->subHours(2),
+            'last_message_at' => now()->subHours(2),
+            'last_message_by' => $production->user_id,
+            'client_last_read_at' => now()->addHour(),
+        ]);
+
+        AssignmentChatMessage::query()->create([
+            'thread_id' => $threadOne->thread_id,
+            'sender_user_id' => $production->user_id,
+            'body' => 'Thread one update.',
+        ]);
+
+        AssignmentChatMessage::query()->create([
+            'thread_id' => $threadTwo->thread_id,
+            'sender_user_id' => $production->user_id,
+            'body' => 'Thread two update.',
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        app(AssignmentChatService::class)->hydrateUnreadCountsForThreads($client, collect([$threadOne, $threadTwo]));
+
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertSame(1, $threadOne->unread_count);
+        $this->assertSame(0, $threadTwo->unread_count);
+    }
+
+    public function test_active_chat_thread_endpoint_returns_the_newest_active_thread(): void
+    {
+        $client = $this->createUser('Client User', 'client@example.com', User::ROLE_CLIENT);
+        $production = $this->createUser('Production User', 'production@example.com', User::ROLE_PRODUCTION);
+
+        $olderThread = AssignmentChatThread::query()->create([
+            'client_id' => $client->user_id,
+            'production_id' => $production->user_id,
+            'status' => AssignmentChatThread::STATUS_ACTIVE,
+            'started_at' => now()->subHours(2),
+            'last_message_at' => null,
+        ]);
+
+        $newerThread = AssignmentChatThread::query()->create([
+            'client_id' => $client->user_id,
+            'production_id' => $production->user_id,
+            'status' => AssignmentChatThread::STATUS_ACTIVE,
+            'started_at' => now()->subHour(),
+            'last_message_at' => null,
+        ]);
+
+        Sanctum::actingAs($client);
+
+        $this->getJson('/api/chat/thread')
+            ->assertOk()
+            ->assertJsonPath('data.thread.thread_id', $newerThread->thread_id);
+
+        $this->assertNotSame($olderThread->thread_id, $newerThread->thread_id);
     }
 
     public function test_admin_and_agent_cannot_access_chat_threads(): void

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api\Chat;
 
+use App\Http\Resources\Chat\AssignmentChatThreadResource;
 use App\Http\Controllers\Controller;
 use App\Models\AssignmentChatThread;
-use App\Models\User;
 use App\Services\AssignmentChatService;
 use Illuminate\Http\JsonResponse;
 
@@ -21,12 +21,19 @@ class AssignmentChatController extends Controller
 
         $thread = $this->assignmentChatService->accessibleThreadsQuery($user)
             ->where('status', AssignmentChatThread::STATUS_ACTIVE)
+            ->reorder()
+            ->orderByDesc('last_message_at')
+            ->orderByDesc('started_at')
             ->first();
+
+        if ($thread) {
+            $thread->setAttribute('unread_count', $this->assignmentChatService->unreadCountForThread($user, $thread));
+        }
 
         return response()->json([
             'message' => 'Active chat thread fetched.',
             'data' => [
-                'thread' => $thread ? $this->transformThread($thread, $user) : null,
+                'thread' => $thread ? new AssignmentChatThreadResource($thread) : null,
             ],
         ]);
     }
@@ -37,11 +44,12 @@ class AssignmentChatController extends Controller
         $this->authorize('viewAny', AssignmentChatThread::class);
 
         $threads = $this->assignmentChatService->accessibleThreadsQuery($user)->get();
+        $this->assignmentChatService->hydrateUnreadCountsForThreads($user, $threads);
 
         return response()->json([
             'message' => 'Chat threads fetched.',
             'data' => [
-                'threads' => $threads->map(fn (AssignmentChatThread $thread) => $this->transformThread($thread, $user)),
+                'threads' => AssignmentChatThreadResource::collection($threads),
             ],
         ]);
     }
@@ -57,11 +65,12 @@ class AssignmentChatController extends Controller
             'messages.sender:user_id,name,role',
             'latestMessage.sender:user_id,name,role',
         ]);
+        $thread->setAttribute('unread_count', $this->assignmentChatService->unreadCountForThread($user, $thread));
 
         return response()->json([
             'message' => 'Chat thread fetched.',
             'data' => [
-                'thread' => $this->transformThread($thread, $user, includeMessages: true),
+                'thread' => new AssignmentChatThreadResource($thread),
             ],
         ]);
     }
@@ -72,58 +81,13 @@ class AssignmentChatController extends Controller
         $this->authorize('markRead', $thread);
 
         $thread = $this->assignmentChatService->markThreadRead($user, $thread);
+        $thread->setAttribute('unread_count', $this->assignmentChatService->unreadCountForThread($user, $thread));
 
         return response()->json([
             'message' => 'Chat thread marked as read.',
             'data' => [
-                'thread' => $this->transformThread($thread, $user),
+                'thread' => new AssignmentChatThreadResource($thread),
             ],
         ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function transformThread(AssignmentChatThread $thread, User $user, bool $includeMessages = false): array
-    {
-        $counterpart = $user->isClient() ? $thread->production : $thread->client;
-
-        $payload = [
-            'thread_id' => $thread->thread_id,
-            'client_id' => $thread->client_id,
-            'production_id' => $thread->production_id,
-            'status' => $thread->status,
-            'started_at' => $thread->started_at?->toISOString(),
-            'closed_at' => $thread->closed_at?->toISOString(),
-            'last_message_at' => $thread->last_message_at?->toISOString(),
-            'unread_count' => $this->assignmentChatService->unreadCountForThread($user, $thread),
-            'last_message_preview' => $thread->latestMessage?->body,
-            'counterpart' => $counterpart ? [
-                'user_id' => $counterpart->user_id,
-                'name' => $counterpart->name,
-                'email' => $counterpart->email,
-                'role' => $counterpart->role,
-            ] : null,
-        ];
-
-        if (! $includeMessages) {
-            return $payload;
-        }
-
-        $payload['messages'] = $thread->messages
-            ->sortBy('created_at')
-            ->values()
-            ->map(fn ($message) => [
-                'message_id' => $message->message_id,
-                'thread_id' => $message->thread_id,
-                'sender_user_id' => $message->sender_user_id,
-                'sender_name' => $message->sender?->name ?? 'User',
-                'sender_role' => $message->sender?->role ?? null,
-                'body' => $message->body,
-                'created_at' => $message->created_at?->toISOString(),
-                'is_own_message' => $message->sender_user_id === $user->user_id,
-            ]);
-
-        return $payload;
     }
 }
