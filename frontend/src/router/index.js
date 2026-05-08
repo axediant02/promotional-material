@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-const APP_TITLE = 'Promotional Materials Portal'
+const APP_TITLE = 'Promotional Materials'
 
 const routes = [
   { path: '/', name: 'landing', component: () => import('../features/landing-page/pages/LandingPage.vue'), meta: { guestOnly: true, title: `Home | ${APP_TITLE}` } },

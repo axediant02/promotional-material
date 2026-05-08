@@ -200,6 +200,13 @@ a,
     background: var(--pm-page-bg);
   }
 
+  .pm-landing-page {
+    background:
+      radial-gradient(circle at top left, rgb(var(--pm-brand-500) / 0.18), transparent 28%),
+      radial-gradient(circle at 88% 8%, rgb(var(--pm-brand-600) / 0.12), transparent 22%),
+      linear-gradient(180deg, rgb(var(--pm-surface)) 0%, rgb(248 244 252) 42%, rgb(242 236 249) 100%);
+  }
+
   .pm-page-dark {
     min-height: 100vh;
     color: rgb(244 240 252);
@@ -301,6 +308,13 @@ a,
 .dark .pm-page {
   color: rgb(244 240 252);
   background: var(--pm-page-bg-dark);
+}
+
+.dark .pm-landing-page {
+  background:
+    radial-gradient(circle at top left, rgb(var(--pm-brand-400) / 0.16), transparent 30%),
+    radial-gradient(circle at 85% 10%, rgb(var(--pm-brand-500) / 0.12), transparent 24%),
+    linear-gradient(180deg, rgb(17 24 39) 0%, rgb(14 12 24) 48%, rgb(20 18 34) 100%);
 }
 
 .dark .pm-surface {
