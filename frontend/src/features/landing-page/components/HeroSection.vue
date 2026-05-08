@@ -1,3 +1,43 @@
+<script setup>
+import { RouterLink } from 'vue-router'
+
+const activity = [
+  {
+    title: 'Client request received',
+    description: 'New materials request routed to production with the right folder context.',
+    status: 'New',
+  },
+  {
+    title: 'Asset upload complete',
+    description: 'Approved files are ready for client access and team review.',
+    status: 'Ready',
+  },
+]
+
+const stats = [
+  {
+    value: '10x',
+    label: 'Faster file access',
+  },
+  {
+    value: '85%',
+    label: 'Less follow-up noise',
+  },
+  {
+    value: '100%',
+    label: 'Request visibility',
+  },
+]
+
+const CheckIcon = {
+  template: `
+    <svg class="h-[18px] w-[18px] flex-none text-[#c2410c]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+      <path d="M8 12.2l2.5 2.5L16.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  `,
+}
+</script>
 <template>
   <section class="relative overflow-hidden px-4 pb-16 pt-14 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
     <div class="mx-auto grid max-w-[1260px] items-center gap-14 lg:grid-cols-[1.06fr_0.94fr] lg:gap-16">
@@ -18,15 +58,15 @@
         </p>
 
         <div class="mt-9 flex flex-wrap items-center gap-3">
-          <a
-            href="#trial"
+          <RouterLink
+            to="/login"
             class="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,23,42,0.16)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#c2410c]"
           >
-            Start free trial
+            Get started
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-          </a>
+          </RouterLink>
 
           <a
             href="#demo"
@@ -39,11 +79,11 @@
         <ul class="mt-8 flex flex-wrap items-center gap-3 text-sm text-slate-600">
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />
-            <span>No credit card required</span>
+            <span>Right people see the right files</span>
           </li>
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />
-            <span>14 day free trial</span>
+            <span>Chat directly with your agent</span>
           </li>
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />
@@ -166,42 +206,3 @@
     </div>
   </section>
 </template>
-
-<script setup>
-const activity = [
-  {
-    title: 'Client request received',
-    description: 'New materials request routed to production with the right folder context.',
-    status: 'New',
-  },
-  {
-    title: 'Asset upload complete',
-    description: 'Approved files are ready for client access and team review.',
-    status: 'Ready',
-  },
-]
-
-const stats = [
-  {
-    value: '10x',
-    label: 'Faster file access',
-  },
-  {
-    value: '85%',
-    label: 'Less follow-up noise',
-  },
-  {
-    value: '100%',
-    label: 'Request visibility',
-  },
-]
-
-const CheckIcon = {
-  template: `
-    <svg class="h-[18px] w-[18px] flex-none text-[#c2410c]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-      <path d="M8 12.2l2.5 2.5L16.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  `,
-}
-</script>
