@@ -1,44 +1,6 @@
-<template>
-  <section class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="mx-auto grid max-w-[1260px] gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8">
-      <div class="rounded-[32px] border border-[#e3d7c7] bg-[#1f2937] p-8 text-white shadow-[0_20px_50px_rgba(15,23,42,0.12)] sm:p-10">
-        <span class="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/75">
-          The problem
-        </span>
-
-        <h2 class="mt-6 text-[clamp(2.5rem,6vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.055em]">
-          Scattered tools slow every handoff.
-        </h2>
-
-        <p class="mt-5 max-w-[38rem] text-[18px] leading-8 text-white/74 sm:text-[20px]">
-          When files, requests, and updates live in different places, the team spends its time chasing context instead of moving work forward.
-        </p>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div
-          v-for="item in problems"
-          :key="item.title"
-          class="rounded-[30px] border border-slate-200 bg-white/90 p-6 shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.1)]"
-        >
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff7ed] text-[#c2410c]">
-            <component :is="item.icon" class="h-6 w-6" />
-          </div>
-
-          <h3 class="mt-5 text-[22px] font-semibold tracking-[-0.03em] text-slate-950">
-            {{ item.title }}
-          </h3>
-
-          <p class="mt-3 text-[15px] leading-7 text-slate-600">
-            {{ item.description }}
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup>
+import LandingSectionHeader from './LandingSectionHeader.vue'
+
 const SearchIcon = {
   template: `
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -96,3 +58,47 @@ const problems = [
   },
 ]
 </script>
+
+<template>
+  <section class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div class="mx-auto max-w-[1260px]">
+      <LandingSectionHeader
+        kicker="Pain points"
+        title="Scattered tools slow every handoff."
+        description="When files, requests, and updates live in different places, the team spends its time chasing context instead of moving work forward."
+      />
+
+      <div class="mt-10 grid gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8">
+        <div class="rounded-[32px] border border-[#e3d7c7] bg-[#1f2937] p-8 text-white shadow-[0_20px_50px_rgba(15,23,42,0.12)] sm:p-10">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/60">
+            What slows teams down
+          </p>
+
+          <p class="mt-4 max-w-[38rem] text-[18px] leading-8 text-white/74 sm:text-[20px]">
+            Teams lose momentum when the work lives in too many places at once.
+          </p>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div
+            v-for="item in problems"
+            :key="item.title"
+            class="rounded-[30px] border border-slate-200 bg-white/90 p-6 shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.1)]"
+          >
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff7ed] text-[#c2410c]">
+              <component :is="item.icon" class="h-6 w-6" />
+            </div>
+
+            <h3 class="mt-5 text-[22px] font-semibold tracking-[-0.03em] text-slate-950">
+              {{ item.title }}
+            </h3>
+
+            <p class="mt-3 text-[15px] leading-7 text-slate-600">
+              {{ item.description }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>

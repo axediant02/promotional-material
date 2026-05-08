@@ -1,5 +1,5 @@
 <template>
-  <section class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+  <section id="workflow-summary" class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
     <div class="mx-auto max-w-[1260px] overflow-hidden rounded-[36px] border border-slate-200 bg-[linear-gradient(135deg,#111827,#1f2937_48%,#c2410c_140%)] px-6 py-12 text-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] sm:px-8 lg:px-12 lg:py-16">
       <div class="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
         <div class="max-w-[760px]">

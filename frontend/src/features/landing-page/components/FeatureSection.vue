@@ -1,19 +1,101 @@
+<script setup>
+import LandingSectionHeader from './LandingSectionHeader.vue'
+
+const ChatIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H9l-5 4V5.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+    </svg>
+  `,
+}
+
+const BellIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M10 21h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  `,
+}
+
+const ClockIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+      <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  `,
+}
+
+const ShieldIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 3 5 6v6c0 5 3.5 8 7 9 3.5-1 7-4 7-9V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+    </svg>
+  `,
+}
+
+const ChartIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 17 9 12l4 4 7-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M14 8h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  `,
+}
+
+const FileIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      <path d="M14 2v5h5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      <path d="M9 13h6M9 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  `,
+}
+
+const features = [
+  {
+    title: 'Threaded communication',
+    description: 'Keep conversations tied to work instead of losing them in separate chat tools.',
+    icon: ChatIcon,
+  },
+  {
+    title: 'Smart notifications',
+    description: 'Get alerted when requests, approvals, and due dates actually need attention.',
+    icon: BellIcon,
+  },
+  {
+    title: 'Deadline management',
+    description: 'Track timing cleanly so production and admin teams stay aligned.',
+    icon: ClockIcon,
+  },
+  {
+    title: 'Role-based security',
+    description: 'Granular access control keeps each role on the right surface.',
+    icon: ShieldIcon,
+  },
+  {
+    title: 'Activity dashboard',
+    description: 'See what is happening now without digging through reports.',
+    icon: ChartIcon,
+  },
+  {
+    title: 'Version control',
+    description: 'Track file updates and delivery state with less manual checking.',
+    icon: FileIcon,
+  },
+]
+</script>
+
 <template>
-  <section class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+  <section id="features" class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
     <div class="mx-auto max-w-[1260px]">
-      <div class="flex flex-col gap-4 text-left lg:max-w-[760px]">
-        <span class="inline-flex w-fit items-center rounded-full border border-[#e2c18f] bg-[#fff7ed] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#b45309]">
-          Why it works
-        </span>
-
-        <h2 class="text-[clamp(2.6rem,6vw,4.8rem)] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-950">
-          Powerful features, presented with less noise.
-        </h2>
-
-        <p class="max-w-[48rem] text-[18px] leading-8 text-slate-600 sm:text-[20px]">
-          The product should feel organized at a glance. These features are surfaced in a cleaner hierarchy so the eye can move from intent to action without distraction.
-        </p>
-      </div>
+      <LandingSectionHeader
+        kicker="Capabilities"
+        title="Powerful features, presented with less noise."
+        description="The product should feel organized at a glance. These features are surfaced in a cleaner hierarchy so the eye can move from intent to action without distraction."
+      />
 
       <div class="mt-10 grid gap-4 md:grid-cols-2">
         <div
@@ -27,10 +109,7 @@
             </div>
 
             <div class="flex-1">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                {{ feature.kicker }}
-              </p>
-              <h3 class="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-slate-950">
+              <h3 class="text-[24px] font-semibold tracking-[-0.03em] text-slate-950">
                 {{ feature.title }}
               </h3>
               <p class="mt-3 max-w-[34rem] text-[15px] leading-7 text-slate-600">
@@ -43,71 +122,3 @@
     </div>
   </section>
 </template>
-
-<script setup>
-const BoltIcon = {
-  template: `
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  `,
-}
-
-const TargetIcon = {
-  template: `
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" />
-      <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  `,
-}
-
-const ShieldIcon = {
-  template: `
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3 5 6v6c0 5 3.5 8 7 9 3.5-1 7-4 7-9V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-    </svg>
-  `,
-}
-
-const SparklesIcon = {
-  template: `
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-      <path d="M19 15l.8 1.8L22 18l-2.2 1.2L19 21l-1.2-1.8L16 18l1.8-1.2L19 15Z" fill="currentColor" />
-    </svg>
-  `,
-}
-
-const features = [
-  {
-    kicker: 'Speed',
-    title: 'Lightning fast file access',
-    description:
-      'Find what you need in seconds instead of hunting across folders, threads, and duplicate links.',
-    icon: BoltIcon,
-  },
-  {
-    kicker: 'Clarity',
-    title: 'Progress is obvious',
-    description:
-      'See who owns each request, what is pending, and which items are ready without asking for a status update.',
-    icon: TargetIcon,
-  },
-  {
-    kicker: 'Control',
-    title: 'Role-based access stays tight',
-    description:
-      'The right people see the right files, with a layout that reflects the portal’s permission model.',
-    icon: ShieldIcon,
-  },
-  {
-    kicker: 'Flow',
-    title: 'Follow-ups feel automatic',
-    description:
-      'Reduce repetitive admin work with a workflow that keeps requests, notifications, and delivery aligned.',
-    icon: SparklesIcon,
-  },
-]
-</script>

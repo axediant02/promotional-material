@@ -126,6 +126,7 @@ html {
   background: var(--pm-page-bg);
   background-color: rgb(247 240 253);
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 html.dark {

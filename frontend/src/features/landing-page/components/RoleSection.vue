@@ -1,76 +1,6 @@
-<template>
-  <section class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="mx-auto max-w-[1260px]">
-      <div class="max-w-[760px]">
-        <span class="inline-flex items-center rounded-full border border-[#e2c18f] bg-[#fff7ed] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#b45309]">
-          For every role
-        </span>
-
-        <h2 class="mt-6 text-[clamp(2.6rem,6vw,4.8rem)] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-950">
-          Built to match how each team actually works.
-        </h2>
-
-        <p class="mt-5 text-[18px] leading-8 text-slate-600 sm:text-[20px]">
-          Clients request and download, production manages delivery, admins oversee access, and agents stay focused on approved materials only.
-        </p>
-      </div>
-
-      <div class="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div
-          v-for="role in roles"
-          :key="role.title"
-          class="rounded-[30px] border border-slate-200 bg-white/90 p-6 shadow-[0_16px_34px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(15,23,42,0.1)]"
-        >
-          <div class="h-1.5 rounded-full" :class="role.accentBar" />
-
-          <div class="mt-5 flex items-start gap-4">
-            <div class="flex h-14 w-14 flex-none items-center justify-center rounded-[18px] bg-[#fff7ed] text-[#c2410c] shadow-[0_0_0_1px_rgba(194,65,12,0.08)]">
-              <component :is="role.icon" class="h-7 w-7" />
-            </div>
-
-            <div>
-              <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                {{ role.kicker }}
-              </p>
-              <h3 class="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-slate-950">
-                {{ role.title }}
-              </h3>
-            </div>
-          </div>
-
-          <ul class="mt-6 space-y-3">
-            <li
-              v-for="item in role.items"
-              :key="item"
-              class="flex items-start gap-3 text-[15px] leading-7 text-slate-600"
-            >
-              <span class="mt-2 flex h-5 w-5 flex-none items-center justify-center rounded-full border border-[#f2c38b] bg-[#fff7ed] text-[#c2410c]">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3"
-                >
-                  <path
-                    d="M7 12.5 10 15.5 17 8.5"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-
-              <span>{{ item }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup>
+import LandingSectionHeader from './LandingSectionHeader.vue'
+
 const UsersIcon = {
   template: `
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -161,3 +91,67 @@ const roles = [
   },
 ]
 </script>
+
+<template>
+  <section id="teams" class="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div class="mx-auto max-w-[1260px]">
+      <LandingSectionHeader
+        kicker="Teams"
+        title="Built to match how each team actually works."
+        description="Clients request and download, production manages delivery, admins oversee access, and agents stay focused on approved materials only."
+      />
+
+      <div class="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div
+          v-for="role in roles"
+          :key="role.title"
+          class="rounded-[30px] border border-slate-200 bg-white/90 p-6 shadow-[0_16px_34px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(15,23,42,0.1)]"
+        >
+          <div class="h-1.5 rounded-full" :class="role.accentBar" />
+
+          <div class="mt-5 flex items-start gap-4">
+            <div class="flex h-14 w-14 flex-none items-center justify-center rounded-[18px] bg-[#fff7ed] text-[#c2410c] shadow-[0_0_0_1px_rgba(194,65,12,0.08)]">
+              <component :is="role.icon" class="h-7 w-7" />
+            </div>
+
+            <div>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                {{ role.kicker }}
+              </p>
+              <h3 class="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-slate-950">
+                {{ role.title }}
+              </h3>
+            </div>
+          </div>
+
+          <ul class="mt-6 space-y-3">
+            <li
+              v-for="item in role.items"
+              :key="item"
+              class="flex items-start gap-3 text-[15px] leading-7 text-slate-600"
+            >
+              <span class="mt-2 flex h-5 w-5 flex-none items-center justify-center rounded-full border border-[#f2c38b] bg-[#fff7ed] text-[#c2410c]">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3"
+                >
+                  <path
+                    d="M7 12.5 10 15.5 17 8.5"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+
+              <span>{{ item }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
