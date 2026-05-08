@@ -79,11 +79,11 @@ const CheckIcon = {
         <ul class="mt-8 flex flex-wrap items-center gap-3 text-sm text-slate-600">
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />
-            <span>No credit card required</span>
+            <span>Right people see the right files</span>
           </li>
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />
-            <span>14 day free trial</span>
+            <span>Chat directly with your agent</span>
           </li>
           <li class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-[0_4px_14px_rgba(15,23,42,0.04)]">
             <CheckIcon />

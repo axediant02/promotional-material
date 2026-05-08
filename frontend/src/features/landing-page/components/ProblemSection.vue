@@ -57,6 +57,21 @@ const problems = [
     icon: ChatIcon,
   },
 ]
+
+const slowPoints = [
+  {
+    title: 'Too many places to search',
+    description: 'Assets, approvals, and notes get split across folders, chats, and links.',
+  },
+  {
+    title: 'Ownership is easy to miss',
+    description: 'When a request has no obvious owner, progress stalls while people ask around.',
+  },
+  {
+    title: 'Updates are repeated manually',
+    description: 'The same status has to be confirmed more than once because the context is not shared.',
+  },
+]
 </script>
 
 <template>
@@ -77,6 +92,21 @@ const problems = [
           <p class="mt-4 max-w-[38rem] text-[18px] leading-8 text-white/74 sm:text-[20px]">
             Teams lose momentum when the work lives in too many places at once.
           </p>
+
+          <div class="mt-8 space-y-4">
+            <div
+              v-for="point in slowPoints"
+              :key="point.title"
+              class="rounded-[24px] border border-white/10 bg-white/5 px-4 py-4"
+            >
+              <p class="text-[15px] font-semibold text-white">
+                {{ point.title }}
+              </p>
+              <p class="mt-2 text-sm leading-6 text-white/70">
+                {{ point.description }}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
