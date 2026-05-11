@@ -5,45 +5,19 @@ import DashboardOverviewSkeleton from '../../../components/shared/DashboardOverv
 import DashboardSectionHeader from '../../../components/shared/DashboardSectionHeader.vue'
 import AgentDashboardSidebar from '../components/AgentDashboardSidebar.vue'
 import { downloadFile } from '../../../services/fileService'
-import { fetchAgentWorkspace } from '../../../services/agentWorkspaceService'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/theme'
+import { useAgentDashboardData } from '../composables/useAgentDashboardData'
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'agent_sidebar_collapsed'
 const SIDEBAR_EXPANDED_WIDTH = '18.5rem'
 const SIDEBAR_COLLAPSED_WIDTH = '6.5rem'
-const VIEW_STORAGE_KEY = 'agent_file_browser_view_mode'
-const FOLDER_FILTERS = ['all', 'recently_updated', 'has_files', 'empty']
-const FOLDER_SORTS = ['recent', 'client_name', 'file_volume']
-
-const dashboardData = ref({
-  user: null,
-  stats: {
-    folders: 0,
-    files: 0,
-  },
-  folders: [],
-  recentFiles: [],
-})
-const folders = ref([])
-const files = ref([])
-const loading = ref(true)
-const error = ref('')
-const searchQuery = ref('')
-const folderBrowserMode = ref('grid')
-const folderBrowserFilter = ref('all')
-const folderBrowserSort = ref('recent')
-const selectedFolderId = ref('')
+const dashboardState = useAgentDashboardData()
 const downloadingFileId = ref('')
-const activeView = ref('folders')
 
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
-
-const normalizeViewMode = (value) => (value === 'list' ? 'list' : 'grid')
-const normalizeFilter = (value) => (FOLDER_FILTERS.includes(value) ? value : 'all')
-const normalizeSort = (value) => (FOLDER_SORTS.includes(value) ? value : 'recent')
 
 const getSavedSidebarCollapsed = () => {
   if (typeof window === 'undefined') {
@@ -55,277 +29,46 @@ const getSavedSidebarCollapsed = () => {
 
 const sidebarCollapsed = ref(getSavedSidebarCollapsed())
 
-const getSavedBrowserMode = () => {
-  if (typeof window === 'undefined') {
-    return 'grid'
-  }
-
-  return normalizeViewMode(window.localStorage.getItem(VIEW_STORAGE_KEY))
-}
-
-folderBrowserMode.value = getSavedBrowserMode()
-
-const formatDateLabel = (value) => {
-  if (!value) {
-    return 'No activity yet'
-  }
-
-  return new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
-const formatShortId = (value, prefix = 'FILE') => {
-  if (!value) {
-    return prefix
-  }
-
-  return `${prefix}-${String(value).slice(0, 4).toUpperCase()}`
-}
-
-const normalizeTimestamp = (value) => {
-  if (!value) {
-    return 0
-  }
-
-  const timestamp = new Date(value).getTime()
-  return Number.isFinite(timestamp) ? timestamp : 0
-}
-
-const getFolderId = (folder) => folder?.folder_id ?? folder?.id ?? ''
-const getFolderName = (folder) => folder?.folder_name ?? folder?.name ?? 'Client folder'
-const getFolderClientName = (folder) => folder?.client?.name ?? folder?.client_name ?? 'Client workspace'
-const getFolderClientEmail = (folder) => folder?.client?.email ?? folder?.client_email ?? ''
-const getFileId = (file) => file?.file_id ?? file?.id ?? ''
-const getFileFolderId = (file) => file?.folder?.folder_id ?? file?.folder_id ?? file?.folder?.id ?? ''
-const getFileName = (file) => file?.file_name ?? file?.original_name ?? 'Untitled file'
-const getFileCategory = (file) => file?.category ?? file?.mime_type ?? 'asset'
-const getFileUpdatedAt = (file) => file?.updated_at ?? file?.created_at ?? ''
-const getFileUploaderName = (file) => file?.uploader?.name ?? file?.uploaded_by?.name ?? 'Production'
-
-const folderLookup = computed(() => {
-  const map = new Map()
-
-  for (const folder of folders.value) {
-    const folderId = getFolderId(folder)
-    if (folderId) {
-      map.set(folderId, folder)
-    }
-  }
-
-  for (const folder of dashboardData.value.folders ?? []) {
-    const folderId = getFolderId(folder)
-    if (folderId && !map.has(folderId)) {
-      map.set(folderId, folder)
-    }
-  }
-
-  return map
-})
-
-const allFiles = computed(() => {
-  const map = new Map()
-
-  for (const file of [...files.value, ...(dashboardData.value.recentFiles ?? [])]) {
-    const fileId = getFileId(file)
-    if (fileId && !map.has(fileId)) {
-      map.set(fileId, file)
-    }
-  }
-
-  return [...map.values()]
-})
-
-const folderRows = computed(() => {
-  const rows = [...folderLookup.value.entries()].map(([folderId, folder]) => {
-    const folderFiles = allFiles.value
-      .filter((file) => getFileFolderId(file) === folderId)
-      .sort((left, right) => normalizeTimestamp(getFileUpdatedAt(right)) - normalizeTimestamp(getFileUpdatedAt(left)))
-    const latestFile = folderFiles[0]
-    const latestActivityAt = getFileUpdatedAt(latestFile) || folder.updated_at || folder.created_at || ''
-
-    return {
-      id: folderId,
-      workspace: getFolderName(folder),
-      clientName: getFolderClientName(folder),
-      email: getFolderClientEmail(folder),
-      fileCount: folderFiles.length,
-      latestActivityAt,
-      latestActivityLabel: latestActivityAt ? `Updated ${formatDateLabel(latestActivityAt)}` : 'No file activity yet',
-      statusTone: folderFiles.length ? 'ready' : 'empty',
-      statusLabel: folderFiles.length ? 'Available' : 'Empty',
-      fileNamesSearch: folderFiles.map((file) => getFileName(file)).join(' '),
-    }
-  })
-
-  return rows
-})
-
-const visibleFolderRows = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  const recentThreshold = Date.now() - 7 * 24 * 60 * 60 * 1000
-
-  return folderRows.value
-    .filter((folder) => {
-      if (query) {
-        const haystack = `${folder.clientName} ${folder.workspace} ${folder.email} ${folder.fileNamesSearch}`.toLowerCase()
-        if (!haystack.includes(query)) {
-          return false
-        }
-      }
-
-      if (folderBrowserFilter.value === 'recently_updated') {
-        return folder.latestActivityAt && normalizeTimestamp(folder.latestActivityAt) >= recentThreshold
-      }
-
-      if (folderBrowserFilter.value === 'has_files') {
-        return folder.fileCount > 0
-      }
-
-      if (folderBrowserFilter.value === 'empty') {
-        return folder.fileCount === 0
-      }
-
-      return true
-    })
-    .slice()
-    .sort((left, right) => {
-      if (folderBrowserSort.value === 'client_name') {
-        return left.clientName.localeCompare(right.clientName)
-      }
-
-      if (folderBrowserSort.value === 'file_volume') {
-        return right.fileCount - left.fileCount || left.clientName.localeCompare(right.clientName)
-      }
-
-      return normalizeTimestamp(right.latestActivityAt) - normalizeTimestamp(left.latestActivityAt)
-    })
-})
-
-const selectedFolder = computed(() =>
-  folderRows.value.find((folder) => folder.id === selectedFolderId.value) ?? visibleFolderRows.value[0] ?? null
-)
-
-const selectedFolderFiles = computed(() => {
-  if (!selectedFolder.value) {
-    return []
-  }
-
-  return allFiles.value
-    .filter((file) => getFileFolderId(file) === selectedFolder.value.id)
-    .sort((left, right) => normalizeTimestamp(getFileUpdatedAt(right)) - normalizeTimestamp(getFileUpdatedAt(left)))
-    .map((file) => ({
-      ...file,
-      file_id: getFileId(file),
-      file_name: getFileName(file),
-      category: getFileCategory(file),
-      shortId: formatShortId(getFileId(file)),
-      uploaderName: getFileUploaderName(file),
-      updatedLabel: formatDateLabel(getFileUpdatedAt(file)),
-      folderName: selectedFolder.value.workspace,
-    }))
-})
-
-const recentFiles = computed(() =>
-  allFiles.value
-    .slice()
-    .sort((left, right) => normalizeTimestamp(getFileUpdatedAt(right)) - normalizeTimestamp(getFileUpdatedAt(left)))
-    .slice(0, 6)
-    .map((file) => {
-      const folder = folderLookup.value.get(getFileFolderId(file))
-
-      return {
-        id: getFileId(file),
-        name: getFileName(file),
-        category: getFileCategory(file),
-        folderName: getFolderName(folder),
-        clientName: getFolderClientName(folder),
-        updatedLabel: formatDateLabel(getFileUpdatedAt(file)),
-      }
-    })
-)
-
-const workspaceSummaryStats = computed(() => [
-  {
-    id: 'folders',
-    label: 'Client folders',
-    value: folderRows.value.length || dashboardData.value.stats.folders || 0,
-    detail: 'Download-access workspaces',
-  },
-  {
-    id: 'files',
-    label: 'Files visible',
-    value: allFiles.value.length || dashboardData.value.stats.files || 0,
-    detail: 'Materials available to agents',
-  },
-  {
-    id: 'recent',
-    label: 'Recently updated',
-    value: folderRows.value.filter((folder) => folder.latestActivityAt).length,
-    detail: 'Folders with file activity',
-  },
-  {
-    id: 'mode',
-    label: 'Access mode',
-    value: 'Read',
-    detail: 'Browse and download only',
-  },
-])
-
-const categoryStats = computed(() =>
-  ['image', 'video', 'pdf'].map((category) => ({
-    id: category,
-    label: category.toUpperCase(),
-    value: allFiles.value.filter((file) => getFileCategory(file) === category).length,
-  }))
-)
-
-const currentUser = computed(() => dashboardData.value.user ?? authStore.user ?? {})
-
-const sectionCounts = computed(() => ({
-  folders: folderRows.value.length,
-  folder: selectedFolderFiles.value.length,
-  recent: recentFiles.value.length,
+const currentUser = computed(() => dashboardState.currentUser.value ?? authStore.user ?? {})
+const {
+  loading,
+  error,
+  searchQuery,
+  folderBrowserMode,
+  folderBrowserFilter,
+  folderBrowserSort,
+  selectedFolder,
+  selectedFolderFiles,
+  recentFiles,
+  workspaceSummaryStats,
+  categoryStats,
+  sectionCounts,
+  activeViewMeta,
+  visibleFolderRows,
+  setFolderBrowserMode,
+  setFolderBrowserFilter,
+  setFolderBrowserSort,
+  selectFolder,
+  goToFolders,
+  activeView,
+} = dashboardState
+const filterOptions = dashboardState.FOLDER_FILTERS.map((id) => ({
+  id,
+  label: {
+    all: 'All',
+    recently_updated: 'Recently updated',
+    has_files: 'Has files',
+    empty: 'Empty',
+  }[id],
 }))
-
-const activeViewMeta = computed(() => {
-  if (activeView.value === 'folder') {
-    return {
-      eyebrow: selectedFolder.value?.clientName ?? 'Client folder',
-      title: selectedFolder.value?.workspace ?? 'Folder contents',
-      description: 'View and download the client files available inside this folder.',
-    }
-  }
-
-  if (activeView.value === 'recent') {
-    return {
-      eyebrow: 'Agent library',
-      title: 'Recent files.',
-      description: 'Scan the latest files available across your accessible client folders.',
-    }
-  }
-
-  return {
-    eyebrow: 'Agent dashboard',
-    title: 'Client folders.',
-    description: 'Open a client folder to view its files with download-only access.',
-  }
-})
-
-const filterOptions = [
-  { id: 'all', label: 'All' },
-  { id: 'recently_updated', label: 'Recently updated' },
-  { id: 'has_files', label: 'Has files' },
-  { id: 'empty', label: 'Empty' },
-]
-
-const sortOptions = [
-  { id: 'recent', label: 'Recent activity' },
-  { id: 'client_name', label: 'Client name' },
-  { id: 'file_volume', label: 'File volume' },
-]
+const sortOptions = dashboardState.FOLDER_SORTS.map((id) => ({
+  id,
+  label: {
+    recent: 'Recent activity',
+    client_name: 'Client name',
+    file_volume: 'File volume',
+  }[id],
+}))
 
 const statusClasses = {
   ready: 'border-emerald-300/25 bg-emerald-400/10 text-emerald-700 dark:text-emerald-100',
@@ -338,56 +81,22 @@ const categoryClasses = {
   pdf: 'border-amber-300/20 bg-amber-50 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100',
 }
 
-watch(folderBrowserMode, (value) => {
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(VIEW_STORAGE_KEY, normalizeViewMode(value))
-  }
-})
-
 watch(sidebarCollapsed, (value) => {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(value))
   }
 })
 
-watch(visibleFolderRows, (rows) => {
-  if (!rows.length) {
-    selectedFolderId.value = ''
-    return
-  }
-
-  if (!rows.some((folder) => folder.id === selectedFolderId.value)) {
-    selectedFolderId.value = rows[0].id
-  }
-})
-
-const selectFolder = (folderId) => {
-  selectedFolderId.value = folderId
-  activeView.value = 'folder'
-}
-
-const goToFolders = () => {
-  activeView.value = 'folders'
-}
-
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
-const setFolderBrowserMode = (value) => {
-  folderBrowserMode.value = normalizeViewMode(value)
-}
-
-const setFolderBrowserFilter = (value) => {
-  folderBrowserFilter.value = normalizeFilter(value)
-}
-
-const setFolderBrowserSort = (value) => {
-  folderBrowserSort.value = normalizeSort(value)
+const handleChangeView = (sectionId) => {
+  activeView.value = sectionId === 'folder' && !selectedFolder.value ? 'folders' : sectionId
 }
 
 const handleDownload = async (file) => {
-  const fileId = getFileId(file)
+  const fileId = file?.file_id ?? file?.id ?? ''
 
   if (!fileId || downloadingFileId.value) {
     return
@@ -397,7 +106,7 @@ const handleDownload = async (file) => {
   error.value = ''
 
   try {
-    await downloadFile({ ...file, file_id: fileId, file_name: getFileName(file) })
+    await downloadFile({ ...file, file_id: fileId, file_name: file?.file_name ?? file?.name ?? 'Untitled file' })
   } catch (err) {
     error.value = err.response?.data?.message ?? 'Unable to download this file.'
   } finally {
@@ -405,27 +114,8 @@ const handleDownload = async (file) => {
   }
 }
 
-const loadData = async () => {
-  loading.value = true
-  error.value = ''
-
-  try {
-    const response = await fetchAgentWorkspace()
-    const workspace = response.data.data ?? {}
-
-    dashboardData.value = workspace.dashboard ?? dashboardData.value
-    folders.value = workspace.folders ?? []
-    files.value = workspace.files ?? []
-  } catch (err) {
-    error.value = err.response?.data?.message ?? 'Unable to load the agent dashboard.'
-  }
-
-  selectedFolderId.value = visibleFolderRows.value[0]?.id ?? ''
-  loading.value = false
-}
-
 onMounted(() => {
-  loadData()
+  dashboardState.loadData()
 })
 
 const signOut = async () => {
@@ -447,7 +137,7 @@ const signOut = async () => {
         :selected-folder="selectedFolder"
         :section-counts="sectionCounts"
         :collapsed="sidebarCollapsed"
-        @change-view="activeView = $event === 'folder' && !selectedFolder ? 'folders' : $event"
+        @change-view="handleChangeView"
         @sign-out="signOut"
         @toggle-collapse="toggleSidebar"
       />

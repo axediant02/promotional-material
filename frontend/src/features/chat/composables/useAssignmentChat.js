@@ -11,6 +11,7 @@ import {
   markChatThreadAsRead,
   sendChatMessage,
 } from '../../../services/chatService'
+import { normalizeMessage, normalizeThread, formatTimestamp, formatThreadStatus } from './chatNormalization'
 
 const DEFAULT_REVERB_APP_KEY = 'promotional-materials-key'
 const DEFAULT_REVERB_HOST = '127.0.0.1'
@@ -237,51 +238,9 @@ export function useAssignmentChat(props, options = {}) {
     }
   }
 
-  // Normalizers
-  const normalizeMessage = (message) => ({
-    message_id: message?.message_id ?? '',
-    thread_id: message?.thread_id ?? '',
-    sender_user_id: message?.sender_user_id ?? '',
-    sender_name: message?.sender_name ?? 'User',
-    sender_role: message?.sender_role ?? '',
-    body: message?.body ?? '',
-    created_at: message?.created_at ?? new Date().toISOString(),
-    is_own_message: message?.sender_user_id === props.currentUserId,
-  })
-
-  const normalizeThread = (thread) => ({
-    thread_id: thread?.thread_id ?? '',
-    client_id: thread?.client_id ?? '',
-    production_id: thread?.production_id ?? '',
-    status: thread?.status ?? 'active',
-    started_at: thread?.started_at ?? null,
-    closed_at: thread?.closed_at ?? null,
-    last_message_at: thread?.last_message_at ?? null,
-    unread_count: Number(thread?.unread_count ?? 0),
-    last_message_preview: thread?.last_message_preview ?? '',
-    counterpart: thread?.counterpart ?? null,
-    messages: (thread?.messages ?? []).map(normalizeMessage),
-  })
-
-  // Formatters
-  const formatTimestamp = (value) => {
-    if (!value) {
-      return 'Just now'
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(value))
-  }
-
-  const formatThreadStatus = (value) => (value === 'archived' ? 'Archived' : 'Active')
-
   // Thread management
   const upsertThread = (incomingThread) => {
-    const normalized = normalizeThread(incomingThread)
+    const normalized = normalizeThread(incomingThread, props.currentUserId)
     const hasMessagePayload = Object.prototype.hasOwnProperty.call(incomingThread ?? {}, 'messages')
       && Array.isArray(incomingThread.messages)
     const nextThreads = [...threads.value]
@@ -415,7 +374,7 @@ export function useAssignmentChat(props, options = {}) {
       return
     }
 
-    const incomingMessage = normalizeMessage(payload.message)
+    const incomingMessage = normalizeMessage(payload.message, props.currentUserId)
     const threadId = payload.thread_id ?? incomingMessage.thread_id
     const shouldAutoScroll = stickToBottom.value || isNearBottom.value
     const currentThread = await ensurePayloadThread(threadId)
@@ -523,7 +482,7 @@ export function useAssignmentChat(props, options = {}) {
 
     try {
       const response = await sendChatMessage(selectedThread.value.thread_id, { body })
-      const message = normalizeMessage(response.data.data.message)
+      const message = normalizeMessage(response.data.data.message, props.currentUserId)
       const currentThread = selectedThread.value
 
       upsertMessageIntoThread(currentThread, message)
