@@ -28,6 +28,7 @@ export function useRealtimeChat({
   currentUserId = '',
   stickToBottom,
   isNearBottom,
+  onListenerError = () => {},
 }) {
   const scrollContainerElement = ref(null)
   const resizeObserver = ref(null)
@@ -236,7 +237,9 @@ export function useRealtimeChat({
     userChannelName.value = `assignment-chat-user.${resolvedCurrentUserId}`
     userChannel.value = echo.private(userChannelName.value)
     userChannel.value.listen('.assignment-chat.message.created', (payload) => {
-      void safelyRunHandler(onMessage, payload).catch(() => {})
+      void safelyRunHandler(onMessage, payload).catch((err) => {
+        onListenerError(err)
+      })
     })
   }
 
@@ -255,7 +258,9 @@ export function useRealtimeChat({
     activeChannelName.value = `assignment-chat.${threadId}`
     activeChannel.value = echo.private(activeChannelName.value)
     activeChannel.value.listen('.assignment-chat.message.created', (payload) => {
-      void safelyRunHandler(onMessage, payload).catch(() => {})
+      void safelyRunHandler(onMessage, payload).catch((err) => {
+        onListenerError(err)
+      })
     })
   }
 

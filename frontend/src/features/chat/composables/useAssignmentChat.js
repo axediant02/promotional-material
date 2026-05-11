@@ -41,6 +41,9 @@ export function useAssignmentChat(props, options = {}) {
     currentUserId: props.currentUserId,
     stickToBottom,
     isNearBottom,
+    onListenerError: (err) => {
+      error.value = err?.message ?? 'Unable to process a chat update.'
+    },
   })
 
   const {
