@@ -2,21 +2,15 @@
  * Shared composable for assignment chat functionality.
  * Consolidates logic used by AssignmentChatPanel and ClientChatDrawer.
  */
-import Echo from 'laravel-echo'
-import Pusher from 'pusher-js'
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import {
   fetchChatThread,
   fetchChatThreads,
   markChatThreadAsRead,
   sendChatMessage,
 } from '../../../services/chatService'
-
-const DEFAULT_REVERB_APP_KEY = 'promotional-materials-key'
-const DEFAULT_REVERB_HOST = '127.0.0.1'
-const DEFAULT_REVERB_PORT = 8080
-const DEFAULT_REVERB_SCHEME = 'http'
-const SCROLL_BOTTOM_THRESHOLD = 48
+import { normalizeMessage, normalizeThread, formatTimestamp, formatThreadStatus } from './chatNormalization'
+import { useRealtimeChat } from './realtimeChat'
 
 export function useAssignmentChat(props, options = {}) {
   const {
@@ -25,7 +19,6 @@ export function useAssignmentChat(props, options = {}) {
     scrollContainerRef = null,
   } = options
 
-  // Refs
   const loading = ref(false)
   const threadLoading = ref(false)
   const error = ref('')
@@ -36,252 +29,31 @@ export function useAssignmentChat(props, options = {}) {
   const sending = ref(false)
   const stickToBottom = ref(false)
   const isNearBottom = ref(true)
-  const scrollContainerElement = ref(null)
-  const resizeObserver = ref(null)
-  const scrollFrameId = ref(null)
-  const echoInstance = ref(null)
-  const activeChannel = ref(null)
-  const activeChannelName = ref('')
-  const userChannel = ref(null)
-  const userChannelName = ref('')
 
-  // Computed
   const activeThreads = computed(() => threads.value.filter((thread) => thread.status === 'active'))
   const archivedThreads = computed(() => threads.value.filter((thread) => thread.status === 'archived'))
   const selectedThread = computed(() => threads.value.find((thread) => thread.thread_id === selectedThreadId.value) ?? null)
   const showThreadList = computed(() => threads.value.length > 1)
   const selectedThreadArchived = computed(() => selectedThread.value?.status === 'archived')
 
-  // Echo setup helpers
-  const resolveBroadcastAuthEndpoint = () => {
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api'
-    return apiUrl.replace(/\/$/, '') + '/broadcasting/auth'
-  }
-
-  const ensureEcho = () => {
-    const token = localStorage.getItem('pm_token')
-
-    if (!token) {
-      return null
-    }
-
-    if (echoInstance.value) {
-      return echoInstance.value
-    }
-
-    window.Pusher = Pusher
-
-    const scheme = import.meta.env.VITE_REVERB_SCHEME ?? DEFAULT_REVERB_SCHEME
-    const host = import.meta.env.VITE_REVERB_HOST ?? DEFAULT_REVERB_HOST
-    const port = Number(import.meta.env.VITE_REVERB_PORT ?? DEFAULT_REVERB_PORT)
-
-    echoInstance.value = new Echo({
-      broadcaster: 'reverb',
-      key: import.meta.env.VITE_REVERB_APP_KEY ?? DEFAULT_REVERB_APP_KEY,
-      wsHost: host,
-      wsPort: port,
-      wssPort: port,
-      forceTLS: scheme === 'https',
-      enabledTransports: ['ws', 'wss'],
-      authEndpoint: resolveBroadcastAuthEndpoint(),
-      auth: {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    })
-
-    return echoInstance.value
-  }
-
-  const leaveActiveThreadChannel = () => {
-    if (activeChannel.value && activeChannelName.value) {
-      echoInstance.value?.leave(activeChannelName.value)
-      activeChannel.value = null
-      activeChannelName.value = ''
-    }
-  }
-
-  const disconnectRealtime = () => {
-    leaveActiveThreadChannel()
-
-    if (userChannel.value && userChannelName.value) {
-      echoInstance.value?.leave(userChannelName.value)
-      userChannel.value = null
-      userChannelName.value = ''
-    }
-
-    if (echoInstance.value) {
-      echoInstance.value.disconnect()
-      echoInstance.value = null
-    }
-  }
-
-  // Scroll controller
-  const getScrollContainer = () => scrollContainerRef?.value ?? null
-
-  const cancelScrollFrame = () => {
-    if (scrollFrameId.value === null || typeof window === 'undefined') {
-      return
-    }
-
-    window.cancelAnimationFrame(scrollFrameId.value)
-    scrollFrameId.value = null
-  }
-
-  const measureScrollProximity = (container = getScrollContainer()) => {
-    if (!container) {
-      isNearBottom.value = true
-      return true
-    }
-
-    const distanceFromBottom = container.scrollHeight - container.clientHeight - container.scrollTop
-    const nearBottom = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD
-
-    isNearBottom.value = nearBottom
-    return nearBottom
-  }
-
-  const scrollContainerToBottom = (container = getScrollContainer()) => {
-    if (!container) {
-      return false
-    }
-
-    container.scrollTop = container.scrollHeight
-    measureScrollProximity(container)
-    return true
-  }
-
-  const requestScrollToBottom = async ({ force = false } = {}) => {
-    const container = getScrollContainer()
-    const shouldScroll = force || stickToBottom.value || (container ? measureScrollProximity(container) : false)
-
-    if (!shouldScroll) {
-      return
-    }
-
-    if (force) {
-      stickToBottom.value = true
-    }
-
-    await nextTick()
-
-    const applyScroll = () => {
-      const latestContainer = getScrollContainer()
-      if (!latestContainer || (!force && !stickToBottom.value)) {
-        return
-      }
-
-      scrollContainerToBottom(latestContainer)
-    }
-
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      cancelScrollFrame()
-      scrollFrameId.value = window.requestAnimationFrame(() => {
-        scrollFrameId.value = null
-        applyScroll()
-      })
-      return
-    }
-
-    applyScroll()
-  }
-
-  const handleScroll = () => {
-    const nearBottom = measureScrollProximity()
-    stickToBottom.value = nearBottom
-  }
-
-  const detachScrollTracking = () => {
-    cancelScrollFrame()
-
-    if (scrollContainerElement.value) {
-      scrollContainerElement.value.removeEventListener('scroll', handleScroll)
-      scrollContainerElement.value = null
-    }
-
-    if (resizeObserver.value) {
-      resizeObserver.value.disconnect()
-      resizeObserver.value = null
-    }
-  }
-
-  const attachScrollTracking = (container) => {
-    if (scrollContainerElement.value === container) {
-      return
-    }
-
-    detachScrollTracking()
-
-    if (!container) {
-      return
-    }
-
-    scrollContainerElement.value = container
-    container.addEventListener('scroll', handleScroll, { passive: true })
-    measureScrollProximity(container)
-
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver.value = new ResizeObserver(() => {
-        if (stickToBottom.value) {
-          void requestScrollToBottom({ force: true })
-        }
-      })
-
-      resizeObserver.value.observe(container)
-    }
-
-    if (stickToBottom.value) {
-      void requestScrollToBottom({ force: true })
-    }
-  }
-
-  // Normalizers
-  const normalizeMessage = (message) => ({
-    message_id: message?.message_id ?? '',
-    thread_id: message?.thread_id ?? '',
-    sender_user_id: message?.sender_user_id ?? '',
-    sender_name: message?.sender_name ?? 'User',
-    sender_role: message?.sender_role ?? '',
-    body: message?.body ?? '',
-    created_at: message?.created_at ?? new Date().toISOString(),
-    is_own_message: message?.sender_user_id === props.currentUserId,
+  const realtime = useRealtimeChat({
+    scrollContainerRef,
+    currentUserId: props.currentUserId,
+    stickToBottom,
+    isNearBottom,
   })
 
-  const normalizeThread = (thread) => ({
-    thread_id: thread?.thread_id ?? '',
-    client_id: thread?.client_id ?? '',
-    production_id: thread?.production_id ?? '',
-    status: thread?.status ?? 'active',
-    started_at: thread?.started_at ?? null,
-    closed_at: thread?.closed_at ?? null,
-    last_message_at: thread?.last_message_at ?? null,
-    unread_count: Number(thread?.unread_count ?? 0),
-    last_message_preview: thread?.last_message_preview ?? '',
-    counterpart: thread?.counterpart ?? null,
-    messages: (thread?.messages ?? []).map(normalizeMessage),
-  })
+  const {
+    leaveActiveThreadChannel,
+    disconnectRealtime,
+    requestScrollToBottom,
+    subscribeToUserChat,
+    subscribeToThread,
+    cleanup: cleanupRealtime,
+  } = realtime
 
-  // Formatters
-  const formatTimestamp = (value) => {
-    if (!value) {
-      return 'Just now'
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(value))
-  }
-
-  const formatThreadStatus = (value) => (value === 'archived' ? 'Archived' : 'Active')
-
-  // Thread management
   const upsertThread = (incomingThread) => {
-    const normalized = normalizeThread(incomingThread)
+    const normalized = normalizeThread(incomingThread, props.currentUserId)
     const hasMessagePayload = Object.prototype.hasOwnProperty.call(incomingThread ?? {}, 'messages')
       && Array.isArray(incomingThread.messages)
     const nextThreads = [...threads.value]
@@ -347,7 +119,6 @@ export function useAssignmentChat(props, options = {}) {
       ?? ''
   }
 
-  // API calls
   const loadThreads = async (options = {}) => {
     const { autoSelect = true } = options
 
@@ -415,7 +186,7 @@ export function useAssignmentChat(props, options = {}) {
       return
     }
 
-    const incomingMessage = normalizeMessage(payload.message)
+    const incomingMessage = normalizeMessage(payload.message, props.currentUserId)
     const threadId = payload.thread_id ?? incomingMessage.thread_id
     const shouldAutoScroll = stickToBottom.value || isNearBottom.value
     const currentThread = await ensurePayloadThread(threadId)
@@ -444,42 +215,6 @@ export function useAssignmentChat(props, options = {}) {
     }
   }
 
-  const subscribeToUserChat = () => {
-    if (userChannel.value) {
-      return
-    }
-
-    const echo = ensureEcho()
-    if (!echo || !props.currentUserId) {
-      return
-    }
-
-    userChannelName.value = `assignment-chat-user.${props.currentUserId}`
-    userChannel.value = echo.private(userChannelName.value)
-    userChannel.value.listen('.assignment-chat.message.created', (payload) => {
-      void handleIncomingMessagePayload(payload).catch(() => {})
-    })
-  }
-
-  const subscribeToThread = (threadId) => {
-    leaveActiveThreadChannel()
-
-    if (!threadId) {
-      return
-    }
-
-    const echo = ensureEcho()
-    if (!echo) {
-      return
-    }
-
-    activeChannelName.value = `assignment-chat.${threadId}`
-    activeChannel.value = echo.private(activeChannelName.value)
-    activeChannel.value.listen('.assignment-chat.message.created', (payload) => {
-      void handleIncomingMessagePayload(payload).catch(() => {})
-    })
-  }
-
   const loadSelectedThread = async (threadId) => {
     if (!threadId) {
       return
@@ -488,7 +223,7 @@ export function useAssignmentChat(props, options = {}) {
     threadLoading.value = true
     sendError.value = ''
 
-    subscribeToThread(threadId)
+    subscribeToThread(threadId, handleIncomingMessagePayload)
 
     try {
       const response = await fetchChatThread(threadId)
@@ -523,7 +258,7 @@ export function useAssignmentChat(props, options = {}) {
 
     try {
       const response = await sendChatMessage(selectedThread.value.thread_id, { body })
-      const message = normalizeMessage(response.data.data.message)
+      const message = normalizeMessage(response.data.data.message, props.currentUserId)
       const currentThread = selectedThread.value
 
       upsertMessageIntoThread(currentThread, message)
@@ -546,18 +281,15 @@ export function useAssignmentChat(props, options = {}) {
     }
   }
 
-  // Lifecycle
   const initialize = () => {
-    subscribeToUserChat()
+    subscribeToUserChat(handleIncomingMessagePayload)
     void loadThreads()
   }
 
   const cleanup = () => {
-    detachScrollTracking()
-    disconnectRealtime()
+    cleanupRealtime()
   }
 
-  // Watches
   watch(
     () => props.preferredClientId,
     () => {
@@ -582,14 +314,6 @@ export function useAssignmentChat(props, options = {}) {
   )
 
   watch(
-    () => scrollContainerRef?.value,
-    (container) => {
-      attachScrollTracking(container)
-    },
-    { immediate: true, flush: 'post' }
-  )
-
-  watch(
     () => selectedThread.value?.messages?.length ?? 0,
     (newLength, oldLength) => {
       if (newLength === oldLength || !selectedThread.value) {
@@ -604,13 +328,11 @@ export function useAssignmentChat(props, options = {}) {
     { flush: 'post' }
   )
 
-  // Auto-cleanup on unmount
   onBeforeUnmount(() => {
     cleanup()
   })
 
   return {
-    // State
     threads,
     selectedThreadId,
     selectedThread,
@@ -624,8 +346,6 @@ export function useAssignmentChat(props, options = {}) {
     activeThreads,
     archivedThreads,
     showThreadList,
-
-    // Methods
     loadThreads,
     loadSelectedThread,
     openThread,
@@ -635,19 +355,16 @@ export function useAssignmentChat(props, options = {}) {
     initialize,
     cleanup,
     selectBestThread,
-
-    // Utilities
     normalizeMessage,
     normalizeThread,
     formatTimestamp,
     formatThreadStatus,
     upsertThread,
     upsertMessageIntoThread,
-
-    // Echo
     subscribeToUserChat,
     subscribeToThread,
-    ensureEcho,
+    ensureEcho: realtime.ensureEcho,
     disconnectRealtime,
+    leaveActiveThreadChannel,
   }
 }
