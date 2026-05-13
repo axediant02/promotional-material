@@ -10,7 +10,7 @@ Vue client for the Promotional Materials Portal.
 - API consumption through shared services
 
 ## Current flow notes
-- public entry redirects `/` to `/login`
+- public entry is the landing page at `/`
 - sign-in is `/login`
 - registration creates the account immediately, and the first request creates the assigned folder
 - admin governs assignments and due dates

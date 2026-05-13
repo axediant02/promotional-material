@@ -47,7 +47,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
   - `/agent`
   - `/production`
   - `/client`
-- Document `/admin-new` and `/agent-new` only as compatibility redirects while any remaining legacy references are cleaned up.
+- Treat `/admin-new` and `/agent-new` as legacy compatibility URLs in docs and cleanup notes only; do not describe them as current SPA router entries.
 - Keep the file portal stable while the request, assignment, and role-management workflows are completed.
 
 ## Shared Rules
@@ -99,7 +99,7 @@ Root coordination guide for the Promotional Materials Portal. Use this file for 
 - 2026-04-20: Docs must distinguish schema readiness from product readiness.
 - 2026-04-22: Agreed role ownership is now explicit: admin handles admin management and assignment, production handles uploads and assigned-client execution, agents and clients can download files, and agents stay outside the request module.
 - 2026-04-23: Team TDD rule is to keep newly written approval tests fixed and adjust implementation instead of weakening the test after it fails.
-- 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` remain only as compatibility redirects in docs and routing.
+- 2026-04-24: `/admin` and `/agent` are the canonical frontend role routes. `/admin-new` and `/agent-new` are legacy compatibility URLs referenced in docs during cleanup, not current SPA router entries.
 - 2026-04-24: In-app notifications are now persisted in the database and delivered in realtime through Reverb/Echo for admin request intake, production assignments, and client due-date or status changes.
 - 2026-05-04: Assignment chat is now part of the live workflow for assigned client/production pairs and should be documented as a current feature, not planned work.
 

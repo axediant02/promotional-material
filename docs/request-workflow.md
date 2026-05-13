@@ -120,7 +120,7 @@ Assignments live at the client level, not the individual request level.
 - The request queue supports inline due-date editing.
 - Saving a due date updates the request queue and admin counts from the live API response.
 - Assignment management uses the live admin assignment routes instead of static placeholder data.
-- `/admin-new` remains only as a compatibility redirect to `/admin`.
+- `/admin-new` is a legacy compatibility URL referenced during cleanup, but it is not a current SPA router entry.
 
 ## Operational notes
 - Registration does not create a folder.

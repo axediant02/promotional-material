@@ -27,7 +27,7 @@ This folder contains the maintained implementation references for the portal.
 - Registration creates a `client` account immediately.
 - The first client request creates the assigned folder if it does not already exist.
 - Admin management runs through `/admin` and the `/admin/*` request, assignment, role, and activity endpoints.
-- `/admin-new` and `/agent-new` remain documented only as compatibility redirects to the canonical `/admin` and `/agent` routes.
+- `/admin-new` and `/agent-new` are legacy compatibility URLs that remain in cleanup notes, but they are not current SPA router entries.
 - Production execution runs through the nested `/production` workspace.
 - Assignment chat is part of the live client and production dashboard experience for assignment-linked threads.
 

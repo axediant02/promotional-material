@@ -25,9 +25,6 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `/agent`
   - `/production`
   - `/client`
-- Compatibility redirects remain for:
-  - `/admin-new`
-  - `/agent-new`
 - The router also contains the nested production shell:
   - `/production` shell with nested production folder workspace routes
 - Current default redirects in the auth store:
@@ -96,9 +93,9 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
   - `/production`
   - `/production/folders`
   - `/production/folders/:folderId`
-- Compatibility redirects:
-  - `/agent-new`
+- Legacy compatibility URLs:
   - `/admin-new`
+  - `/agent-new`
 
 ## Styling Rules
 - Reuse the current visual language first: rounded panels, soft shadows, slate/orange palette, Tailwind utilities.
@@ -146,7 +143,7 @@ The frontend owns public entry screens, auth UX, routing, role-based dashboards,
 - 2026-04-17: Some screens still rely on compatibility payload fields during contract migration.
 - 2026-04-21: Client request submission now targets the live `POST /requests` route.
 - 2026-04-22: Registration creates the client account first, and the first submitted request creates the assigned folder.
-- 2026-04-21: The production shell route remains nested at `/production`, while `/agent-new` and `/admin-new` are compatibility redirects to canonical role routes.
+- 2026-04-21: The production shell route remains nested at `/production`; `/agent-new` and `/admin-new` are legacy compatibility URLs referenced during cleanup, not current SPA router entries.
 - 2026-04-22: Agreed UI role model is now admin management, production execution, agent download-only operational access, and client own-folder request and download access.
 - 2026-04-23: The production shell now keeps sidebar/topbar stable while nested folder routes swap only the folder workspace section.
 - 2026-04-24: `/admin` and `/agent` are the canonical frontend entry routes reflected in the live router and auth-store defaults.

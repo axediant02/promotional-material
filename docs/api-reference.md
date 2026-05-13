@@ -381,6 +381,7 @@ Most endpoints return:
 
 ## Realtime delivery
 - In-app notifications are stored in the database and broadcast over Laravel Reverb private channels.
-- Frontend subscriptions use Echo on user-scoped channels in the form `users.{user_id}.notifications`.
+- Frontend subscriptions currently use Echo on user-scoped channels in the form `App.Models.User.{user_id}`.
+- The backend channel auth layer also recognizes `users.{id}.notifications` and `private-App.Models.User.{id}` as compatibility channel names.
 - Assignment chat uses private thread channels in the form `assignment-chat.{thread_id}` and private user channels in the form `assignment-chat-user.{user_id}`.
 - The broadcast auth endpoint used by Echo is `POST /broadcasting/auth`.
